@@ -7,7 +7,6 @@ import { getInitials } from '@/lib/utils'
 interface TopBarProps {
     user: User
     isConnected: boolean
-    isDarkMode: boolean
     onSettingsClick: () => void
     onCreateGroupClick: () => void
     onSearchClick: () => void
@@ -17,7 +16,6 @@ interface TopBarProps {
 const TopBar = ({
     user,
     isConnected,
-    isDarkMode,
     onSettingsClick,
     onCreateGroupClick,
     onSearchClick,

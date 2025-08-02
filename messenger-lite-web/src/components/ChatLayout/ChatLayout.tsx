@@ -5,7 +5,6 @@ import { demoUser } from '../../../data/demoUser'
 
 const ChatLayout = () => {
     const isConnected = true
-    const isDarkMode = false
     const onSettingsClick = () => { }
     const onLogout = () => { }
 
@@ -18,7 +17,7 @@ const ChatLayout = () => {
             <TopBar
                 user={demoUser}
                 isConnected={isConnected}
-                isDarkMode={isDarkMode}
+
                 onSettingsClick={() => setShowSettings(true)}
                 onCreateGroupClick={() => setShowCreateGroup(true)}
                 onSearchClick={() => setShowSearch(true)}
