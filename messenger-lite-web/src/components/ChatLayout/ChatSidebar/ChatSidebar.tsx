@@ -5,6 +5,8 @@ import { Chat } from '../../../../types/ChatType'
 import { Hash, MessageCircle, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { getInitials } from '@/lib/utils'
+import Image from 'next/image'
+import { DummyAvatar, dummyGroupAvatar } from '@/assets/image'
 interface ChatSidebarProps {
     users: User[]
     groups: Group[]
@@ -54,8 +56,15 @@ const ChatSidebar = ({ users, groups, selectedChat, onChatSelect }: ChatSidebarP
                                     }`}
                             >
                                 <div
-                                    className={`w-10 h-10 ${group.avatar} rounded-full flex items-center justify-center text-white mr-3`}
+                                    className={`w-10 h-10 rounded-full flex items-center justify-center text-white mr-3`}
                                 >
+                                    <Image
+                                        src={dummyGroupAvatar}
+                                        alt={group?.name}
+                                        width={40}
+                                        height={40}
+                                        className="w-10 h-10 rounded-full object-cover"
+                                    />
                                     <Hash className="w-5 h-5" />
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -83,8 +92,17 @@ const ChatSidebar = ({ users, groups, selectedChat, onChatSelect }: ChatSidebarP
                         >
                             <div className="relative">
                                 <div
-                                    className={`w-10 h-10 ${user?.avatar} rounded-full flex items-center justify-center text-white mr-3`}
+                                    className={`w-10 h-10 rounded-full flex items-center justify-center text-white mr-3`}
                                 >
+                                    <div className="">
+                                        <Image
+                                            src={DummyAvatar}
+                                            alt={user?.username}
+                                            width={40}
+                                            height={40}
+                                            className="w-10 h-10 rounded-full object-cover"
+                                        />
+                                    </div>
                                     {getInitials(user?.username)}
                                 </div>
                                 <div
