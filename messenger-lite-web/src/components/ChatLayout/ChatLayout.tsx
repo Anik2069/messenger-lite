@@ -6,8 +6,8 @@ import { demoGroups } from '../../../data/GroupList'
 import ChatSidebar from './ChatSidebar/ChatSidebar'
 import Navbar from './Navbar/Navbar'
 import ChatWindow from './ChatWindow/ChatWindow'
-import { Message, FileData, Reaction, ForwardedData } from '../../../types/MessageType'
-import { Chat } from '../../../types/ChatType'
+import { Message, FileData, Reaction, ForwardedData } from '../../types/MessageType'
+import { Chat } from '../../types/ChatType'
 import { demoMessages } from '../../../data/demoMessage'
 
 declare global {

@@ -1,5 +1,5 @@
 import React from 'react'
-import { User } from '../../../../types/UserType'
+import { User } from '../../../types/UserType'
 import { LogOut, MessageSquare, Plus, Search, Settings, Wifi, WifiOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getInitials } from '@/lib/utils'

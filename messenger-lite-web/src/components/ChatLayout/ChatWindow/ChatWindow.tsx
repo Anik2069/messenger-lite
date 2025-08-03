@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useRef, useState } from 'react'
-import { User } from '../../../../types/UserType'
-import { Chat } from '../../../../types/ChatType'
-import { FileData, Message } from '../../../../types/MessageType'
+import { User } from '../../../types/UserType'
+import { Chat } from '../../../types/ChatType'
+import { FileData, Message } from '../../../types/MessageType'
 import { Button } from '@/components/ui/button'
 import { Download, FileText, Forward, MessageCircle, Paperclip, Send, Smile } from 'lucide-react'
 import { Input } from '@/components/ui/input'
