@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input'
 import { formatFileSize, formatTime, getInitials } from '@/lib/utils'
 import Image from 'next/image'
 
-
 interface ChatWindowProps {
     currentUser: User
     selectedChat: Chat | null
@@ -19,11 +18,9 @@ interface ChatWindowProps {
     onAddReaction: (messageId: string, emoji: string) => void
     onTypingStart: () => void
     onTypingStop: () => void
-
 }
 
 const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "😡"]
-
 
 const ChatWindow = ({ currentUser, selectedChat, messages, otherUserTyping, onSendMessage, onAddReaction, onTypingStart, onTypingStop }: ChatWindowProps) => {
     const [message, setMessage] = useState("")
@@ -46,44 +43,42 @@ const ChatWindow = ({ currentUser, selectedChat, messages, otherUserTyping, onSe
     }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setMessage(e.target.value)
-
+        setMessage(e.target.value);
         if (e.target.value.trim() && selectedChat) {
-            onTypingStart()
-
+            onTypingStart();
             if (typingTimeoutRef.current) {
-                clearTimeout(typingTimeoutRef.current)
+                clearTimeout(typingTimeoutRef.current);
             }
-
             typingTimeoutRef.current = setTimeout(() => {
-                onTypingStop()
-            }, 2000)
-        } else if (!e.target.value.trim()) {
-            onTypingStop()
+                onTypingStop();
+            }, 2000);
+        } else {
+            onTypingStop();
         }
-    }
+    };
+
+    useEffect(() => {
+        return () => {
+            onTypingStop();
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
 
-        const formData = new FormData()
-        formData.append("file", file)
+        const fileData: FileData = {
+            url: URL.createObjectURL(file),
+            originalName: file.name,
+            filename: file.name, // Add filename property
+            size: file.size,
+            mimetype: file.type
+        }
 
-        fetch("/api/upload", {
-            method: "POST",
-            body: formData,
-        })
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.success) {
-                    onSendMessage(`Shared a file: ${data.file.originalName}`, "file", data.file)
-                }
-            })
-            .catch((error) => {
-                console.error("Upload error:", error)
-            })
-
+        onSendMessage(`Shared a file: ${file.name}`, "file", fileData)
         e.target.value = ""
     }
 
@@ -103,10 +98,11 @@ const ChatWindow = ({ currentUser, selectedChat, messages, otherUserTyping, onSe
                 {isImage ? (
                     <div className="relative max-w-xs">
                         <Image
-                            src={fileData.url || "/placeholder.svg"}
+                            src={fileData.url}
                             alt={fileData.originalName}
+                            width={200}
+                            height={200}
                             className="rounded-lg shadow-sm"
-                            loading="lazy"
                         />
                         <a
                             href={fileData.url}
@@ -136,14 +132,6 @@ const ChatWindow = ({ currentUser, selectedChat, messages, otherUserTyping, onSe
         )
     }
 
-    useEffect(() => {
-        return () => {
-            if (typingTimeoutRef.current) {
-                clearTimeout(typingTimeoutRef.current)
-            }
-        }
-    }, [])
-
     if (!selectedChat) {
         return (
             <div className="h-full flex items-center justify-center">
@@ -158,7 +146,6 @@ const ChatWindow = ({ currentUser, selectedChat, messages, otherUserTyping, onSe
 
     return (
         <div className="h-full flex flex-col">
-            {/* Chat Header */}
             <div className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 flex items-center">
                 <div
                     className={`w-10 h-10 ${selectedChat.avatar || "bg-blue-500"} rounded-full flex items-center justify-center text-white mr-3`}
@@ -173,7 +160,6 @@ const ChatWindow = ({ currentUser, selectedChat, messages, otherUserTyping, onSe
                 </div>
             </div>
 
-            {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.length === 0 && !otherUserTyping && (
                     <div className="text-center py-12">
@@ -193,12 +179,10 @@ const ChatWindow = ({ currentUser, selectedChat, messages, otherUserTyping, onSe
                                         : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-md"
                                         }`}
                                 >
-                                    {/* Group message sender */}
                                     {selectedChat.type === "group" && !isOwnMessage && (
                                         <p className="text-xs font-medium mb-1 opacity-75">{msg.from}</p>
                                     )}
 
-                                    {/* Forwarded indicator */}
                                     {msg.messageType === "forwarded" && (
                                         <div className="text-xs opacity-75 mb-1 flex items-center">
                                             <Forward className="w-3 h-3 mr-1" />
@@ -208,7 +192,6 @@ const ChatWindow = ({ currentUser, selectedChat, messages, otherUserTyping, onSe
 
                                     <p className="text-sm leading-relaxed">{msg.message}</p>
 
-                                    {/* File attachment */}
                                     {msg.messageType === "file" && msg.fileData && renderFileMessage(msg.fileData)}
 
                                     <div className="flex items-center justify-between mt-1">
@@ -217,7 +200,6 @@ const ChatWindow = ({ currentUser, selectedChat, messages, otherUserTyping, onSe
                                         </p>
                                     </div>
 
-                                    {/* Action buttons */}
                                     <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
                                         <button
                                             onClick={() => setShowReactions(showReactions === msg.id ? null : msg.id)}
@@ -230,7 +212,6 @@ const ChatWindow = ({ currentUser, selectedChat, messages, otherUserTyping, onSe
                                         </button>
                                     </div>
 
-                                    {/* Reaction picker */}
                                     {showReactions === msg.id && (
                                         <div className="absolute top-8 right-0 bg-white dark:bg-gray-600 border dark:border-gray-500 rounded-lg shadow-lg p-2 flex space-x-1 z-10">
                                             {REACTION_EMOJIS.map((emoji) => (
@@ -249,7 +230,6 @@ const ChatWindow = ({ currentUser, selectedChat, messages, otherUserTyping, onSe
                                     )}
                                 </div>
 
-                                {/* Reactions display */}
                                 {msg.reactions && msg.reactions.length > 0 && (
                                     <div className="flex flex-wrap gap-1 mt-1">
                                         {Object.entries(
@@ -274,8 +254,7 @@ const ChatWindow = ({ currentUser, selectedChat, messages, otherUserTyping, onSe
                     )
                 })}
 
-                {/* Typing Indicator */}
-                {otherUserTyping && (
+                {otherUserTyping && otherUserTyping !== currentUser.username && (
                     <div className="flex justify-start">
                         <div className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-2xl rounded-bl-md px-4 py-2 max-w-xs">
                             <div className="flex items-center space-x-2">
@@ -299,7 +278,6 @@ const ChatWindow = ({ currentUser, selectedChat, messages, otherUserTyping, onSe
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Message Input */}
             <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
                 <form onSubmit={handleSendMessage} className="flex items-center space-x-3">
                     <input
