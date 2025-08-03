@@ -5,6 +5,7 @@ import { users } from '../../../data/userList'
 import { demoGroups } from '../../../data/GroupList'
 import ChatSidebar from './ChatSidebar/ChatSidebar'
 import Navbar from './Navbar/Navbar'
+import ChatWindow from './ChatWindow/ChatWindow'
 
 const ChatLayout = () => {
     const isConnected = true
@@ -16,6 +17,19 @@ const ChatLayout = () => {
     const [showSearch, setShowSearch] = useState(false)
 
     const onChatSelect = () => { }
+
+    // =============================
+
+    const [user, setUser] = useState(demoUser)
+    const [selectedChat, setSelectedChat] = useState(null)
+    const [messages, setMessages] = useState([])
+    const [otherUserTyping, setOtherUserTyping] = useState(null)
+
+    const onSendMessage = () => { }
+    const onAddReaction = () => { }
+    const onTypingStart = () => { }
+    const onTypingStop = () => { }
+
 
     return (
         <div className='`h-screen flex flex-col bg-gray-50 dark:bg-gray-900'>
@@ -38,7 +52,19 @@ const ChatLayout = () => {
                         onChatSelect={onChatSelect}
                     />
                 </div>
-                <div className="flex-1 bg-white dark:bg-gray-900"></div>
+                <div className="flex-1 bg-white dark:bg-gray-900">
+                    <ChatWindow
+                        currentUser={user}
+                        selectedChat={selectedChat}
+                        messages={messages}
+                        otherUserTyping={otherUserTyping}
+                        onSendMessage={onSendMessage}
+                        onAddReaction={onAddReaction}
+                        onTypingStart={onTypingStart}
+                        onTypingStop={onTypingStop}
+
+                    />
+                </div>
             </div>
         </div>
     )
