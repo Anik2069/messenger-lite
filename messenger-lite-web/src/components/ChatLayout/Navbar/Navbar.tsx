@@ -4,7 +4,7 @@ import { LogOut, MessageSquare, Plus, Search, Settings, Wifi, WifiOff } from 'lu
 import { Button } from '@/components/ui/button'
 import { getInitials } from '@/lib/utils'
 
-interface TopBarProps {
+interface NavbarProps {
     user: User
     isConnected: boolean
     onSettingsClick: () => void
@@ -13,14 +13,14 @@ interface TopBarProps {
     onLogout: () => void
 }
 
-const TopBar = ({
+const Navbar = ({
     user,
     isConnected,
     onSettingsClick,
     onCreateGroupClick,
     onSearchClick,
     onLogout,
-}: TopBarProps) => {
+}: NavbarProps) => {
     return (
         <div className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 flex items-center justify-between">
             {/* Left side - Brand */}
@@ -75,4 +75,4 @@ const TopBar = ({
     )
 }
 
-export default TopBar
+export default Navbar

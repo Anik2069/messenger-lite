@@ -1,10 +1,10 @@
 "use client"
 import React, { useState } from 'react'
-import TopBar from './TopBar/TopBar'
 import { demoUser } from '../../../data/demoUser'
 import { users } from '../../../data/userList'
 import { demoGroups } from '../../../data/GroupList'
 import ChatSidebar from './ChatSidebar/ChatSidebar'
+import Navbar from './Navbar/Navbar'
 
 const ChatLayout = () => {
     const isConnected = true
@@ -19,7 +19,7 @@ const ChatLayout = () => {
 
     return (
         <div className='`h-screen flex flex-col bg-gray-50 dark:bg-gray-900'>
-            <TopBar
+            <Navbar
                 user={demoUser}
                 isConnected={isConnected}
 
