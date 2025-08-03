@@ -6,6 +6,7 @@ import { demoGroups } from '../../../data/GroupList'
 import ChatSidebar from './ChatSidebar/ChatSidebar'
 import Navbar from './Navbar/Navbar'
 import ChatWindow from './ChatWindow/ChatWindow'
+import { Chat } from '../../../types/ChatType'
 
 const ChatLayout = () => {
     const isConnected = true
@@ -16,14 +17,19 @@ const ChatLayout = () => {
     const [showCreateGroup, setShowCreateGroup] = useState(false)
     const [showSearch, setShowSearch] = useState(false)
 
-    const onChatSelect = () => { }
+    const [user, setUser] = useState(demoUser)
+    const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
+    const [messages, setMessages] = useState([])
+    const [otherUserTyping, setOtherUserTyping] = useState(null)
+
+    const onChatSelect = (chat: Chat) => {
+        setSelectedChat(chat)
+        setMessages([])
+    }
 
     // =============================
 
-    const [user, setUser] = useState(demoUser)
-    const [selectedChat, setSelectedChat] = useState(null)
-    const [messages, setMessages] = useState([])
-    const [otherUserTyping, setOtherUserTyping] = useState(null)
+
 
     const onSendMessage = () => { }
     const onAddReaction = () => { }
@@ -32,7 +38,7 @@ const ChatLayout = () => {
 
 
     return (
-        <div className='`h-screen flex flex-col bg-gray-50 dark:bg-gray-900'>
+        <div className='h-screen flex flex-col bg-gray-50 dark:bg-gray-900'>
             <Navbar
                 user={demoUser}
                 isConnected={isConnected}
