@@ -28,4 +28,4 @@ export const toastInfo = (msg) => toast.info(msg, { transition: Bounce });
 
 export const toastWarn = (msg) => toast.warn(msg, { transition: Bounce });
 
-export const toast = (msg) => toast(msg, { transition: Bounce });
+export const toastDefault = (msg) => toast(msg, { transition: Bounce });

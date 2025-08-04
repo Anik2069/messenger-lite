@@ -3,7 +3,7 @@ export interface Group {
   name: string;
   description: string;
   members: string[];
-  admin: string;
+  admin: string[];
   avatar: string;
   createdAt: Date;
 }

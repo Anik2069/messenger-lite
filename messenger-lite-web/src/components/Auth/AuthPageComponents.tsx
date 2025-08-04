@@ -8,7 +8,7 @@ const AuthPageComponents = () => {
 
     }
 
-    const onRegister = (username: string, password: string) => {
+    const onRegister = (email: string, username: string, password: string) => {
 
     }
 
