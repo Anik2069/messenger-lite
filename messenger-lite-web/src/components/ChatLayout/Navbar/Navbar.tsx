@@ -3,12 +3,12 @@ import { User } from '../../../types/UserType'
 import { LogOut, MessageSquare, Plus, Search, Settings, Wifi, WifiOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getInitials } from '@/lib/utils'
+import { useGlobalContext } from '@/provider/GlobalContextProvider'
 
 interface NavbarProps {
     user: User
     isConnected: boolean
     onSettingsClick: () => void
-    onCreateGroupClick: () => void
     onSearchClick: () => void
     onLogout: () => void
 }
@@ -17,10 +17,17 @@ const Navbar = ({
     user,
     isConnected,
     onSettingsClick,
-    onCreateGroupClick,
     onSearchClick,
     onLogout,
 }: NavbarProps) => {
+
+    const { newDrawerOpen, newDrawerIsOpen, newDrawerClose } = useGlobalContext()
+
+    const handleClickNew = () => {
+        newDrawerOpen()
+    }
+
+
     return (
         <div className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 flex items-center justify-between">
             {/* Left side - Brand */}
@@ -52,7 +59,7 @@ const Navbar = ({
                     <Search className="w-4 h-4" />
                 </Button>
 
-                <Button variant="ghost" size="sm" onClick={onCreateGroupClick}>
+                <Button variant="ghost" size="sm" onClick={handleClickNew}>
                     <Plus className="w-4 h-4" />
                 </Button>
 
