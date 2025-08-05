@@ -8,7 +8,6 @@ import { useGlobalContext } from '@/provider/GlobalContextProvider'
 interface NavbarProps {
     user: User
     isConnected: boolean
-    onSettingsClick: () => void
     onSearchClick: () => void
     onLogout: () => void
 }
@@ -16,12 +15,11 @@ interface NavbarProps {
 const Navbar = ({
     user,
     isConnected,
-    onSettingsClick,
     onSearchClick,
     onLogout,
 }: NavbarProps) => {
 
-    const { newDrawerOpen, newDrawerIsOpen, newDrawerClose } = useGlobalContext()
+    const { newDrawerOpen, settingModalOpen } = useGlobalContext()
 
     const handleClickNew = () => {
         newDrawerOpen()
@@ -63,7 +61,7 @@ const Navbar = ({
                     <Plus className="w-4 h-4" />
                 </Button>
 
-                <Button variant="ghost" size="sm" onClick={onSettingsClick}>
+                <Button variant="ghost" size="sm" onClick={settingModalOpen}>
                     <Settings className="w-4 h-4" />
                 </Button>
 

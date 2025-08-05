@@ -36,34 +36,44 @@ export function RightSideDrawer({
         <Drawer open={isOpen} onOpenChange={onOpenChange} direction="right">
             <DrawerContent
                 className={cn(
-                    "fixed right-0 top-0 bottom-0 w-[80%] max-w-[640px] bg-white shadow-xl transition-transform duration-300 ease-in-out",
+                    "fixed right-0 top-0 bottom-0 w-[80%] max-w-[640px] bg-white dark:bg-gray-900 shadow-xl transition-transform duration-300 ease-in-out border-l border-gray-200 dark:border-gray-700",
                     className
                 )}
-                style={{ borderLeft: "1px solid #ddd" }}
             >
-                <DrawerHeader className="border-b p-4">
+                {/* Header */}
+                <DrawerHeader className="border-b border-gray-200 dark:border-gray-700 p-4">
                     <div className="flex items-center justify-between">
                         <div className="w-fit">
-                            {title && <DrawerTitle>{title}</DrawerTitle>}
+                            {title && (
+                                <DrawerTitle className="text-gray-900 dark:text-white">
+                                    {title}
+                                </DrawerTitle>
+                            )}
                             {description && (
-                                <DrawerDescription>{description}</DrawerDescription>
+                                <DrawerDescription className="text-gray-600 dark:text-gray-400">
+                                    {description}
+                                </DrawerDescription>
                             )}
                         </div>
                         <DrawerClose asChild>
-                            <button className="w-fit text-gray-500 hover:text-black">
+                            <button className="w-fit text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white">
                                 <X size={20} />
                             </button>
                         </DrawerClose>
                     </div>
                 </DrawerHeader>
 
-                <div className="p-4 overflow-y-auto  scrollbar-none  flex-1">{children}</div>
+                {/* Content */}
+                <div className="p-4 overflow-y-auto scrollbar-none flex-1 text-gray-900 dark:text-gray-100">
+                    {children}
+                </div>
 
+                {/* Footer */}
                 {footer && (
-                    <DrawerFooter className="border-t p-4">
+                    <DrawerFooter className="border-t border-gray-200 dark:border-gray-700 p-4">
                         {footer}
                         <DrawerClose asChild>
-                            <button className="mt-2 text-sm text-gray-600 hover:underline">
+                            <button className="mt-2 text-sm text-gray-600 hover:underline dark:text-gray-400 dark:hover:text-white">
                                 Cancel
                             </button>
                         </DrawerClose>

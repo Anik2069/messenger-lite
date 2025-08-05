@@ -58,7 +58,7 @@ const ChatSidebar = ({ users, groups, selectedChat, onChatSelect }: ChatSidebarP
                                         height={40}
                                         className="w-10 h-10 rounded-full object-cover"
                                     />
-                                    <Hash className="w-5 h-5" />
+
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <h3 className="font-medium text-gray-900 dark:text-white truncate">{group.name}</h3>
@@ -96,7 +96,7 @@ const ChatSidebar = ({ users, groups, selectedChat, onChatSelect }: ChatSidebarP
                                             className="w-10 h-10 rounded-full object-cover"
                                         />
                                     </div>
-                                    {getInitials(user?.username)}
+
                                 </div>
                                 <div
                                     className={`absolute bottom-0 right-2 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${user.isOnline ? "bg-green-400" : "bg-gray-400"

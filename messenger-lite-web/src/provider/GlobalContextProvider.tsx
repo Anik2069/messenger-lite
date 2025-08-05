@@ -9,6 +9,11 @@ interface GlobalContextType {
     newDrawerClose: () => void;
     newDrawerIsOpen: boolean;
     setNewDrawerIsOpen: (isOpen: boolean) => void
+    settingModalOpen: () => void;
+    settingModalClose: () => void;
+    settingModalIsOpen: boolean;
+    setSettingModalIsOpen: (isOpen: boolean) => void
+
 }
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
@@ -19,9 +24,10 @@ export const GlobalContextProvider = ({
     children: React.ReactNode;
 }) => {
     const { open: newDrawerOpen, close: newDrawerClose, isOpen: newDrawerIsOpen, setIsOpen: setNewDrawerIsOpen } = useModal();
+    const { open: settingModalOpen, close: settingModalClose, isOpen: settingModalIsOpen, setIsOpen: setSettingModalIsOpen } = useModal();
 
     return (
-        <GlobalContext.Provider value={{ newDrawerOpen, newDrawerClose, newDrawerIsOpen, setNewDrawerIsOpen }}>
+        <GlobalContext.Provider value={{ newDrawerOpen, newDrawerClose, newDrawerIsOpen, setNewDrawerIsOpen, settingModalOpen, settingModalClose, settingModalIsOpen, setSettingModalIsOpen }}>
             {children}
         </GlobalContext.Provider>
     );

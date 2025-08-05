@@ -49,25 +49,27 @@ export default function Modal({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 dark:bg-black/40 px-4"
             role="dialog"
             aria-modal="true"
         >
             <div
                 ref={modalRef}
-                className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white rounded-lg shadow-lg focus:outline-none max-h-[90vh] flex flex-col`}
+                className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white dark:bg-gray-900 rounded-lg shadow-lg focus:outline-none max-h-[90vh] flex flex-col`}
             >
                 {/* Header */}
                 {title && (
-                    <div className="sticky top-0 z-10 flex justify-between items-center border-b px-6 py-4 bg-white rounded-t-lg">
+                    <div className="sticky top-0 z-10 flex justify-between items-center border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-white dark:bg-gray-900 rounded-t-lg">
                         <div>
-                            <h2 className="text-lg font-semibold">{title}</h2>
-                            <h4 className="text-[#64748B]">{description}</h4>
+                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>
+                            {description && (
+                                <h4 className="text-sm text-[#64748B] dark:text-gray-400">{description}</h4>
+                            )}
                         </div>
                         {showCloseIcon && (
                             <button
                                 aria-label="Close"
-                                className="p-2 rounded-full cursor-pointer text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                                className="p-2 rounded-full cursor-pointer text-gray-500 hover:text-gray-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-900"
                                 onClick={onClose}
                             >
                                 <XIcon className="w-5 h-5" />
@@ -78,8 +80,7 @@ export default function Modal({
 
                 {/* Scrollable Content */}
                 <div
-                    className={`overflow-y-auto px-6 py-4 ${overflowAuto ? "flex-grow" : ""
-                        }`}
+                    className={`px-6 py-4 ${overflowAuto ? "overflow-y-auto flex-grow" : ""} text-gray-900 dark:text-gray-100`}
                 >
                     {children}
                 </div>

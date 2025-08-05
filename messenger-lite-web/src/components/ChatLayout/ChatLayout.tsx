@@ -12,6 +12,8 @@ import { demoMessages } from '../../../data/demoMessage'
 import { RightSideDrawer } from '../reusable/RightSideDrawer'
 import { useGlobalContext } from '@/provider/GlobalContextProvider'
 import NewChat from './NewChat/NewChat'
+import Modal from '../reusable/Modal'
+import UserSettings from './UserSettings/UserSettings'
 
 declare global {
     interface Window {
@@ -20,7 +22,6 @@ declare global {
 }
 
 const ChatLayout = () => {
-    const [showSettings, setShowSettings] = useState(false)
     const [showSearch, setShowSearch] = useState(false)
     const [user, setUser] = useState(demoUser)
     const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
@@ -28,7 +29,7 @@ const ChatLayout = () => {
     const [otherUserTyping, setOtherUserTyping] = useState<string | null>(null)
     const [isConnected, setIsConnected] = useState(true)
 
-    const { newDrawerOpen, newDrawerIsOpen, newDrawerClose, setNewDrawerIsOpen } = useGlobalContext()
+    const { newDrawerIsOpen, setNewDrawerIsOpen, settingModalOpen, settingModalClose, settingModalIsOpen, setSettingModalIsOpen } = useGlobalContext()
 
     const onChatSelect = (chat: Chat) => {
         setSelectedChat(chat)
@@ -151,7 +152,6 @@ const ChatLayout = () => {
                 <Navbar
                     user={user}
                     isConnected={isConnected}
-                    onSettingsClick={() => setShowSettings(true)}
                     onSearchClick={() => setShowSearch(true)}
                     onLogout={() => setIsConnected(false)}
                 />
@@ -183,6 +183,9 @@ const ChatLayout = () => {
             <RightSideDrawer isOpen={newDrawerIsOpen} onOpenChange={setNewDrawerIsOpen} title="New Chat" className="w-80">
                 <NewChat />
             </RightSideDrawer>
+            <Modal maxWidth='2xl' title='Settings' open={settingModalIsOpen} onClose={settingModalClose}>
+                <UserSettings />
+            </Modal>
         </div>
     )
 }

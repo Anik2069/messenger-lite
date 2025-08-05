@@ -45,7 +45,7 @@ const AllContacts = ({ searchText }: AllContactsProps) => {
                                     className="w-10 h-10 rounded-full object-cover"
                                 />
                             </div>
-                            {getInitials(user?.username)}
+
                         </div>
                         <div
                             className={`absolute bottom-0 right-2 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${user.isOnline ? "bg-green-400" : "bg-gray-400"
