@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { User } from '../../../../types/UserType'
-import { Group } from '../../../../types/GroupType'
-import { Chat } from '../../../../types/ChatType'
+import { User } from '../../../types/UserType'
+import { Group } from '../../../types/GroupType'
+import { Chat } from '../../../types/ChatType'
 import { Hash, MessageCircle, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { getInitials } from '@/lib/utils'
@@ -24,7 +24,7 @@ const ChatSidebar = ({ users, groups, selectedChat, onChatSelect }: ChatSidebarP
 
 
     return (
-        <div className="h-full flex flex-col   " style={{ maxHeight: 'calc(100vh - 120px)' }}>
+        <div className="h-full flex flex-col  max-h-[100vh] " >
             {/* Search */}
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                 <div className="relative">
