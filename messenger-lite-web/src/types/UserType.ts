@@ -4,6 +4,7 @@ export interface User {
   isOnline: boolean;
   avatar: string;
   settings: UserSettings;
+  email: string;
 }
 
 export interface UserSettings {
