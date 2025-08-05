@@ -6,17 +6,18 @@ import { FormEvent, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { MessageSquare, User, Lock, Zap } from "lucide-react"
+import { MessageSquare, User, Lock, Zap, Mail } from "lucide-react"
 
 interface AuthFormProps {
     onLogin: (username: string, password: string) => void
-    onRegister: (username: string, password: string) => void
+    onRegister: (email: string, username: string, password: string) => void
 }
 
 
 export default function AuthForm({ onLogin, onRegister }: AuthFormProps) {
     const [isLogin, setIsLogin] = useState(true)
     const [username, setUsername] = useState("")
+    const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [loading, setLoading] = useState(false)
 
@@ -38,7 +39,7 @@ export default function AuthForm({ onLogin, onRegister }: AuthFormProps) {
         if (isLogin) {
             onLogin(username.trim(), password)
         } else {
-            onRegister(username.trim(), password)
+            onRegister(email.trim(), username.trim(), password)
         }
 
         setTimeout(() => setLoading(false), 2000)
@@ -69,7 +70,7 @@ export default function AuthForm({ onLogin, onRegister }: AuthFormProps) {
 
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="relative">
+                            {!isLogin && <div className="relative">
                                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                 <Input
                                     type="text"
@@ -79,7 +80,18 @@ export default function AuthForm({ onLogin, onRegister }: AuthFormProps) {
                                     className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                                     required
                                 />
-                            </div>
+                            </div>}
+                            {<div className="relative">
+                                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                <Input
+                                    type="text"
+                                    placeholder="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="pl-10 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                                    required
+                                />
+                            </div>}
 
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />

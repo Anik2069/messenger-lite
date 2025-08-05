@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { getInitials } from '@/lib/utils'
 import Image from 'next/image'
 import { DummyAvatar, dummyGroupAvatar } from '@/assets/image'
+import ReusableSearchInput from '@/components/reusable/ReusableSearchInput'
 interface ChatSidebarProps {
     users: User[]
     groups: Group[]
@@ -27,15 +28,7 @@ const ChatSidebar = ({ users, groups, selectedChat, onChatSelect }: ChatSidebarP
         <div className="h-full flex flex-col  max-h-[100vh] " >
             {/* Search */}
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                        placeholder="Search conversations..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10 bg-gray-50 dark:bg-gray-700 border-0 focus:ring-1 focus:ring-blue-500"
-                    />
-                </div>
+                <ReusableSearchInput placeholder="Search Conversations" onDebouncedChange={setSearchQuery} />
             </div>
 
             {/* Chat List */}
@@ -65,7 +58,7 @@ const ChatSidebar = ({ users, groups, selectedChat, onChatSelect }: ChatSidebarP
                                         height={40}
                                         className="w-10 h-10 rounded-full object-cover"
                                     />
-                                    <Hash className="w-5 h-5" />
+
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <h3 className="font-medium text-gray-900 dark:text-white truncate">{group.name}</h3>
@@ -103,7 +96,7 @@ const ChatSidebar = ({ users, groups, selectedChat, onChatSelect }: ChatSidebarP
                                             className="w-10 h-10 rounded-full object-cover"
                                         />
                                     </div>
-                                    {getInitials(user?.username)}
+
                                 </div>
                                 <div
                                     className={`absolute bottom-0 right-2 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${user.isOnline ? "bg-green-400" : "bg-gray-400"
