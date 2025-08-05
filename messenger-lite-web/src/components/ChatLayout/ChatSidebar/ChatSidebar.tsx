@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { getInitials } from '@/lib/utils'
 import Image from 'next/image'
 import { DummyAvatar, dummyGroupAvatar } from '@/assets/image'
+import ReusableSearchInput from '@/components/reusable/ReusableSearchInput'
 interface ChatSidebarProps {
     users: User[]
     groups: Group[]
@@ -27,15 +28,7 @@ const ChatSidebar = ({ users, groups, selectedChat, onChatSelect }: ChatSidebarP
         <div className="h-full flex flex-col  max-h-[100vh] " >
             {/* Search */}
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                        placeholder="Search conversations..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10 bg-gray-50 dark:bg-gray-700 border-0 focus:ring-1 focus:ring-blue-500"
-                    />
-                </div>
+                <ReusableSearchInput placeholder="Search Conversations" onDebouncedChange={setSearchQuery} />
             </div>
 
             {/* Chat List */}

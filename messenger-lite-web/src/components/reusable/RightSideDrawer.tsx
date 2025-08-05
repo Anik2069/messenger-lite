@@ -41,18 +41,20 @@ export function RightSideDrawer({
                 )}
                 style={{ borderLeft: "1px solid #ddd" }}
             >
-                <DrawerHeader className="flex justify-between items-start gap-4 p-4 border-b">
-                    <div>
-                        {title && <DrawerTitle>{title}</DrawerTitle>}
-                        {description && (
-                            <DrawerDescription>{description}</DrawerDescription>
-                        )}
+                <DrawerHeader className="border-b p-4">
+                    <div className="flex items-center justify-between">
+                        <div className="w-fit">
+                            {title && <DrawerTitle>{title}</DrawerTitle>}
+                            {description && (
+                                <DrawerDescription>{description}</DrawerDescription>
+                            )}
+                        </div>
+                        <DrawerClose asChild>
+                            <button className="w-fit text-gray-500 hover:text-black">
+                                <X size={20} />
+                            </button>
+                        </DrawerClose>
                     </div>
-                    <DrawerClose asChild>
-                        <button className="text-gray-500 hover:text-black">
-                            <X size={20} />
-                        </button>
-                    </DrawerClose>
                 </DrawerHeader>
 
                 <div className="p-4 overflow-y-auto flex-1">{children}</div>

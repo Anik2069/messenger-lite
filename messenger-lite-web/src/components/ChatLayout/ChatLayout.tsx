@@ -11,6 +11,7 @@ import { Chat } from '../../types/ChatType'
 import { demoMessages } from '../../../data/demoMessage'
 import { RightSideDrawer } from '../reusable/RightSideDrawer'
 import { useGlobalContext } from '@/provider/GlobalContextProvider'
+import NewChat from './NewChat/NewChat'
 
 declare global {
     interface Window {
@@ -179,8 +180,8 @@ const ChatLayout = () => {
                 </div>
             </div>
 
-            <RightSideDrawer isOpen={newDrawerIsOpen} onOpenChange={setNewDrawerIsOpen} title="Sozlamalar" className="w-80">
-                <p>Jami</p>
+            <RightSideDrawer isOpen={newDrawerIsOpen} onOpenChange={setNewDrawerIsOpen} title="New Chat" className="w-80">
+                <NewChat />
             </RightSideDrawer>
         </div>
     )
