@@ -57,7 +57,7 @@ export function RightSideDrawer({
                     </div>
                 </DrawerHeader>
 
-                <div className="p-4 overflow-y-auto flex-1">{children}</div>
+                <div className="p-4 overflow-y-auto  scrollbar-none  flex-1">{children}</div>
 
                 {footer && (
                     <DrawerFooter className="border-t p-4">

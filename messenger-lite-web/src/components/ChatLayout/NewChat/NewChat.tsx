@@ -8,7 +8,7 @@ import AllContacts from './AllContacts/AllContacts'
 const NewChat = () => {
     const [searchText, setSearchText] = useState<string>("")
     return (
-        <div className='space-y-2'>
+        <div className='space-y-2  '>
             <div className="">
                 <ReusableSearchInput placeholder="Search Name" onDebouncedChange={setSearchText} />
             </div>
