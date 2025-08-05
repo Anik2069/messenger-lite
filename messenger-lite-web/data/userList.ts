@@ -11,6 +11,7 @@ export const users: User[] = [
       soundNotifications: true,
       theme: "dark",
     },
+    email: "raihan_jami@example.com",
   },
   {
     id: "u2",
@@ -21,6 +22,7 @@ export const users: User[] = [
       soundNotifications: false,
       theme: "light",
     },
+    email: "sadia_akter@example.com",
   },
   {
     id: "u3",
@@ -31,6 +33,7 @@ export const users: User[] = [
       soundNotifications: true,
       theme: "light",
     },
+    email: "nahid_hasnat@example.com",
   },
   {
     id: "u4",
@@ -41,6 +44,7 @@ export const users: User[] = [
       soundNotifications: false,
       theme: "dark",
     },
+    email: "maisha_rahman@example.com",
   },
   {
     id: "u5",
@@ -51,5 +55,6 @@ export const users: User[] = [
       soundNotifications: true,
       theme: "dark",
     },
+    email: "fahim_khan@example.com",
   },
 ];
