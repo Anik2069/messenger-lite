@@ -8,14 +8,3 @@ datasource db {
   provider = "postgresql" // or mysql/sqlite
   url      = env("DATABASE_URL")
 }
-
-model User {
-  id        String   @id @default(uuid())
-  username  String   @unique
-  email     String   @unique
-  password  String
-  avatar    String?
-  isOnline  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
