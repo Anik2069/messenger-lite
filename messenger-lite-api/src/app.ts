@@ -3,25 +3,26 @@ import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import bcrypt from "bcrypt";
-import messengerLite_v1_router from "./modules/v1/messeangerLite_v1_router";
+
+import { connectDB, prisma } from "./configs/prisma.config";
+import { DBconnectionHandling } from "./configs/DB.config";
 import { ApiError, globalErrorHandler } from "./libs/error";
-import { connectDB } from "./configs/prisma.config";
-import { config } from "dotenv";
+import v1_routes from "./routes/v1/v1_router";
 
 const app = express();
 
-// // Middleware
-app.use(
-  cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "http://localhost:3002",
-      "http://172.21.16.3:3000",
-    ],
-    credentials: true,
-  })
-);
+// Middleware
+// app.use(
+//   cors({
+//     origin: [
+//       "http://localhost:3000",
+//       "http://localhost:3001",
+//       "http://localhost:3002",
+//       "http://172.21.16.3:3000",
+//     ],
+//     credentials: true,
+//   })
+// );
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -29,18 +30,15 @@ app.use(cookieParser());
 app.use("/uploads", express.static("uploads"));
 // // app.use(morgan("dev"));
 
-// // Routes
-app.get("/health", (req: Request, res: Response) => {
+// Routes
+
+app.get("/health", async (req: Request, res: Response) => {
   res.status(200).json({ message: "Server is healthy 100%" });
 });
 
-app.get("/", (req: Request, res: Response) => {
-  res.status(200).json({ message: "Hello, World!" });
-});
+app.use("/api/v1", v1_routes);
 
-app.use("/api/v1", messengerLite_v1_router);
-
-// // Catch-all for 404
+// Catch-all for 404
 app.all("/", (req: Request, res: Response, next: NextFunction) => {
   next(new ApiError(404, `Can't find ${req.originalUrl} on this server!`));
 });
