@@ -1,13 +1,12 @@
-const bcrypt = require("bcrypt");
-const { StatusCodes } = require("http-status-codes");
-const { prisma } = require("@/configs/prisma.config");
-
-const { z } = require("zod");
+import bcrypt from "bcrypt";
+import { StatusCodes } from "http-status-codes";
+import { z } from "zod";
+import { prisma } from "../../configs/prisma.config";
 
 // Validation Schema
 const userSignupDto = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
-  email: z.string().email("Invalid email address"),
+  email: z.string(),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -41,11 +40,11 @@ const userSignup = async (req: any, res: any) => {
     return res.status(StatusCodes.CREATED).json({
       message: "User created successfully",
     });
-  } catch (error: any) {
+  } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         message: "Validation Error",
-        errors: error.errors,
+        errors: error.issues,
       });
     }
 
@@ -56,6 +55,4 @@ const userSignup = async (req: any, res: any) => {
   }
 };
 
-module.exports = {
-  userSignup,
-};
+export { userSignup };

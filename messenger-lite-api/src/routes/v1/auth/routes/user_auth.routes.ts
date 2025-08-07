@@ -1,8 +1,8 @@
-const {
-  userSignup,
-} = require("../../../../controllers/auth/userSignup.controller");
-const router = require("express").Router();
+import { userSignup } from "../../../../controllers/auth/userSignup.controller";
+import express from "express";
+
+const router = express.Router();
 
 router.post("/sign-up", userSignup);
 
-module.exports = router;
+export default router;

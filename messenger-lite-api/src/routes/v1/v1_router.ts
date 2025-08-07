@@ -1,5 +1,7 @@
-const v1_router = require("express").Router();
-const auth_router = require("./auth/auth.routes");
-v1_router.use("/auth", auth_router);
+import { Router } from "express";
+import authRouter from "./auth/auth.routes";
 
-module.exports = v1_router;
+const v1Router = Router();
+v1Router.use("/auth", authRouter); // Path: /api/v1/auth/...
+
+export default v1Router;
