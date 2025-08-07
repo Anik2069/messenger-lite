@@ -15,17 +15,10 @@
     "exactOptionalPropertyTypes": true,
 
     "strict": true,
-    "verbatimModuleSyntax": true,
     "isolatedModules": true,
-    "noUncheckedSideEffectImports": true,
-    "moduleDetection": "force",
     "skipLibCheck": true,
-
-    // ✅ Add this:
-    "baseUrl": "./src",
-    "paths": {
-      "@/*": ["./*"]
-    }
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src"],
   "exclude": ["node_modules"]

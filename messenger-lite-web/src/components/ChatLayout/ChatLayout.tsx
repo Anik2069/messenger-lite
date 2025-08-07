@@ -9,6 +9,11 @@ import ChatWindow from './ChatWindow/ChatWindow'
 import { Message, FileData, Reaction, ForwardedData } from '../../types/MessageType'
 import { Chat } from '../../types/ChatType'
 import { demoMessages } from '../../../data/demoMessage'
+import { RightSideDrawer } from '../reusable/RightSideDrawer'
+import { useGlobalContext } from '@/provider/GlobalContextProvider'
+import NewChat from './NewChat/NewChat'
+import Modal from '../reusable/Modal'
+import UserSettings from './UserSettings/UserSettings'
 
 declare global {
     interface Window {
@@ -17,14 +22,14 @@ declare global {
 }
 
 const ChatLayout = () => {
-    const [showSettings, setShowSettings] = useState(false)
-    const [showCreateGroup, setShowCreateGroup] = useState(false)
     const [showSearch, setShowSearch] = useState(false)
     const [user, setUser] = useState(demoUser)
     const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
     const [messages, setMessages] = useState<Message[]>([])
     const [otherUserTyping, setOtherUserTyping] = useState<string | null>(null)
     const [isConnected, setIsConnected] = useState(true)
+
+    const { newDrawerIsOpen, setNewDrawerIsOpen, settingModalOpen, settingModalClose, settingModalIsOpen, setSettingModalIsOpen } = useGlobalContext()
 
     const onChatSelect = (chat: Chat) => {
         setSelectedChat(chat)
@@ -142,38 +147,45 @@ const ChatLayout = () => {
     }, []);
 
     return (
-        <div className='h-screen flex flex-col bg-gray-50 dark:bg-gray-900'>
-            <Navbar
-                user={user}
-                isConnected={isConnected}
-                onSettingsClick={() => setShowSettings(true)}
-                onCreateGroupClick={() => setShowCreateGroup(true)}
-                onSearchClick={() => setShowSearch(true)}
-                onLogout={() => setIsConnected(false)}
-            />
+        <div className="h-screen ">
+            <div className='flex flex-col bg-gray-50 dark:bg-gray-900'>
+                <Navbar
+                    user={user}
+                    isConnected={isConnected}
+                    onSearchClick={() => setShowSearch(true)}
+                    onLogout={() => setIsConnected(false)}
+                />
 
-            <div className="flex-1 flex overflow-hidden">
-                <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                    <ChatSidebar
-                        users={users}
-                        groups={demoGroups}
-                        selectedChat={selectedChat}
-                        onChatSelect={onChatSelect}
-                    />
-                </div>
-                <div className="flex-1 bg-white dark:bg-gray-900 flex flex-col">
-                    <ChatWindow
-                        currentUser={user}
-                        selectedChat={selectedChat}
-                        messages={messages}
-                        otherUserTyping={otherUserTyping}
-                        onSendMessage={onSendMessage}
-                        onAddReaction={onAddReaction}
-                        onTypingStart={onTypingStart}
-                        onTypingStop={onTypingStop}
-                    />
+                <div className="flex-1 flex overflow-hidden">
+                    <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                        <ChatSidebar
+                            users={users}
+                            groups={demoGroups}
+                            selectedChat={selectedChat}
+                            onChatSelect={onChatSelect}
+                        />
+                    </div>
+                    <div className="flex-1 bg-white dark:bg-gray-900 flex flex-col">
+                        <ChatWindow
+                            currentUser={user}
+                            selectedChat={selectedChat}
+                            messages={messages}
+                            otherUserTyping={otherUserTyping}
+                            onSendMessage={onSendMessage}
+                            onAddReaction={onAddReaction}
+                            onTypingStart={onTypingStart}
+                            onTypingStop={onTypingStop}
+                        />
+                    </div>
                 </div>
             </div>
+
+            <RightSideDrawer isOpen={newDrawerIsOpen} onOpenChange={setNewDrawerIsOpen} title="New Chat" className="w-80">
+                <NewChat />
+            </RightSideDrawer>
+            <Modal maxWidth='2xl' title='Settings' open={settingModalIsOpen} onClose={settingModalClose}>
+                <UserSettings />
+            </Modal>
         </div>
     )
 }
