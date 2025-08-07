@@ -2,7 +2,6 @@ const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
-// Disconnect Prisma client gracefully
 const disconnectPrismaClient = async () => {
   if (prisma) {
     try {
