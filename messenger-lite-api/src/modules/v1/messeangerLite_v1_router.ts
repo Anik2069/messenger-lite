@@ -1,9 +1,8 @@
-// src/modules/v1/messeangerLite_v1_router.ts
 import { Router, Request, Response } from "express";
-import Authsection from "./auth/routes/auth.routes";
+import AuthSection from "./auth/routes/auth.routes";
 
-const messeangerLite_v1_router = Router();
+const messengerLite_v1_router = Router();
 
-messeangerLite_v1_router.use("/auth", Authsection);
+messengerLite_v1_router.use("/auth", AuthSection);
 
-export default messeangerLite_v1_router;
+export default messengerLite_v1_router;

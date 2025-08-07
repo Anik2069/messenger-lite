@@ -6,8 +6,8 @@ import bcrypt from "bcrypt";
 
 import { connectDB, prisma } from "./configs/prisma.config";
 import { DBconnectionHandling } from "./configs/DB.config";
-import messeangerLite_v1_router from "./modules/v1/messeangerLite_v1_router";
 import { ApiError, globalErrorHandler } from "./libs/error";
+import messengerLite_v1_router from "./modules/v1/messeangerLite_v1_router";
 
 const app = express();
 
@@ -35,7 +35,7 @@ app.get("/health", (req: Request, res: Response) => {
   res.status(200).json({ message: "Server is healthy 100%" });
 });
 
-app.use("/api/v1", messeangerLite_v1_router);
+app.use("/api/v1", messengerLite_v1_router);
 
 // Catch-all for 404
 app.all("*", (req: Request, res: Response, next: NextFunction) => {

@@ -7,6 +7,13 @@ import { Writable } from "stream";
 import { Request, Response, NextFunction } from "express";
 import { deleteFile } from "./utility";
 import { handlePrismaError } from "./QueryError";
+import {
+  PrismaClientKnownRequestError,
+  PrismaClientInitializationError,
+  PrismaClientRustPanicError,
+  PrismaClientValidationError,
+  PrismaClientUnknownRequestError,
+} from "@prisma/client/runtime/library";
 
 // Replace this with your actual log stream
 const errorLogStream: Writable = process.stdout; // Example, replace with real stream
@@ -78,17 +85,17 @@ export const globalErrorHandler = (
     message = err.issues
       .map((issue) => `${issue.path.join(".")} is ${issue.message}`)
       .join(", ");
-  } else if (err instanceof Prisma.PrismaClientKnownRequestError) {
+  } else if (err instanceof PrismaClientKnownRequestError) {
     const formattedError = handlePrismaError(err.code);
     code = formattedError.httpStatus;
     message = formattedError.message;
-  } else if (err instanceof Prisma.PrismaClientValidationError) {
+  } else if (err instanceof PrismaClientValidationError) {
     code = StatusCodes.UNPROCESSABLE_ENTITY;
     message = err.message;
   } else if (
-    err instanceof Prisma.PrismaClientInitializationError ||
-    err instanceof Prisma.PrismaClientRustPanicError ||
-    err instanceof Prisma.PrismaClientUnknownRequestError
+    err instanceof PrismaClientInitializationError ||
+    err instanceof PrismaClientRustPanicError ||
+    err instanceof PrismaClientUnknownRequestError
   ) {
     code = StatusCodes.INTERNAL_SERVER_ERROR;
     message = err.message;
