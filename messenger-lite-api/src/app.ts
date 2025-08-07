@@ -3,15 +3,14 @@ import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import bcrypt from "bcrypt";
-
-import { connectDB, prisma } from "./configs/prisma.config";
-import { DBconnectionHandling } from "./configs/DB.config";
-import { ApiError, globalErrorHandler } from "./libs/error";
 import messengerLite_v1_router from "./modules/v1/messeangerLite_v1_router";
+import { ApiError, globalErrorHandler } from "./libs/error";
+import { connectDB } from "./configs/prisma.config";
+import { config } from "dotenv";
 
 const app = express();
 
-// Middleware
+// // Middleware
 app.use(
   cors({
     origin: [
@@ -28,17 +27,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use("/uploads", express.static("uploads"));
-// app.use(morgan("dev"));
+// // app.use(morgan("dev"));
 
-// Routes
+// // Routes
 app.get("/health", (req: Request, res: Response) => {
   res.status(200).json({ message: "Server is healthy 100%" });
 });
 
+app.get("/", (req: Request, res: Response) => {
+  res.status(200).json({ message: "Hello, World!" });
+});
+
 app.use("/api/v1", messengerLite_v1_router);
 
-// Catch-all for 404
-app.all("*", (req: Request, res: Response, next: NextFunction) => {
+// // Catch-all for 404
+app.all("/", (req: Request, res: Response, next: NextFunction) => {
   next(new ApiError(404, `Can't find ${req.originalUrl} on this server!`));
 });
 
