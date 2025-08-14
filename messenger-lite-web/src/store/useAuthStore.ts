@@ -15,7 +15,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   loading: false,
   error: null,
-  login: (usernam, password) => {
+  login: async (usernam, password) => {
     console.log(usernam, password);
   },
   register: (email, username, password) => {
@@ -23,7 +23,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     //   set({ loading: true, error: null });
     //  set({ user: newUser, loading: false })
   },
-  logout: () => {
+  logout: async () => {
     set({ user: null, loading: false, error: null });
   },
 }));
