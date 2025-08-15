@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation"; // For app router
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -11,12 +12,17 @@ import { InputField } from "../reusable/InputField";
 import { useAuthStore } from "@/store/useAuthStore";
 import { FormValues, getSchema } from "@/schema/auth.schema";
 
-// Dynamic schema
-
 export default function AuthForm() {
-  const [isLogin, setIsLogin] = useState(true);
+  const searchParams = useSearchParams();
+  const type = searchParams.get("type"); // "login" or "register"
 
-  const { login, register, logout, user, loading, error } = useAuthStore();
+  const [isLogin, setIsLogin] = useState(type === "login");
+
+  useEffect(() => {
+    setIsLogin(type === "login"); // update when query changes
+  }, [type]);
+
+  const { login, register: registerUser, loading } = useAuthStore();
 
   const methods = useForm<FormValues>({
     resolver: zodResolver(getSchema(isLogin)),
@@ -29,7 +35,7 @@ export default function AuthForm() {
     if (isLogin) {
       await login(data.email, data.password);
     } else {
-      await register(data.email, data.username!, data.password);
+      await registerUser(data.email, data.username!, data.password);
     }
     reset();
   };
@@ -105,14 +111,14 @@ export default function AuthForm() {
             </FormProvider>
 
             <div className="mt-6 text-center">
-              <button
-                onClick={() => setIsLogin(!isLogin)}
+              <a
+                href={`/auth?type=${isLogin ? "register" : "login"}`}
                 className="text-sm text-blue-600 hover:text-blue-700 font-medium"
               >
                 {isLogin
                   ? "Don't have an account? Sign up"
                   : "Already have an account? Sign in"}
-              </button>
+              </a>
             </div>
           </CardContent>
         </Card>
