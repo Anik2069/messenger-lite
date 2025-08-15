@@ -30,6 +30,13 @@ export const useAuthStore = create<AuthState>((set) => ({
         password,
       });
       console.log(response, "response");
+
+      if (response.status === 201) {
+        /*************  ✨ Windsurf Command ⭐  *************/
+        window.location.href = "/auth";
+
+        /*******  c38b0dcf-a801-47f4-b4cb-9a5563591ede  *******/
+      }
     } catch (error) {
       console.log(error);
     }
