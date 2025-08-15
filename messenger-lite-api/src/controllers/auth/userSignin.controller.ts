@@ -29,6 +29,7 @@ const userSignin = async (req: any, res: any) => {
         email,
       },
     });
+    console.log(user, "user");
 
     if (!user) {
       return res.status(StatusCodes.BAD_REQUEST).json({
@@ -47,7 +48,7 @@ const userSignin = async (req: any, res: any) => {
       res,
       statusCode: StatusCodes.OK,
       message: "User signed in successfully",
-      data: user,
+      data: { user, accessToken },
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

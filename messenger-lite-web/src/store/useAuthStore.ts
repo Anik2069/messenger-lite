@@ -1,5 +1,6 @@
 import axiosInstance from "@/config/axiosInstance";
 import { User } from "@/types/UserType";
+import { toast } from "react-toastify";
 import { email } from "zod";
 import { create } from "zustand";
 
@@ -16,9 +17,19 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   loading: false,
   error: null,
-  login: async (username, password) => {
-    console.log(username, password);
-    const payload = { username, password };
+  login: async (email, password) => {
+    console.log(email, password);
+    const payload = { email, password };
+    try {
+      const response = await axiosInstance.post("auth/user/sign-in", payload);
+      console.log(response, "response");
+      if (response.status === 200) {
+        // window.location.href = "/";
+        toast.success("Login successful");
+      }
+    } catch (error) {
+      console.log(error);
+    }
   },
 
   register: async (email, username, password) => {
