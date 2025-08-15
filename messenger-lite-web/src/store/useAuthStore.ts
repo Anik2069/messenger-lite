@@ -40,6 +40,7 @@ export const useAuthStore = create<AuthState>()(
             const user = response.data?.results?.userInfo;
             set({ user, loading: false, error: null });
             toast.success("Login successful");
+            window.location.href = "/";
           }
         } catch (error) {
           const axiosError = error as AxiosError<{ message?: string }>;
@@ -66,8 +67,21 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      logout: () => {
-        set({ user: null, loading: false, error: null });
+      logout: async () => {
+        set({ loading: true, error: null });
+        try {
+          const response = await axiosInstance.get("auth/user/logout");
+          if (response.status === 200) {
+            toast.success("Logout successful");
+            window.location.href = "/auth?type=login";
+            set({ user: null, loading: false, error: null });
+          }
+          set({ user: null, loading: false, error: null });
+        } catch (error) {
+          const axiosError = error as AxiosError<{ message?: string }>;
+          toast.error(axiosError.response?.data?.message || "Logout failed");
+          set({ loading: false, error: axiosError.response?.data?.message });
+        }
       },
     }),
     {

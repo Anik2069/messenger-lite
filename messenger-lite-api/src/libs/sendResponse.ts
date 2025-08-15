@@ -12,8 +12,8 @@ const sendResponse = <T = any>({
   statusCode,
   message,
   data = null,
-}: SendResponseOptions<T>): void => {
-  res.status(statusCode).json({
+}: SendResponseOptions<T>): Response => {
+  return res.status(statusCode).json({
     statusCode,
     message,
     results: data,

@@ -23,6 +23,8 @@ interface NavbarProps {
 const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
   const { newDrawerOpen, settingModalOpen } = useGlobalContext();
   const { logout } = useAuthStore();
+
+  const handleLogout = async () => await logout();
   const handleClickNew = () => {
     newDrawerOpen();
   };
@@ -75,7 +77,7 @@ const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
           <Settings className="w-4 h-4" />
         </Button>
 
-        <Button variant="ghost" size="sm" onClick={logout}>
+        <Button variant="ghost" size="sm" onClick={handleLogout}>
           <LogOut className="w-4 h-4" />
         </Button>
 
