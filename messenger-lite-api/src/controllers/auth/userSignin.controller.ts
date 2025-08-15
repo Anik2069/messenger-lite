@@ -44,11 +44,29 @@ const userSignin = async (req: any, res: any) => {
       });
     }
 
+    await prisma.user.update({
+      where: {
+        email,
+      },
+      data: {
+        isOnline: true,
+      },
+    });
+
+    const userInfo = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+      omit: {
+        password: true,
+      },
+    });
+
     return sendResponse({
       res,
       statusCode: StatusCodes.OK,
       message: "User signed in successfully",
-      data: { user, accessToken },
+      data: { userInfo, accessToken },
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

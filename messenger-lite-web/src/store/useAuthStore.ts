@@ -1,57 +1,78 @@
 import axiosInstance from "@/config/axiosInstance";
 import { User } from "@/types/UserType";
+import { AxiosError } from "axios";
 import { toast } from "react-toastify";
-import { email } from "zod";
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 export interface AuthState {
   user: User | null;
   loading: boolean;
   error: string | null;
-  login: (username: string, password: string) => void;
-  register: (email: string, username: string, password: string) => void;
+  login: (email: string, password: string) => Promise<void>;
+  register: (
+    email: string,
+    username: string,
+    password: string
+  ) => Promise<void>;
   logout: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  loading: false,
-  error: null,
-  login: async (email, password) => {
-    console.log(email, password);
-    const payload = { email, password };
-    try {
-      const response = await axiosInstance.post("auth/user/sign-in", payload);
-      console.log(response, "response");
-      if (response.status === 200) {
-        // window.location.href = "/";
-        toast.success("Login successful");
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  },
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      loading: false,
+      error: null,
 
-  register: async (email, username, password) => {
-    console.log(email, username, password);
-    try {
-      const response = await axiosInstance.post("auth/user/sign-up", {
-        username,
-        email,
-        password,
-      });
-      console.log(response, "response");
+      login: async (email, password) => {
+        console.log(email, password);
+        set({ loading: true, error: null });
+        const payload = { email, password };
 
-      if (response.status === 201) {
-        window.location.href = "/auth?type=login";
-      }
-    } catch (error) {
-      console.log(error);
+        try {
+          const response = await axiosInstance.post(
+            "auth/user/sign-in",
+            payload
+          );
+
+          if (response.status === 200) {
+            const user = response.data?.results?.userInfo;
+            set({ user, loading: false, error: null });
+            toast.success("Login successful");
+          }
+        } catch (error) {
+          const axiosError = error as AxiosError<{ message?: string }>;
+          toast.error(axiosError.response?.data?.message || "Login failed");
+          set({ loading: false, error: axiosError.response?.data?.message });
+        } finally {
+          set({ loading: false });
+        }
+      },
+
+      register: async (email, username, password) => {
+        try {
+          const response = await axiosInstance.post("auth/user/sign-up", {
+            username,
+            email,
+            password,
+          });
+
+          if (response.status === 201) {
+            window.location.href = "/auth?type=login";
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      },
+
+      logout: () => {
+        set({ user: null, loading: false, error: null });
+      },
+    }),
+    {
+      name: "auth-storage",
+      storage: createJSONStorage(() => localStorage),
     }
-    //   set({ loading: true, error: null });
-    //  set({ user: newUser, loading: false })
-  },
-  logout: async () => {
-    set({ user: null, loading: false, error: null });
-  },
-}));
+  )
+);
