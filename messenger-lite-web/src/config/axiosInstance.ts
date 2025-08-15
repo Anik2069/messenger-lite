@@ -2,7 +2,9 @@ import { HOST } from "@/constant";
 import axios from "axios";
 
 const getAccessToken = () => {
-  typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  return typeof window !== "undefined"
+    ? localStorage.getItem("accessToken")
+    : null;
 };
 
 const axiosInstance = axios.create({
@@ -20,11 +22,8 @@ const redirectToLogin = () => {
 axiosInstance.interceptors.request.use(
   async (config) => {
     const token = getAccessToken();
-    if (token !== null) {
+    if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-    }
-    if (!config.headers.Authorization) {
-      config.headers["Content-Type"] = "application/json";
     }
     return config;
   },
@@ -35,7 +34,12 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const OriginalRequest = error.config;
-    if (error.response.status === 401 && !OriginalRequest._retry) {
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      !OriginalRequest._retry
+    ) {
+      OriginalRequest._retry = true;
       redirectToLogin();
     }
     return Promise.reject(error);
