@@ -1,7 +1,7 @@
 import axiosInstance from "@/config/axiosInstance";
-import { tokenStorage } from "@/lib/storage";
 import { User } from "@/types/UserType";
 import { AxiosError } from "axios";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { toast } from "react-toastify";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
@@ -10,13 +10,18 @@ export interface AuthState {
   user: User | null;
   loading: boolean;
   error: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (
+    email: string,
+    password: string,
+    router?: AppRouterInstance
+  ) => Promise<void>;
   register: (
     email: string,
     username: string,
-    password: string
+    password: string,
+    router?: AppRouterInstance
   ) => Promise<void>;
-  logout: () => void;
+  logout: (router?: AppRouterInstance) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -26,8 +31,7 @@ export const useAuthStore = create<AuthState>()(
       loading: false,
       error: null,
 
-      login: async (email, password) => {
-        console.log(email, password);
+      login: async (email, password, router) => {
         set({ loading: true, error: null });
         const payload = { email, password };
 
@@ -38,12 +42,10 @@ export const useAuthStore = create<AuthState>()(
           );
 
           if (response.status === 200) {
-            const { userInfo: user, accessToken } = response.data?.results;
+            const user = response.data?.results?.userInfo;
             set({ user, loading: false, error: null });
-            tokenStorage.set(accessToken);
-            console.log(accessToken);
             toast.success("Login successful");
-            window.location.href = "/";
+            router?.push("/");
           }
         } catch (error) {
           const axiosError = error as AxiosError<{ message?: string }>;
@@ -54,7 +56,8 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      register: async (email, username, password) => {
+      register: async (email, username, password, router) => {
+        set({ loading: true, error: null });
         try {
           const response = await axiosInstance.post("auth/user/sign-up", {
             username,
@@ -63,25 +66,29 @@ export const useAuthStore = create<AuthState>()(
           });
 
           if (response.status === 201) {
-            toast.success("Registration successful");
-            window.location.href = "/auth?type=login";
+            toast.success("Registration successful! Please login.");
+            router?.push("/auth?type=login");
           }
         } catch (error) {
-          console.log(error);
+          const axiosError = error as AxiosError<{ message?: string }>;
+          toast.error(
+            axiosError.response?.data?.message || "Registration failed"
+          );
+          set({ loading: false, error: axiosError.response?.data?.message });
+        } finally {
+          set({ loading: false });
         }
       },
 
-      logout: async () => {
+      logout: async (router) => {
         set({ loading: true, error: null });
         try {
           const response = await axiosInstance.get("auth/user/logout");
           if (response.status === 200) {
             toast.success("Logout successful");
-            tokenStorage.remove();
+            router?.push("/auth?type=login");
             set({ user: null, loading: false, error: null });
-            window.location.href = "/auth?type=login";
           }
-          set({ user: null, loading: false, error: null });
         } catch (error) {
           const axiosError = error as AxiosError<{ message?: string }>;
           toast.error(axiosError.response?.data?.message || "Logout failed");
