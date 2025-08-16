@@ -9,7 +9,7 @@ export interface Message {
   isGroupMessage: boolean;
   timestamp: Date;
   reactions: Reaction[];
-  readBy: ReadReceipt[];
+  readBy: ReadReceipt[] | [];
 }
 
 export interface FileData {
@@ -32,6 +32,6 @@ export interface Reaction {
 }
 
 export interface ReadReceipt {
-  username: string;
+  username?: string | null;
   timestamp: Date;
 }

@@ -4,25 +4,27 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import bcrypt from "bcrypt";
 
-import { connectDB, prisma } from "./configs/prisma.config";
 import { DBconnectionHandling } from "./configs/DB.config";
 import { ApiError, globalErrorHandler } from "./libs/error";
 import v1_routes from "./routes/v1/v1_router";
+import { connectDB } from "./configs/prisma.config";
 
 const app = express();
 
 // Middleware
-// app.use(
-//   cors({
-//     origin: [
-//       "http://localhost:3000",
-//       "http://localhost:3001",
-//       "http://localhost:3002",
-//       "http://172.21.16.3:3000",
-//     ],
-//     credentials: true,
-//   })
-// );
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002",
+      "http://172.21.16.3:3000",
+      "http://10.81.100.22:3001",
+      "http://192.168.31.152:3000",
+    ],
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

@@ -1,22 +1,13 @@
-"use client"
-import React from 'react'
-import AuthForm from './AuthForm'
+"use client";
+import React from "react";
+import AuthForm from "./AuthForm";
 
 const AuthPageComponents = () => {
+  return (
+    <div>
+      <AuthForm />
+    </div>
+  );
+};
 
-    const onLogin = (username: string, password: string) => {
-
-    }
-
-    const onRegister = (email: string, username: string, password: string) => {
-
-    }
-
-    return (
-        <div>
-            <AuthForm onLogin={onLogin} onRegister={onRegister} />
-        </div>
-    )
-}
-
-export default AuthPageComponents
+export default AuthPageComponents;
