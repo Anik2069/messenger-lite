@@ -15,6 +15,7 @@ import NewChat from "./NewChat/NewChat";
 import Modal from "../reusable/Modal";
 import UserSettings from "./UserSettings/UserSettings";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useFriendsStore } from "@/store/useFriendsStrore";
 
 declare global {
   interface Window {
@@ -30,6 +31,12 @@ const ChatLayout = () => {
   const [isConnected, setIsConnected] = useState(true);
 
   const { user, loading, error } = useAuthStore();
+  const {
+    friends,
+    loading: friendsLoading,
+    error: friendsError,
+    fetchFriends,
+  } = useFriendsStore();
 
   useEffect(() => {
     console.log(user);
@@ -39,6 +46,9 @@ const ChatLayout = () => {
       setIsConnected(false);
     }
   }, [user]);
+  useEffect(() => {
+    fetchFriends();
+  }, []);
 
   const {
     newDrawerIsOpen,
@@ -175,7 +185,7 @@ const ChatLayout = () => {
         <div className="flex-1 flex overflow-hidden">
           <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
             <ChatSidebar
-              users={users}
+              users={friends ?? []}
               groups={demoGroups}
               selectedChat={selectedChat}
               onChatSelect={onChatSelect}
