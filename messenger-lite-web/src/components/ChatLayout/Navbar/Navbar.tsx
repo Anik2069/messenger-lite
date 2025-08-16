@@ -83,7 +83,7 @@ const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
 
         {/* User Avatar */}
         <div
-          className={`w-8 h-8 ${user?.avatar} rounded-full flex items-center justify-center text-white text-sm font-medium`}
+          className={`w-8 h-8 ${user?.avatar} rounded-full flex items-center justify-center bg-blue-500  text-white  text-sm font-medium`}
         >
           {getInitials(user?.username || "")}
         </div>

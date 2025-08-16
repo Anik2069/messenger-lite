@@ -60,6 +60,7 @@ export const useAuthStore = create<AuthState>()(
           });
 
           if (response.status === 201) {
+            toast.success("Registration successful");
             window.location.href = "/auth?type=login";
           }
         } catch (error) {
