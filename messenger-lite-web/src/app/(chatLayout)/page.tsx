@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import ChatLayout from "@/components/ChatLayout/ChatLayout";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter } from "next/navigation";

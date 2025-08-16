@@ -16,7 +16,7 @@ const axiosInstance = axios.create({
 });
 
 const redirectToLogin = () => {
-  window.location.href = "/login";
+  window.location.href = "/auth?type=login";
 };
 
 axiosInstance.interceptors.request.use(
