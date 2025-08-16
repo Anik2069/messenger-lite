@@ -1,4 +1,5 @@
 import axiosInstance from "@/config/axiosInstance";
+import { tokenStorage } from "@/lib/storage";
 import { User } from "@/types/UserType";
 import { AxiosError } from "axios";
 import { toast } from "react-toastify";
@@ -37,8 +38,10 @@ export const useAuthStore = create<AuthState>()(
           );
 
           if (response.status === 200) {
-            const user = response.data?.results?.userInfo;
+            const { userInfo: user, accessToken } = response.data?.results;
             set({ user, loading: false, error: null });
+            tokenStorage.set(accessToken);
+            console.log(accessToken);
             toast.success("Login successful");
             window.location.href = "/";
           }
@@ -74,8 +77,9 @@ export const useAuthStore = create<AuthState>()(
           const response = await axiosInstance.get("auth/user/logout");
           if (response.status === 200) {
             toast.success("Logout successful");
-            window.location.href = "/auth?type=login";
+            tokenStorage.remove();
             set({ user: null, loading: false, error: null });
+            window.location.href = "/auth?type=login";
           }
           set({ user: null, loading: false, error: null });
         } catch (error) {
