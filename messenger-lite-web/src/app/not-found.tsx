@@ -2,40 +2,19 @@
 
 import type React from "react";
 
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   MessageSquare,
   Home,
   RefreshCw,
-  Wifi,
-  WifiOff,
   HelpCircle,
   Mail,
-  MoveLeft,
-  ArrowUpLeftFromSquareIcon,
   ChevronLeft,
 } from "lucide-react";
 import Link from "next/link";
 
 export default function NotFound() {
-  const [isOnline, setIsOnline] = useState(true);
-
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-    setIsOnline(navigator.onLine);
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl space-y-8">
