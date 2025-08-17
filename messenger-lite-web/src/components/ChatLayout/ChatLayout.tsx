@@ -58,6 +58,7 @@ const ChatLayout = () => {
   } = useGlobalContext();
 
   const onChatSelect = (chat: Chat) => {
+    console.log(chat, "chat");
     setSelectedChat(chat);
     setMessages(demoMessages[chat.id] || []);
     setOtherUserTyping(null);
@@ -174,35 +175,36 @@ const ChatLayout = () => {
   }, []);
 
   return (
-    <div className="h-screen ">
-      <div className="flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="w-screen h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      <div className="shrink-0">
         <Navbar
           user={user ?? null}
           isConnected={isConnected}
           onSearchClick={() => setShowSearch(true)}
         />
+      </div>
 
-        <div className="flex-1 flex overflow-hidden">
-          <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-            <ChatSidebar
-              users={friends ?? []}
-              groups={demoGroups}
-              selectedChat={selectedChat}
-              onChatSelect={onChatSelect}
-            />
-          </div>
-          <div className="flex-1 bg-white dark:bg-gray-900 flex flex-col">
-            <ChatWindow
-              currentUser={user ?? null}
-              selectedChat={selectedChat}
-              messages={messages}
-              otherUserTyping={otherUserTyping}
-              onSendMessage={onSendMessage}
-              onAddReaction={onAddReaction}
-              onTypingStart={onTypingStart}
-              onTypingStop={onTypingStop}
-            />
-          </div>
+      {/* Main Chat Area */}
+      <div className="flex-1 flex overflow-hidden">
+        <div className="w-80 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <ChatSidebar
+            users={friends ?? []}
+            groups={demoGroups}
+            selectedChat={selectedChat}
+            onChatSelect={onChatSelect}
+          />
+        </div>
+        <div className="flex-1 bg-white dark:bg-gray-900 flex flex-col">
+          <ChatWindow
+            currentUser={user ?? null}
+            selectedChat={selectedChat}
+            messages={messages}
+            otherUserTyping={otherUserTyping}
+            onSendMessage={onSendMessage}
+            onAddReaction={onAddReaction}
+            onTypingStart={onTypingStart}
+            onTypingStop={onTypingStop}
+          />
         </div>
       </div>
 

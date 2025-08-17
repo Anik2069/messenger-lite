@@ -22,7 +22,7 @@ const ChatLayoutPage = () => {
   }, [user, router]);
 
   return (
-    <div className="w-full h-full">
+    <div className="">
       {loading && (
         <div className="flex items-center justify-center h-screen bg-black/15">
           <Spinner />
