@@ -16,6 +16,8 @@ import Modal from "../reusable/Modal";
 import UserSettings from "./UserSettings/UserSettings";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useFriendsStore } from "@/store/useFriendsStrore";
+import { useChatStore } from "@/store/useChatStore";
+import { cleanupTyping, startTyping, stopTyping } from "@/lib/typing";
 
 declare global {
   interface Window {
@@ -24,31 +26,22 @@ declare global {
 }
 
 const ChatLayout = () => {
-  const [showSearch, setShowSearch] = useState(false);
-  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [otherUserTyping, setOtherUserTyping] = useState<string | null>(null);
-  const [isConnected, setIsConnected] = useState(true);
-
-  const { user, loading, error } = useAuthStore();
+  const { user } = useAuthStore();
+  const { friends, fetchFriends } = useFriendsStore();
   const {
-    friends,
-    loading: friendsLoading,
-    error: friendsError,
-    fetchFriends,
-  } = useFriendsStore();
-
-  useEffect(() => {
-    console.log(user);
-    if (user) {
-      setIsConnected(true);
-    } else {
-      setIsConnected(false);
-    }
-  }, [user]);
-  useEffect(() => {
-    fetchFriends();
-  }, []);
+    selectedChat,
+    messages,
+    otherUserTyping,
+    isConnected,
+    showSearch,
+    setSelectedChat,
+    setMessages,
+    setOtherUserTyping,
+    setIsConnected,
+    setShowSearch,
+    onSendMessage,
+    onAddReaction,
+  } = useChatStore();
 
   const {
     newDrawerIsOpen,
@@ -57,122 +50,51 @@ const ChatLayout = () => {
     settingModalIsOpen,
   } = useGlobalContext();
 
+  useEffect(() => {
+    if (user) {
+      setIsConnected(true);
+    } else {
+      setIsConnected(false);
+    }
+  }, [user, setIsConnected]);
+
+  useEffect(() => {
+    fetchFriends();
+  }, [fetchFriends]);
+
+  useEffect(() => {
+    return () => cleanupTyping();
+  }, []);
+
   const onChatSelect = (chat: Chat) => {
-    console.log(chat, "chat");
     setSelectedChat(chat);
     setMessages(demoMessages[chat.id] || []);
     setOtherUserTyping(null);
   };
 
-  const onSendMessage = (
+  const handleSendMessage = (
     message: string,
     type: "text" | "file" | "forwarded" = "text",
     fileData?: FileData,
     forwardedFrom?: ForwardedData
   ) => {
-    if (!selectedChat) return;
-
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      from: user?.username ?? "Unknown",
-      to: selectedChat.id,
-      message: message,
-      messageType: type,
-      fileData: fileData,
-      forwardedFrom: forwardedFrom,
-      isGroupMessage: selectedChat.type === "group",
-      timestamp: new Date(),
-      reactions: [],
-      readBy:
-        selectedChat.type === "group"
-          ? [{ username: user?.username ?? "Unknown", timestamp: new Date() }]
-          : [],
-    };
-
-    setMessages((prev) => [...prev, newMessage]);
+    onSendMessage(message, type, fileData, forwardedFrom, user);
   };
 
-  const onAddReaction = (messageId: string, emoji: string) => {
-    setMessages((prevMessages) =>
-      prevMessages.map((message) => {
-        if (message.id !== messageId) return message;
-
-        const existingReactionIndex = message.reactions.findIndex(
-          (r) => r.username === user?.username && r.emoji === emoji
-        );
-
-        if (existingReactionIndex >= 0) {
-          return {
-            ...message,
-            reactions: message.reactions.filter(
-              (_, index) => index !== existingReactionIndex
-            ),
-          };
-        }
-
-        const userReactionIndex = message.reactions.findIndex(
-          (r) => r.username === user?.username
-        );
-
-        if (userReactionIndex >= 0) {
-          const updatedReactions = [...message.reactions];
-          updatedReactions[userReactionIndex] = {
-            emoji,
-            username: user?.username ?? "Unknown",
-            timestamp: new Date(),
-          };
-          return { ...message, reactions: updatedReactions };
-        }
-
-        return {
-          ...message,
-          reactions: [
-            ...message.reactions,
-            {
-              emoji,
-              username: user?.username ?? "Unknown",
-              timestamp: new Date(),
-            },
-          ],
-        };
-      })
-    );
+  const handleAddReaction = (messageId: string, emoji: string) => {
+    onAddReaction(messageId, emoji, user);
   };
 
-  const onTypingStart = () => {
+  const handleTypingStart = () => {
     if (!selectedChat || selectedChat.type !== "user") return;
     if (selectedChat.id === user?.id) return;
 
-    setOtherUserTyping(user?.username ?? "Unknown");
-
-    if (window.typingTimeout) {
-      clearTimeout(window.typingTimeout);
-      window.typingTimeout = null;
-    }
-
-    const typingDuration = 1500 + Math.random() * 1500;
-    window.typingTimeout = setTimeout(() => {
-      setOtherUserTyping(null);
-      window.typingTimeout = null;
-    }, typingDuration);
+    startTyping(setOtherUserTyping, user?.username ?? "Unknown");
   };
 
-  const onTypingStop = () => {
-    setOtherUserTyping(null);
-    if (window.typingTimeout) {
-      clearTimeout(window.typingTimeout);
-      window.typingTimeout = null;
-    }
+  const handleTypingStop = () => {
+    stopTyping(setOtherUserTyping);
   };
-
-  useEffect(() => {
-    return () => {
-      if (window.typingTimeout) {
-        clearTimeout(window.typingTimeout);
-        window.typingTimeout = null;
-      }
-    };
-  }, []);
 
   return (
     <div className="w-screen h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
@@ -200,10 +122,10 @@ const ChatLayout = () => {
             selectedChat={selectedChat}
             messages={messages}
             otherUserTyping={otherUserTyping}
-            onSendMessage={onSendMessage}
-            onAddReaction={onAddReaction}
-            onTypingStart={onTypingStart}
-            onTypingStop={onTypingStop}
+            onSendMessage={handleSendMessage}
+            onAddReaction={handleAddReaction}
+            onTypingStart={handleTypingStart}
+            onTypingStop={handleTypingStop}
           />
         </div>
       </div>
