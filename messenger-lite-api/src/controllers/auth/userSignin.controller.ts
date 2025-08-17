@@ -4,10 +4,11 @@ import { z } from "zod";
 import { prisma } from "../../configs/prisma.config";
 import getAccessToken from "../../helpers/getAccessToken";
 import sendResponse from "../../libs/sendResponse";
+import jwt from "jsonwebtoken";
 
 // Validation Schema
 const userSigninDto = z.object({
-  email: z.string(),
+  email: z.string().email("Invalid email format"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -15,21 +16,9 @@ const userSignin = async (req: any, res: any) => {
   try {
     const { email, password } = userSigninDto.parse(req.body);
 
-    const accessToken = getAccessToken({ email }, "24h");
-
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 12 * 60 * 60 * 1000,
-    });
-
     const user = await prisma.user.findFirst({
-      where: {
-        email,
-      },
+      where: { email },
     });
-    console.log(user, "user");
 
     if (!user) {
       return res.status(StatusCodes.BAD_REQUEST).json({
@@ -44,21 +33,29 @@ const userSignin = async (req: any, res: any) => {
       });
     }
 
+    const accessToken = getAccessToken({ email }, "24h");
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
     await prisma.user.update({
-      where: {
-        email,
-      },
-      data: {
-        isOnline: true,
-      },
+      where: { email },
+      data: { isOnline: true },
     });
 
     const userInfo = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-      omit: {
-        password: true,
+      where: { email },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        isOnline: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
@@ -76,7 +73,7 @@ const userSignin = async (req: any, res: any) => {
       });
     }
 
-    console.error("Signup error:", error);
+    console.error("Signin error:", error);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       message: "Internal server error",
     });
