@@ -8,6 +8,8 @@ import { DBconnectionHandling } from "./configs/DB.config";
 import { ApiError, globalErrorHandler } from "./libs/error";
 import v1_routes from "./routes/v1/v1_router";
 import { connectDB } from "./configs/prisma.config";
+import http from "http";
+import { initSocket } from "./socket";
 
 const app = express();
 
@@ -49,9 +51,14 @@ app.all("/", (req: Request, res: Response, next: NextFunction) => {
 // Global Error Handler
 app.use(globalErrorHandler);
 
+// ----- SOCKET.IO SETUP -----
+const server = http.createServer(app);
+
+initSocket(server);
+
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, async () => {
+server.listen(PORT, async () => {
   try {
     await connectDB(); // uncomment if you want DB connected on start
     console.log("Prisma client connected");

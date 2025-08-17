@@ -1,3 +1,4 @@
+import { socket } from "@/lib/socket";
 import { Chat } from "@/types/ChatType";
 import { FileData, ForwardedData, Message } from "@/types/MessageType";
 import { create } from "zustand";
@@ -27,40 +28,71 @@ type ChatState = {
   ) => void;
 };
 
-export const useChatStore = create<ChatState>((set) => ({
-  selectedChat: null,
-  messages: [],
-  otherUserTyping: null,
-  isConnected: true,
-  showSearch: false,
-  setSelectedChat: (chat) => set({ selectedChat: chat }),
-  setMessages: (messages) => set({ messages }),
-  setOtherUserTyping: (username) => set({ otherUserTyping: username }),
-  setIsConnected: (connected) => set({ isConnected: connected }),
-  setShowSearch: (show) => set({ showSearch: show }),
-  onSendMessage: (
-    message,
-    type = "text",
-    fileData,
-    forwardedFrom,
-    currentUser
-  ) => {
-    set((state) => {
-      if (!state.selectedChat) return state;
+export const useChatStore = create<ChatState>((set, get) => {
+  socket.on("connect", () => set({ isConnected: true }));
+  socket.on("disconnect", () => set({ isConnected: false }));
+
+  socket.on("receive_message", (newMessage: Message) => {
+    set((state) => ({ messages: [...state.messages, newMessage] }));
+  });
+
+  socket.on("user_typing", (username: string) =>
+    set({ otherUserTyping: username })
+  );
+
+  socket.on(
+    "message_reaction",
+    (payload: { messageId: string; emoji: string; username: string }) => {
+      set((state) => ({
+        messages: state.messages.map((msg) =>
+          msg.id === payload.messageId
+            ? {
+                ...msg,
+                reactions: [
+                  ...msg.reactions,
+                  { ...payload, timestamp: new Date() },
+                ],
+              }
+            : msg
+        ),
+      }));
+    }
+  );
+
+  return {
+    selectedChat: null,
+    messages: [],
+    otherUserTyping: null,
+    isConnected: true,
+    showSearch: false,
+    setSelectedChat: (chat) => set({ selectedChat: chat }),
+    setMessages: (messages) => set({ messages }),
+    setOtherUserTyping: (username) => set({ otherUserTyping: username }),
+    setIsConnected: (connected) => set({ isConnected: connected }),
+    setShowSearch: (show) => set({ showSearch: show }),
+    onSendMessage: (
+      message,
+      type = "text",
+      fileData,
+      forwardedFrom,
+      currentUser
+    ) => {
+      const { selectedChat } = get();
+      if (!selectedChat) return;
 
       const newMessage: Message = {
         id: Date.now().toString(),
         from: currentUser?.username ?? "Unknown",
-        to: state.selectedChat.id,
+        to: selectedChat.id,
         message,
         messageType: type,
         fileData,
         forwardedFrom,
-        isGroupMessage: state.selectedChat.type === "group",
+        isGroupMessage: selectedChat.type === "group",
         timestamp: new Date(),
         reactions: [],
         readBy:
-          state.selectedChat.type === "group"
+          selectedChat.type === "group"
             ? [
                 {
                   username: currentUser?.username ?? "Unknown",
@@ -70,54 +102,14 @@ export const useChatStore = create<ChatState>((set) => ({
             : [],
       };
 
-      return { messages: [...state.messages, newMessage] };
-    });
-  },
-  onAddReaction: (
-    messageId: string,
-    emoji: string,
-    currentUser?: { username: string; id: string } | null
-  ) => {
-    set((state) => ({
-      messages: state.messages.map((message) => {
-        if (message.id !== messageId) return message;
+      set((state) => ({ messages: [...state.messages, newMessage] }));
+      socket.emit("send_message", newMessage);
+    },
+    onAddReaction: (messageId, emoji, currentUser) => {
+      const username = currentUser?.username ?? "Unknown";
 
-        const username = currentUser?.username ?? "Unknown";
-        const existingReactionIndex = message.reactions.findIndex(
-          (r) => r.username === username && r.emoji === emoji
-        );
-
-        if (existingReactionIndex >= 0) {
-          return {
-            ...message,
-            reactions: message.reactions.filter(
-              (_, index) => index !== existingReactionIndex
-            ),
-          };
-        }
-
-        const userReactionIndex = message.reactions.findIndex(
-          (r) => r.username === username
-        );
-
-        if (userReactionIndex >= 0) {
-          const updatedReactions = [...message.reactions];
-          updatedReactions[userReactionIndex] = {
-            emoji,
-            username,
-            timestamp: new Date(),
-          };
-          return { ...message, reactions: updatedReactions };
-        }
-
-        return {
-          ...message,
-          reactions: [
-            ...message.reactions,
-            { emoji, username, timestamp: new Date() },
-          ],
-        };
-      }),
-    }));
-  },
-}));
+      // emit reaction to backend
+      socket.emit("message_reaction", { messageId, emoji, username });
+    },
+  };
+});
