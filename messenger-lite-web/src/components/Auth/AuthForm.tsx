@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation"; // For app router
+import { useSearchParams, useRouter } from "next/navigation";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -14,12 +14,13 @@ import { FormValues, getSchema } from "@/schema/auth.schema";
 
 export default function AuthForm() {
   const searchParams = useSearchParams();
-  const type = searchParams.get("type"); // "login" or "register"
+  const router = useRouter();
+  const type = searchParams.get("type");
 
   const [isLogin, setIsLogin] = useState(type === "login");
 
   useEffect(() => {
-    setIsLogin(type === "login"); // update when query changes
+    setIsLogin(type === "login");
   }, [type]);
 
   const { login, register: registerUser, loading } = useAuthStore();
@@ -33,9 +34,9 @@ export default function AuthForm() {
 
   const onSubmit = async (data: FormValues) => {
     if (isLogin) {
-      await login(data.email, data.password);
+      await login(data.email, data.password, router);
     } else {
-      await registerUser(data.email, data.username!, data.password);
+      await registerUser(data.email, data.username!, data.password, router);
     }
     reset();
   };
