@@ -1,5 +1,6 @@
 import { Server as SocketIOServer } from "socket.io";
 
+let connected: any = [];
 export const initSocket = (server: any) => {
   const io = new SocketIOServer(server, {
     cors: {
@@ -16,10 +17,12 @@ export const initSocket = (server: any) => {
       credentials: true,
     },
   });
-  io.on("connection", (socket) => {
+  io.on("connect", (socket) => {
     console.log(" User connected:", socket.id);
+    connected[1] = socket.id;
     socket.on("send_message", (message) => {
-      io.emit("receive_message", message);
+      io.to(connected[1]).emit("receive_message", message);
+      console.log(message, "message");
     });
 
     socket.on("message_reaction", (payload) => {
@@ -28,6 +31,7 @@ export const initSocket = (server: any) => {
 
     socket.on("typing", (username) => {
       socket.broadcast.emit("user_typing", username);
+      console.log(username, "typing");
     });
 
     socket.on("disconnect", () => {
@@ -37,3 +41,7 @@ export const initSocket = (server: any) => {
 
   return io;
 };
+
+// export const sendMessage(userid, message)[
+//   Socket.to(userid).emit("recived_message", message)
+// ]

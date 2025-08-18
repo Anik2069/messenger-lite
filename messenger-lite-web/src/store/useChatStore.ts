@@ -33,7 +33,7 @@ export const useChatStore = create<ChatState>((set, get) => {
   socket.on("disconnect", () => set({ isConnected: false }));
 
   socket.on("receive_message", (newMessage: Message) => {
-    set((state) => ({ messages: [...state.messages, newMessage] }));
+    // set((state) => ({ messages: [...state.messages, newMessage] }));
   });
 
   socket.on("user_typing", (username: string) =>

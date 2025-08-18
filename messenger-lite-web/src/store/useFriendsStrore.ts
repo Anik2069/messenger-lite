@@ -38,6 +38,7 @@ export const useFriendsStore = create<FriendsState>()(
         } catch (error) {
           const axiosError = error as AxiosError<{ message?: string }>;
           toast.error(axiosError.response?.data?.message || "Fetch failed");
+
           set({ loading: false, error: axiosError.response?.data?.message });
         }
       },
