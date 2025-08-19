@@ -59,6 +59,7 @@ const ChatWindow = ({
     e.preventDefault();
     if (message.trim() && selectedChat) {
       onTypingStop();
+      console.log(message.trim(), "message");
       onSendMessage(message.trim());
       setMessage("");
     }
@@ -66,6 +67,7 @@ const ChatWindow = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMessage(e.target.value);
+
     if (e.target.value.trim() && selectedChat) {
       onTypingStart();
       if (typingTimeoutRef.current) {
@@ -198,7 +200,7 @@ const ChatWindow = ({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto scrollbar-none p-4 space-y-4">
         {messages.length === 0 && !otherUserTyping && (
           <div className="text-center py-12">
             <p className="text-gray-500 dark:text-gray-400">
