@@ -2,12 +2,14 @@ import { socket } from "@/lib/socket";
 import { Chat } from "@/types/ChatType";
 import { FileData, ForwardedData, Message } from "@/types/MessageType";
 import { create } from "zustand";
+import { useAuthStore } from "./useAuthStore";
 
 type ChatState = {
   selectedChat: Chat | null;
   messages: Message[];
   otherUserTyping: string | null;
   isConnected: boolean;
+
   showSearch: boolean;
   setSelectedChat: (chat: Chat) => void;
   setMessages: (messages: Message[]) => void;
@@ -29,16 +31,38 @@ type ChatState = {
 };
 
 export const useChatStore = create<ChatState>((set, get) => {
-  socket.on("connect", () => set({ isConnected: true }));
-  socket.on("disconnect", () => set({ isConnected: false }));
+  socket.on("connect", () => {
+    set({ isConnected: true });
+    console.log("Socket connected");
 
-  socket.on("receive_message", (newMessage: Message) => {
-    // set((state) => ({ messages: [...state.messages, newMessage] }));
+    // Re-authenticate if user is logged in
+    const { user } = useAuthStore.getState();
+    if (user) {
+      socket.emit("user_connected", user.id);
+    }
   });
 
-  socket.on("user_typing", (username: string) =>
-    set({ otherUserTyping: username })
-  );
+  socket.on("receive_message", (newMessage: Message) => {
+    console.log("Received message:", newMessage);
+    set((state) => ({ messages: [...state.messages, newMessage] }));
+  });
+
+  socket.on("disconnect", () => {
+    set({ isConnected: false });
+    console.log("Socket disconnected");
+  });
+
+  socket.on("receive_message", (newMessage: Message) => {
+    console.log("Received message:", newMessage);
+    set((state) => ({ messages: [...state.messages, newMessage] }));
+  });
+
+  socket.on("user_typing", (data: { chatId: string; username: string }) => {
+    const { selectedChat } = get();
+    if (selectedChat && selectedChat.id === data.chatId) {
+      set({ otherUserTyping: data.username });
+    }
+  });
 
   socket.on(
     "message_reaction",

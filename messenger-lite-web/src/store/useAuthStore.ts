@@ -1,10 +1,13 @@
 import axiosInstance from "@/config/axiosInstance";
+import { socket } from "@/lib/socket";
 import { User } from "@/types/UserType";
 import { AxiosError } from "axios";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { toast } from "react-toastify";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { useChatStore } from "./useChatStore";
+import { disconnect } from "process";
 
 export interface AuthState {
   user: User | null;
@@ -44,6 +47,12 @@ export const useAuthStore = create<AuthState>()(
           if (response.status === 200) {
             const user = response.data?.results?.userInfo;
             set({ user, loading: false, error: null });
+
+            if (!socket.connected) {
+              socket.connect();
+            }
+            socket.emit("user_connected", user.id);
+
             toast.success("Login successful");
             router?.push("/");
           }
@@ -82,7 +91,15 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: async (router) => {
+        const { setIsConnected } = useChatStore.getState();
         set({ loading: true, error: null });
+        const socketId = socket.id;
+        // Disconnect socket
+        socket.disconnect();
+        setIsConnected(false);
+
+        console.log(socketId, "log out");
+        console.log(disconnect, "log out");
         try {
           const response = await axiosInstance.get("auth/user/logout");
           if (response.status === 200) {

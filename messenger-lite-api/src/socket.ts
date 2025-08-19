@@ -1,6 +1,13 @@
 import { Server as SocketIOServer } from "socket.io";
 
-let connected: any = [];
+// Store connected users with their socket IDs
+interface ConnectedUser {
+  userId: string;
+  socketId: string;
+}
+
+let connectedUsers: ConnectedUser[] = [];
+
 export const initSocket = (server: any) => {
   const io = new SocketIOServer(server, {
     cors: {
@@ -17,31 +24,57 @@ export const initSocket = (server: any) => {
       credentials: true,
     },
   });
+
   io.on("connect", (socket) => {
-    console.log(" User connected:", socket.id);
-    connected[1] = socket.id;
+    console.log("User connected:", socket.id);
+
+    // Listen for user authentication
+    socket.on("user_connected", (userId: string) => {
+      // Remove user if already exists (in case of reconnection)
+      connectedUsers = connectedUsers.filter((user) => user.userId !== userId);
+
+      // Add user to connected list
+      connectedUsers.push({ userId, socketId: socket.id });
+
+      console.log(`User ${userId} connected with socket ID: ${socket.id}`);
+      console.log("Connected users:", connectedUsers);
+    });
+
     socket.on("send_message", (message) => {
-      io.to(connected[1]).emit("receive_message", message);
-      console.log(message, "message");
+      console.log("Received message:", message);
+
+      // Find recipient's socket ID
+      const recipient = connectedUsers.find(
+        (user) => user.userId === message.to
+      );
+
+      if (recipient) {
+        io.to(recipient.socketId).emit("receive_message", message);
+        console.log(`Message sent to user ${message.to}`);
+      } else {
+        console.log(`Recipient ${message.to} not found`);
+      }
     });
 
     socket.on("message_reaction", (payload) => {
       io.emit("message_reaction", payload);
     });
 
-    socket.on("typing", (username) => {
-      socket.broadcast.emit("user_typing", username);
-      console.log(username, "typing");
+    socket.on("typing", (data) => {
+      const { chatId, username } = data;
+      socket.broadcast.emit("user_typing", { chatId, username });
+      console.log(`${username} is typing in chat ${chatId}`);
     });
 
     socket.on("disconnect", () => {
-      console.log(" User disconnected:", socket.id);
+      // Remove user from connected list
+      connectedUsers = connectedUsers.filter(
+        (user) => user.socketId !== socket.id
+      );
+      console.log("User disconnected:", socket.id);
+      console.log("Remaining connected users:", connectedUsers);
     });
   });
 
   return io;
 };
-
-// export const sendMessage(userid, message)[
-//   Socket.to(userid).emit("recived_message", message)
-// ]
