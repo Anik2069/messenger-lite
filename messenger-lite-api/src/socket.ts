@@ -41,14 +41,11 @@ export const initSocket = (server: any) => {
 
     // OPTIONAL: if you still allow direct socket sending (not recommended
 
-    // socket.on("send_message", (message) => {
-    //   const recipientUserId = message?.to?.id;
-    //   if (!recipientUserId) return;
-
-    //   io.to(recipientUserId).emit("receive_message", message);
-
-    //   const senderUserId = message?.from?.id;
-    //   if (senderUserId) io.to(senderUserId).emit("receive_message", message);
+    //  socket.on("send_message", (message) => {
+    //   const toId = message?.to?.id;
+    //   const fromId = message?.from?.id;
+    //   if (toId) io.to(toId).emit("receive_message", message);
+    //   if (fromId) io.to(fromId).emit("receive_message", message); // echo
     // });
 
     socket.on("message_reaction", (payload) => {

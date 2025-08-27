@@ -1,5 +1,6 @@
 export interface Message {
   id: string;
+  clientTempId?: string;
   from: { username: string; id: string };
   to: { username: string; id: string };
   message: string;

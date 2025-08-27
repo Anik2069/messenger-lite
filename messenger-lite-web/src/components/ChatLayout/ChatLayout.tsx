@@ -89,7 +89,7 @@ const ChatLayout = () => {
     if (!selectedChat || selectedChat.type !== "user") return;
     if (selectedChat.id === user?.id) return;
 
-    startTyping(setOtherUserTyping, user?.username ?? "Unknown");
+    startTyping(setOtherUserTyping, user?.id ?? "Unknown");
   };
 
   const handleTypingStop = () => {
