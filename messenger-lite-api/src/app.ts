@@ -10,6 +10,7 @@ import v1_routes from "./routes/v1/v1_router";
 import { connectDB } from "./configs/prisma.config";
 import http from "http";
 import { initSocket } from "./socket";
+import messagesRouter from "./routes/v1/auth/routes/messages.route/messages.route";
 
 const app = express();
 
@@ -35,6 +36,10 @@ app.use(cookieParser());
 app.use("/uploads", express.static("uploads"));
 // // app.use(morgan("dev"));
 
+// ----- SOCKET.IO SETUP -----
+const server = http.createServer(app);
+const io = initSocket(server);
+
 // Routes
 
 app.get("/health", async (req: Request, res: Response) => {
@@ -42,7 +47,7 @@ app.get("/health", async (req: Request, res: Response) => {
 });
 
 app.use("/api/v1", v1_routes);
-
+app.use("/api/v1/messages", messagesRouter(io));
 // Catch-all for 404
 app.all("/", (req: Request, res: Response, next: NextFunction) => {
   next(new ApiError(404, `Can't find ${req.originalUrl} on this server!`));
@@ -50,11 +55,6 @@ app.all("/", (req: Request, res: Response, next: NextFunction) => {
 
 // Global Error Handler
 app.use(globalErrorHandler);
-
-// ----- SOCKET.IO SETUP -----
-const server = http.createServer(app);
-
-initSocket(server);
 
 // Start server
 const PORT = process.env.PORT || 5000;
