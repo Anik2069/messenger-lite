@@ -1,6 +1,5 @@
 import { Server as SocketIOServer } from "socket.io";
 
-// Store connected users with their socket IDs
 interface ConnectedUser {
   userId: string;
   socketId: string;
@@ -25,44 +24,40 @@ export const initSocket = (server: any) => {
     },
   });
 
-  io.on("connect", (socket) => {
+  io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
 
     // Listen for user authentication
     socket.on("user_connected", (userId: string) => {
-      // Remove user if already exists (in case of reconnection)
+      //track
       connectedUsers = connectedUsers.filter((user) => user.userId !== userId);
-
-      // Add user to connected list
       connectedUsers.push({ userId, socketId: socket.id });
+
+      socket.join(userId);
 
       console.log(`User ${userId} connected with socket ID: ${socket.id}`);
       console.log("Connected users:", connectedUsers);
     });
 
-    socket.on("send_message", (message) => {
-      console.log("Received message:", message);
+    // OPTIONAL: if you still allow direct socket sending (not recommended
 
-      // Find recipient's socket ID
-      const recipient = connectedUsers.find(
-        (user) => user.userId === message.to
-      );
+    // socket.on("send_message", (message) => {
+    //   const recipientUserId = message?.to?.id;
+    //   if (!recipientUserId) return;
 
-      if (recipient) {
-        io.to(recipient.socketId).emit("receive_message", message);
-        console.log(`Message sent to user ${message.to}`);
-      } else {
-        console.log(`Recipient ${message.to} not found`);
-      }
-    });
+    //   io.to(recipientUserId).emit("receive_message", message);
+
+    //   const senderUserId = message?.from?.id;
+    //   if (senderUserId) io.to(senderUserId).emit("receive_message", message);
+    // });
 
     socket.on("message_reaction", (payload) => {
       io.emit("message_reaction", payload);
     });
 
-    socket.on("typing", (data) => {
-      const { chatId, username } = data;
-      socket.broadcast.emit("user_typing", { chatId, username });
+    socket.on("typing", ({ chatId, username, audienceUserId }) => {
+      if (audienceUserId)
+        socket.to(audienceUserId).emit("user_typing", { chatId, username });
       console.log(`${username} is typing in chat ${chatId}`);
     });
 
