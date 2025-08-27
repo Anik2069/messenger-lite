@@ -1,7 +1,7 @@
 export interface Message {
   id: string;
-  from: string;
-  to: string;
+  from: { username: string; id: string };
+  to: { username: string; id: string };
   message: string;
   messageType: "text" | "file" | "forwarded";
   fileData?: FileData;

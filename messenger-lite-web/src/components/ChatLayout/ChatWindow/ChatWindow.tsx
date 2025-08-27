@@ -210,7 +210,9 @@ const ChatWindow = ({
         )}
 
         {messages.map((msg) => {
-          const isOwnMessage = msg.from === currentUser?.username;
+          const isOwnMessage =
+            msg.from?.id === currentUser?.id ||
+            msg.from?.username === currentUser?.username;
 
           return (
             <div
@@ -229,7 +231,7 @@ const ChatWindow = ({
                 >
                   {selectedChat.type === "group" && !isOwnMessage && (
                     <p className="text-xs font-medium mb-1 opacity-75">
-                      {msg.from}
+                      {msg.from.id}
                     </p>
                   )}
 

@@ -104,10 +104,16 @@ export const useChatStore = create<ChatState>((set, get) => {
       const { selectedChat } = get();
       if (!selectedChat) return;
 
+      const fromUser = {
+        username: currentUser?.username ?? "Unknown",
+        id: currentUser?.id ?? "0",
+      };
+      const toUser = { username: selectedChat.name, id: selectedChat.id };
+
       const newMessage: Message = {
         id: Date.now().toString(),
-        from: currentUser?.username ?? "Unknown",
-        to: selectedChat.id,
+        from: fromUser,
+        to: toUser,
         message,
         messageType: type,
         fileData,
