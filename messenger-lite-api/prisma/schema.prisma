@@ -1,6 +1,7 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["views"]
+  provider = "prisma-client-js"
+  // Remove if you don't actually use DB views:
+  // previewFeatures = ["views"]
 }
 
 datasource db {
@@ -18,15 +19,105 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  chat chat[]
+  participants ConversationParticipant[]
+  messages     Message[]                 @relation("MessageAuthor")
+  reactions    MessageReaction[]
+  reads        MessageRead[]
 }
 
-model chat {
-  id        String   @id @default(uuid())
-  userId    String
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Conversation {
+  id        String           @id @default(uuid())
+  type      ConversationType
+  name      String?
+  avatar    String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 
-  user      User     @relation(fields: [userId], references: [id])
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@index([type])
+  @@index([updatedAt])
+}
+
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
+model ConversationParticipant {
+  id             String          @id @default(uuid())
+  userId         String
+  conversationId String
+  role           ParticipantRole @default(MEMBER)
+  joinedAt       DateTime        @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, conversationId])
+  @@index([conversationId])
+  @@index([userId])
+}
+
+enum ParticipantRole {
+  MEMBER
+  ADMIN
+}
+
+model Message {
+  id             String      @id @default(uuid())
+  conversationId String
+  authorId       String
+  message        String
+  messageType    MessageType @default(TEXT)
+  fileUrl        String?
+  fileName       String?
+  fileMime       String?
+  fileSize       Int?
+  forwardedFrom  String?
+  createdAt      DateTime    @default(now())
+
+  conversation Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  author       User              @relation("MessageAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  reactions    MessageReaction[]
+  receipts     MessageRead[]
+
+  @@index([conversationId, createdAt])
+  @@index([authorId])
+}
+
+enum MessageType {
+  TEXT
+  FILE
+  FORWARDED
+}
+
+model MessageReaction {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
+  @@index([userId])
+}
+
+model MessageRead {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+  @@index([userId])
 }

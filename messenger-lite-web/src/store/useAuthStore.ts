@@ -111,6 +111,7 @@ export const useAuthStore = create<AuthState>()(
           const axiosError = error as AxiosError<{ message?: string }>;
           toast.error(axiosError.response?.data?.message || "Logout failed");
           set({ loading: false, error: axiosError.response?.data?.message });
+          set({ user: null });
         }
       },
     }),
