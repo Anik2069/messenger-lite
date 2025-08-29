@@ -7,7 +7,6 @@ import { toast } from "react-toastify";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { useChatStore } from "./useChatStore";
-import { disconnect } from "process";
 
 export interface AuthState {
   user: User | null;
@@ -29,38 +28,37 @@ export interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       loading: false,
       error: null,
 
       login: async (email, password, router) => {
         set({ loading: true, error: null });
-        const payload = { email, password };
-
         try {
-          const response = await axiosInstance.post(
-            "auth/user/sign-in",
-            payload
-          );
+          const res = await axiosInstance.post("auth/user/sign-in", {
+            email,
+            password,
+          });
+          const user = res.data?.results?.userInfo as User | undefined;
 
-          if (response.status === 200) {
-            const user = response.data?.results?.userInfo;
-            set({ user, loading: false, error: null });
+          if (!user) throw new Error("Invalid response: missing userInfo");
 
-            if (!socket.connected) {
-              socket.connect();
-            }
-            socket.emit("user_connected", user.id);
+          set({ user, loading: false, error: null });
 
-            toast.success("Login successful");
-            router?.push("/");
+          if (!socket.connected) {
+            socket.connect();
           }
-        } catch (error) {
-          const axiosError = error as AxiosError<{ message?: string }>;
-          toast.error(axiosError.response?.data?.message || "Login failed");
 
-          set({ loading: false, error: axiosError.response?.data?.message });
+          toast.success("Login successful");
+          router?.push("/");
+        } catch (err) {
+          const axiosErr = err as AxiosError<{ message?: string }>;
+          const msg =
+            axiosErr.response?.data?.message ||
+            (axiosErr.message ?? "Login failed");
+          toast.error(msg);
+          set({ loading: false, error: msg });
         } finally {
           set({ loading: false });
         }
@@ -69,55 +67,68 @@ export const useAuthStore = create<AuthState>()(
       register: async (email, username, password, router) => {
         set({ loading: true, error: null });
         try {
-          const response = await axiosInstance.post("auth/user/sign-up", {
+          const res = await axiosInstance.post("auth/user/sign-up", {
             username,
             email,
             password,
           });
+          const user = res.data?.results?.userInfo as User | undefined;
 
-          if (response.status === 201) {
+          if (user) {
+            set({ user, loading: false, error: null });
+            if (!socket.connected) socket.connect();
+            toast.success("Registration successful!");
+            router?.push("/");
+          } else {
             toast.success("Registration successful! Please login.");
+            set({ loading: false });
             router?.push("/auth?type=login");
           }
-        } catch (error) {
-          const axiosError = error as AxiosError<{ message?: string }>;
-          toast.error(
-            axiosError.response?.data?.message || "Registration failed"
-          );
-          set({ loading: false, error: axiosError.response?.data?.message });
+        } catch (err) {
+          const axiosErr = err as AxiosError<{ message?: string }>;
+          const msg =
+            axiosErr.response?.data?.message ||
+            (axiosErr.message ?? "Registration failed");
+          toast.error(msg);
+          set({ loading: false, error: msg });
         } finally {
           set({ loading: false });
         }
       },
 
       logout: async (router) => {
-        const { setIsConnected } = useChatStore.getState();
         set({ loading: true, error: null });
-        const socketId = socket.id;
-        // Disconnect socket
-        socket.disconnect();
-        setIsConnected(false);
+        const { setIsConnected } = useChatStore.getState();
 
-        console.log(socketId, "log out");
-        console.log(disconnect, "log out");
         try {
-          const response = await axiosInstance.get("auth/user/logout");
-          if (response.status === 200) {
+          const res = await axiosInstance.post("auth/user/logout");
+          if (res.status === 200) {
+            if (socket.connected) socket.disconnect();
+
+            setIsConnected(false);
+            set({ user: null, loading: false, error: null });
+
             toast.success("Logout successful");
             router?.push("/auth?type=login");
-            set({ user: null, loading: false, error: null });
+          } else {
+            throw new Error("Logout failed");
           }
-        } catch (error) {
-          const axiosError = error as AxiosError<{ message?: string }>;
-          toast.error(axiosError.response?.data?.message || "Logout failed");
-          set({ loading: false, error: axiosError.response?.data?.message });
-          set({ user: null });
+        } catch (err) {
+          const axiosErr = err as AxiosError<{ message?: string }>;
+          const msg =
+            axiosErr.response?.data?.message ||
+            (axiosErr.message ?? "Logout failed");
+          toast.error(msg);
+          set({ loading: false, error: msg });
+        } finally {
+          set({ loading: false });
         }
       },
     }),
     {
       name: "auth-storage",
       storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ user: state.user }), // persist only user
     }
   )
 );

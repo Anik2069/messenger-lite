@@ -1,16 +1,12 @@
-// src/app.ts
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import bcrypt from "bcrypt";
-
-import { DBconnectionHandling } from "./configs/DB.config";
-import { ApiError, globalErrorHandler } from "./libs/error";
-import v1_routes from "./routes/v1/v1_router";
-import { connectDB } from "./configs/prisma.config";
 import http from "http";
-import { initSocket } from "./socket";
-import messagesRouter from "./routes/v1/auth/routes/messages.route/messages.route";
+
+import { connectDB } from "./configs/prisma.config";
+import { ApiError, globalErrorHandler } from "./libs/error";
+import v1Router from "./routes/v1/v1_router";
+import { initSocket, type IOServerWithHelpers } from "./socket/initSocket";
 
 const app = express();
 
@@ -38,7 +34,7 @@ app.use("/uploads", express.static("uploads"));
 
 // ----- SOCKET.IO SETUP -----
 const server = http.createServer(app);
-const io = initSocket(server);
+const io = initSocket(server) as IOServerWithHelpers;
 
 // Routes
 
@@ -46,10 +42,10 @@ app.get("/health", async (req: Request, res: Response) => {
   res.status(200).json({ message: "Server is healthy 100%" });
 });
 
-app.use("/api/v1", v1_routes);
-app.use("/api/v1/messages", messagesRouter(io));
-// Catch-all for 404
-app.all("/", (req: Request, res: Response, next: NextFunction) => {
+app.use("/api/v1", v1Router(io));
+
+// 404
+app.use((req, res, next) => {
   next(new ApiError(404, `Can't find ${req.originalUrl} on this server!`));
 });
 
@@ -68,4 +64,4 @@ server.listen(PORT, async () => {
   }
 });
 
-export default app;
+export { app, server, io };
