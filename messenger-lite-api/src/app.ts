@@ -56,7 +56,7 @@ app.use(globalErrorHandler);
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, async () => {
   try {
-    await connectDB(); // uncomment if you want DB connected on start
+    await connectDB();
     console.log("Prisma client connected");
     console.log(`Server is running on port ${PORT}`);
   } catch (error) {

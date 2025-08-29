@@ -9,13 +9,10 @@ import readsRouter from "./reads/reads.router";
 const v1Router = (io: IOServerWithHelpers) => {
   const router = Router();
 
-  // Auth (signin sets cookie, logout clears + disconnects sockets)
   router.use("/auth/user", authRouter(io));
 
-  // Meta/sample endpoints
   router.use("/meta", listRouter);
 
-  // Messaging APIs (send, list, etc.)
   router.use("/messages", messagesRouter(io));
 
   router.use("/reactions", reactionsRouter(io));

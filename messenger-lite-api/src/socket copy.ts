@@ -39,7 +39,7 @@ export const initSocket = (server: any) => {
       console.log("Connected users:", connectedUsers);
     });
 
-    // OPTIONAL: if you still allow direct socket sending (not recommended
+    // OPTIONAL: if  allow direct socket sending
 
     //  socket.on("send_message", (message) => {
     //   const toId = message?.to?.id;
@@ -59,7 +59,6 @@ export const initSocket = (server: any) => {
     });
 
     socket.on("disconnect", () => {
-      // Remove user from connected list
       connectedUsers = connectedUsers.filter(
         (user) => user.socketId !== socket.id
       );

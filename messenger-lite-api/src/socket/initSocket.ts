@@ -2,10 +2,8 @@ import { Server as SocketIOServer, Socket } from "socket.io";
 import { prisma } from "../configs/prisma.config";
 import { verifyJWT } from "../utils/jwt";
 
-// room helper
 const convRoom = (id: string) => `conv:${id}`;
 
-// in-memory presence maps (single node)
 const userSockets = new Map<string, Set<string>>(); // userId -> socketIds
 const socketUser = new Map<string, string>(); // socketId -> userId
 
@@ -50,7 +48,6 @@ export const initSocket = (server: any) => {
 
   io.on("connection", async (socket) => {
     try {
-      // Authenticate via HTTP-only cookie on the WebSocket upgrade
       const cookies = parseCookie(
         socket.handshake.headers.cookie as string | undefined
       );
@@ -63,16 +60,13 @@ export const initSocket = (server: any) => {
         data: { isOnline: true },
       });
 
-      // map socket
       socketUser.set(socket.id, userId);
       if (!userSockets.has(userId)) userSockets.set(userId, new Set());
       userSockets.get(userId)!.add(socket.id);
 
-      // join rooms
-      socket.join(userId); // personal room
+      socket.join(userId);
       const convIds = await joinAllConversationRooms(socket, userId);
 
-      // notify presence to all conversations
       io.to(userId).emit("presence_self", { userId, isOnline: true });
       convIds.forEach((cid) =>
         io.to(convRoom(cid)).emit("presence_update", { userId, isOnline: true })
@@ -80,11 +74,9 @@ export const initSocket = (server: any) => {
 
       socket.emit("connected_ok", { userId, roomsJoined: convIds.length });
     } catch (e) {
-      // If unauthenticated, disconnect (client should connect socket after login)
       socket.emit("auth_error", { message: "Unauthenticated socket" });
       return socket.disconnect(true);
     }
-    // typing indicator (by conversation)
     socket.on("typing", ({ conversationId, username }) => {
       if (!conversationId) return;
       io.to(convRoom(conversationId)).emit("user_typing", {
@@ -105,14 +97,12 @@ export const initSocket = (server: any) => {
         if (set.size === 0) userSockets.delete(userId);
       }
 
-      // mark offline *only if no more sockets for this user*
       if (!userSockets.has(userId)) {
         await prisma.user.update({
           where: { id: userId },
           data: { isOnline: false },
         });
 
-        // broadcast presence offline
         const parts = await prisma.conversationParticipant.findMany({
           where: { userId },
           select: { conversationId: true },
@@ -126,7 +116,6 @@ export const initSocket = (server: any) => {
       }
     });
   });
-  // helper to forcibly disconnect a user's sockets (used on logout)
   function disconnectUser(userId: string) {
     const set = userSockets.get(userId);
     if (!set) return 0;
@@ -137,7 +126,6 @@ export const initSocket = (server: any) => {
     return set.size;
   }
 
-  // expose helpers
   return Object.assign(io, { disconnectUser, convRoom });
 };
 

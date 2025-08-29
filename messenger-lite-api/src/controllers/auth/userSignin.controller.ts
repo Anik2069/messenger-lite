@@ -41,10 +41,8 @@ export default function userSignin(io: IOServerWithHelpers) {
         maxAge: 24 * 60 * 60 * 1000,
       });
 
-      // mark online immediately (socket connect will keep it online)
       await prisma.user.update({ where: { id }, data: { isOnline: true } });
 
-      // presence broadcast to conversations (user might connect socket a bit later)
       const parts = await prisma.conversationParticipant.findMany({
         where: { userId: id },
         select: { conversationId: true },
