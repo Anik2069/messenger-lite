@@ -1,9 +1,24 @@
 import { Router } from "express";
-import authRouter from "./auth/auth.routes";
-import listRouter from "./meta/meta.routes";
+import { IOServerWithHelpers } from "../../socket/initSocket";
+import authRouter from "./auth/user_auth.routes";
+import listRouter from "./meta/meta.routes"; // no io needed
+import messagesRouter from "./messages.route/messages.route";
+import reactionsRouter from "./reactions/reactions.router";
+import readsRouter from "./reads/reads.router";
 
-const v1Router = Router();
-v1Router.use("/auth", authRouter); // Path: /api/v1/auth/...
-v1Router.use("/meta", listRouter); // Path: /api/v1/auth/...
+const v1Router = (io: IOServerWithHelpers) => {
+  const router = Router();
+
+  router.use("/auth/user", authRouter(io));
+
+  router.use("/meta", listRouter);
+
+  router.use("/messages", messagesRouter(io));
+
+  router.use("/reactions", reactionsRouter(io));
+  router.use("/reads", readsRouter(io));
+
+  return router;
+};
 
 export default v1Router;

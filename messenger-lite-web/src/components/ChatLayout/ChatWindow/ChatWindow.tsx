@@ -210,7 +210,9 @@ const ChatWindow = ({
         )}
 
         {messages.map((msg) => {
-          const isOwnMessage = msg.from === currentUser?.username;
+          const isOwnMessage =
+            msg.from?.id === currentUser?.id ||
+            msg.from?.username === currentUser?.username;
 
           return (
             <div
@@ -229,7 +231,7 @@ const ChatWindow = ({
                 >
                   {selectedChat.type === "group" && !isOwnMessage && (
                     <p className="text-xs font-medium mb-1 opacity-75">
-                      {msg.from}
+                      {msg.from.id}
                     </p>
                   )}
 
@@ -324,7 +326,7 @@ const ChatWindow = ({
           );
         })}
 
-        {otherUserTyping && otherUserTyping !== currentUser?.username && (
+        {otherUserTyping && otherUserTyping !== currentUser?.id && (
           <div className="flex justify-start">
             <div className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-2xl rounded-bl-md px-4 py-2 max-w-xs">
               <div className="flex items-center space-x-2">

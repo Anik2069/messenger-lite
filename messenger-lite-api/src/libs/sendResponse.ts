@@ -1,13 +1,13 @@
 import { Response } from "express";
 
-interface SendResponseOptions<T = any> {
+interface SendResponseOptions<T = unknown> {
   res: Response;
   statusCode: number;
   message: string;
   data?: T | null;
 }
 
-const sendResponse = <T = any>({
+const sendResponse = <T = unknown>({
   res,
   statusCode,
   message,

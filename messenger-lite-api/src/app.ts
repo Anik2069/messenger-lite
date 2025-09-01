@@ -1,15 +1,12 @@
-// src/app.ts
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import bcrypt from "bcrypt";
-
-import { DBconnectionHandling } from "./configs/DB.config";
-import { ApiError, globalErrorHandler } from "./libs/error";
-import v1_routes from "./routes/v1/v1_router";
-import { connectDB } from "./configs/prisma.config";
 import http from "http";
-import { initSocket } from "./socket";
+
+import { connectDB } from "./configs/prisma.config";
+import { ApiError, globalErrorHandler } from "./libs/error";
+import v1Router from "./routes/v1/v1_router";
+import { initSocket, type IOServerWithHelpers } from "./socket/initSocket";
 
 const app = express();
 
@@ -35,32 +32,31 @@ app.use(cookieParser());
 app.use("/uploads", express.static("uploads"));
 // // app.use(morgan("dev"));
 
+// ----- SOCKET.IO SETUP -----
+const server = http.createServer(app);
+const io = initSocket(server) as IOServerWithHelpers;
+
 // Routes
 
 app.get("/health", async (req: Request, res: Response) => {
   res.status(200).json({ message: "Server is healthy 100%" });
 });
 
-app.use("/api/v1", v1_routes);
+app.use("/api/v1", v1Router(io));
 
-// Catch-all for 404
-app.all("/", (req: Request, res: Response, next: NextFunction) => {
+// 404
+app.use((req, res, next) => {
   next(new ApiError(404, `Can't find ${req.originalUrl} on this server!`));
 });
 
 // Global Error Handler
 app.use(globalErrorHandler);
 
-// ----- SOCKET.IO SETUP -----
-const server = http.createServer(app);
-
-initSocket(server);
-
 // Start server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, async () => {
   try {
-    await connectDB(); // uncomment if you want DB connected on start
+    await connectDB();
     console.log("Prisma client connected");
     console.log(`Server is running on port ${PORT}`);
   } catch (error) {
@@ -68,4 +64,4 @@ server.listen(PORT, async () => {
   }
 });
 
-export default app;
+export { app, server, io };

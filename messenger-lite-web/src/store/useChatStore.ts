@@ -1,115 +1,323 @@
+import axiosInstance from "@/config/axiosInstance";
 import { socket } from "@/lib/socket";
 import { Chat } from "@/types/ChatType";
 import { FileData, ForwardedData, Message } from "@/types/MessageType";
 import { create } from "zustand";
+import { useAuthStore } from "./useAuthStore";
+import { uuidv4 } from "@/lib/utils";
+import { SendMessagePayload, toServerType } from "@/types/sendMessage";
 
-type ChatState = {
+interface ServerMessage {
+  id: string;
+  clientTempId?: string;
+  conversationId: string;
+  author?: { id: string; username?: string };
+  authorId?: string;
+  conversation?: { name?: string; type?: string };
+  message?: string;
+  messageType?: string;
+  fileUrl?: string;
+  fileName?: string;
+  fileMime?: string;
+  fileSize?: number;
+  forwardedFrom?: string;
+  createdAt?: string | number | Date;
+  reactions?: Array<{
+    emoji: string;
+    user?: { username?: string };
+    userId?: string;
+    createdAt?: string | number | Date;
+  }>;
+  receipts?: Array<{
+    user?: { username?: string };
+    userId?: string;
+    readAt?: string | number | Date;
+  }>;
+}
+
+function mapServerMessage(m: ServerMessage): Message {
+  return {
+    id: m.id,
+    clientTempId: m.clientTempId,
+    conversationId: m.conversationId,
+    from: {
+      id: m.author?.id ?? m.authorId ?? "",
+      username: m.author?.username ?? "Unknown",
+    },
+    to: {
+      id: m.conversationId,
+      username: m.conversation?.name ?? "",
+    },
+    message: m.message ?? "",
+    messageType: String(
+      m.messageType || "TEXT"
+    ).toLowerCase() as Message["messageType"], // "text" | "file" | "forwarded"
+    fileData: m.fileUrl
+      ? {
+          url: m.fileUrl,
+          filename: m.fileName ?? "",
+          mimetype: m.fileMime ?? "",
+          size: m.fileSize ?? 0,
+        }
+      : undefined,
+    forwardedFrom: m.forwardedFrom
+      ? { originalSender: m.forwardedFrom }
+      : undefined,
+    isGroupMessage: !!(m.conversation?.type === "GROUP"),
+    timestamp: new Date(m.createdAt ?? Date.now()),
+    reactions: (m.reactions ?? []).map(
+      (r: {
+        emoji: string;
+        user?: { username?: string };
+        userId?: string;
+        createdAt?: string | number | Date;
+      }) => ({
+        emoji: r.emoji,
+        username: r.user?.username ?? r.userId ?? "",
+        timestamp: new Date(r.createdAt ?? Date.now()),
+      })
+    ),
+    readBy: (m.receipts ?? []).map(
+      (rc: {
+        user?: { username?: string };
+        userId?: string;
+        readAt?: string | number | Date;
+      }) => ({
+        username: rc.user?.username ?? rc.userId ?? "",
+        timestamp: new Date(rc.readAt ?? Date.now()),
+      })
+    ),
+  };
+}
+
+/** Store */
+let listenersInitialized = false;
+
+export type ChatState = {
   selectedChat: Chat | null;
   messages: Message[];
   otherUserTyping: string | null;
   isConnected: boolean;
   showSearch: boolean;
+
   setSelectedChat: (chat: Chat) => void;
   setMessages: (messages: Message[]) => void;
-  setOtherUserTyping: (username: string | null) => void;
+  setOtherUserTyping: (userId: string | null) => void;
   setIsConnected: (connected: boolean) => void;
   setShowSearch: (show: boolean) => void;
+
+  emitTyping: () => void;
+
   onSendMessage: (
-    message: string,
+    text: string,
     type?: "text" | "file" | "forwarded",
     fileData?: FileData,
     forwardedFrom?: ForwardedData,
     currentUser?: { username: string; id: string } | null
-  ) => void;
+  ) => Promise<void>;
+
   onAddReaction: (
     messageId: string,
     emoji: string,
     currentUser?: { username: string; id: string } | null
-  ) => void;
+  ) => Promise<void>;
 };
 
 export const useChatStore = create<ChatState>((set, get) => {
-  socket.on("connect", () => set({ isConnected: true }));
-  socket.on("disconnect", () => set({ isConnected: false }));
+  if (!listenersInitialized) {
+    listenersInitialized = true;
 
-  socket.on("receive_message", (newMessage: Message) => {
-    // set((state) => ({ messages: [...state.messages, newMessage] }));
-  });
+    socket.off("connect");
+    socket.off("disconnect");
+    socket.off("receive_message");
+    socket.off("user_typing");
+    socket.off("message_reaction");
 
-  socket.on("user_typing", (username: string) =>
-    set({ otherUserTyping: username })
-  );
+    socket.on("connect", () => set({ isConnected: true }));
+    socket.on("disconnect", () => set({ isConnected: false }));
 
-  socket.on(
-    "message_reaction",
-    (payload: { messageId: string; emoji: string; username: string }) => {
-      set((state) => ({
-        messages: state.messages.map((msg) =>
-          msg.id === payload.messageId
-            ? {
+    socket.on("receive_message", (incoming: Record<string, unknown>) => {
+      const normalized = mapServerMessage(incoming as unknown as ServerMessage);
+
+      set((state) => {
+        if (normalized.clientTempId) {
+          const hasTemp = state.messages.some(
+            (m) => m.clientTempId === normalized.clientTempId
+          );
+          if (hasTemp) {
+            return {
+              messages: state.messages.map((m) =>
+                m.clientTempId === normalized.clientTempId ? normalized : m
+              ),
+            };
+          }
+        }
+        if (state.messages.some((m) => m.id === normalized.id)) return state;
+        return { messages: [...state.messages, normalized] };
+      });
+    });
+
+    socket.on(
+      "user_typing",
+      (data: { conversationId: string; username?: string }) => {
+        const { selectedChat } = get();
+        if (selectedChat && selectedChat.id === data.conversationId) {
+          set({ otherUserTyping: data.username ?? null });
+        }
+      }
+    );
+    socket.on(
+      "message_reaction",
+      (payload: {
+        messageId: string;
+        emoji: string;
+        userId?: string;
+        username?: string;
+        action?: "added" | "removed";
+        timestamp?: string | number | Date;
+      }) => {
+        set((state) => ({
+          messages: state.messages.map((msg) => {
+            if (msg.id !== payload.messageId) return msg;
+            const actor = payload.username || payload.userId || "Unknown";
+            if (payload.action === "removed") {
+              return {
                 ...msg,
-                reactions: [
-                  ...msg.reactions,
-                  { ...payload, timestamp: new Date() },
-                ],
-              }
-            : msg
-        ),
-      }));
-    }
-  );
-
+                reactions: msg.reactions.filter(
+                  (r) => !(r.emoji === payload.emoji && r.username === actor)
+                ),
+              };
+            }
+            return {
+              ...msg,
+              reactions: [
+                ...msg.reactions,
+                {
+                  emoji: payload.emoji,
+                  username: actor,
+                  timestamp: payload.timestamp
+                    ? new Date(payload.timestamp)
+                    : new Date(),
+                },
+              ],
+            };
+          }),
+        }));
+      }
+    );
+  }
   return {
     selectedChat: null,
     messages: [],
     otherUserTyping: null,
-    isConnected: true,
+    isConnected: socket.connected,
     showSearch: false,
+
     setSelectedChat: (chat) => set({ selectedChat: chat }),
     setMessages: (messages) => set({ messages }),
-    setOtherUserTyping: (username) => set({ otherUserTyping: username }),
+    setOtherUserTyping: (userId) => set({ otherUserTyping: userId }),
     setIsConnected: (connected) => set({ isConnected: connected }),
     setShowSearch: (show) => set({ showSearch: show }),
-    onSendMessage: (
-      message,
+
+    emitTyping: () => {
+      const { selectedChat } = get();
+      const { user } = useAuthStore.getState();
+      if (!selectedChat || !user) return;
+      socket.emit("typing", {
+        conversationId: selectedChat.id,
+        username: user.username,
+      });
+    },
+
+    onSendMessage: async (
+      text,
       type = "text",
       fileData,
       forwardedFrom,
       currentUser
     ) => {
       const { selectedChat } = get();
-      if (!selectedChat) return;
+      if (!selectedChat || !currentUser) return;
 
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        from: currentUser?.username ?? "Unknown",
-        to: selectedChat.id,
-        message,
+      const clientTempId = uuidv4();
+      const tempId = `temp-${Date.now()}`;
+
+      // optimistic
+      const optimistic: Message = {
+        id: tempId,
+        clientTempId,
+        conversationId: selectedChat.id,
+        from: { username: currentUser.username, id: currentUser.id },
+        to: { username: selectedChat.name, id: selectedChat.id },
+        message: text,
         messageType: type,
         fileData,
         forwardedFrom,
-        isGroupMessage: selectedChat.type === "group",
+        isGroupMessage: selectedChat.type !== "user",
         timestamp: new Date(),
         reactions: [],
-        readBy:
-          selectedChat.type === "group"
-            ? [
-                {
-                  username: currentUser?.username ?? "Unknown",
-                  timestamp: new Date(),
-                },
-              ]
-            : [],
+        readBy: [],
+      };
+      set((state) => ({ messages: [...state.messages, optimistic] }));
+
+      const isDirect = selectedChat.type === "user";
+
+      const payload: SendMessagePayload = {
+        conversationId: selectedChat.id,
+        ...(isDirect ? { recipientId: selectedChat.id } : {}),
+        message: text,
+        messageType: toServerType(type),
+        ...(fileData
+          ? {
+              fileUrl: fileData.url,
+              fileName: fileData.filename,
+              fileMime: fileData.mimetype,
+              fileSize: fileData.size,
+            }
+          : {}),
+        ...(forwardedFrom
+          ? { forwardedFrom: forwardedFrom.originalSender }
+          : {}),
+        clientTempId,
       };
 
-      set((state) => ({ messages: [...state.messages, newMessage] }));
-      socket.emit("send_message", newMessage);
+      try {
+        const res = await axiosInstance.post("messages", payload);
+        const saved = res.data?.results ?? res.data;
+        if (saved) {
+          const normalized = mapServerMessage(saved);
+          set((state) => {
+            if (state.messages.some((m) => m.clientTempId === clientTempId)) {
+              return {
+                messages: state.messages.map((m) =>
+                  m.clientTempId === clientTempId ? normalized : m
+                ),
+              };
+            }
+            if (state.messages.some((m) => m.id === tempId)) {
+              return {
+                messages: state.messages.map((m) =>
+                  m.id === tempId ? normalized : m
+                ),
+              };
+            }
+            return state;
+          });
+        }
+      } catch (err) {
+        set((state) => ({
+          messages: state.messages.filter((m) => m.id !== tempId),
+        }));
+        console.error("send failed", err);
+      }
     },
-    onAddReaction: (messageId, emoji, currentUser) => {
-      const username = currentUser?.username ?? "Unknown";
 
-      // emit reaction to backend
-      socket.emit("message_reaction", { messageId, emoji, username });
+    onAddReaction: async (messageId, emoji) => {
+      try {
+        await axiosInstance.post(`reactions/${messageId}/reactions`, { emoji });
+      } catch (e) {
+        console.error("reaction failed", e);
+      }
     },
   };
 });
