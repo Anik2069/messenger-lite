@@ -51,6 +51,8 @@ export const initSocket = (server: any) => {
       const cookies = parseCookie(
         socket.handshake.headers.cookie as string | undefined
       );
+      const token = socket.handshake.auth?.token as string | undefined;
+      console.log(token, "Socket token", socket.id);
       const raw = cookies["accessToken"];
       const { id: userId } = verifyJWT(raw);
 

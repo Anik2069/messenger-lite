@@ -12,6 +12,7 @@ export interface AuthState {
   user: User | null;
   loading: boolean;
   error: string | null;
+  token: string | null;
   login: (
     email: string,
     password: string,
@@ -28,11 +29,13 @@ export interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       loading: false,
       error: null,
+      token: null,
 
+      // useAuthStore.ts (login)
       login: async (email, password, router) => {
         set({ loading: true, error: null });
         try {
@@ -40,18 +43,24 @@ export const useAuthStore = create<AuthState>()(
             email,
             password,
           });
+
           const user = res.data?.results?.userInfo as User | undefined;
+          const token = res.data?.results?.accessToken as string | undefined;
 
-          if (!user) throw new Error("Invalid response: missing userInfo");
+          if (user && token) {
+            console.log(user, "USER after");
 
-          set({ user, loading: false, error: null });
+            localStorage.setItem("accessToken", token);
 
-          if (!socket.connected) {
-            socket.connect();
+            set({ user: user, token: token, loading: false, error: null });
+
+            if (!socket.connected) socket.connect();
+
+            toast.success("Login successful");
+            router?.push("/");
+          } else {
+            throw new Error("Invalid response: missing userInfo/accessToken");
           }
-
-          toast.success("Login successful");
-          router?.push("/");
         } catch (err) {
           const axiosErr = err as AxiosError<{ message?: string }>;
           const msg =
@@ -106,8 +115,8 @@ export const useAuthStore = create<AuthState>()(
             if (socket.connected) socket.disconnect();
 
             setIsConnected(false);
-            set({ user: null, loading: false, error: null });
-
+            set({ user: null, loading: false, error: null, token: null });
+            localStorage.removeItem("accessToken");
             toast.success("Logout successful");
             router?.push("/auth?type=login");
           } else {
@@ -128,7 +137,7 @@ export const useAuthStore = create<AuthState>()(
     {
       name: "auth-storage",
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ user: state.user }), // persist only user
+      partialize: (state) => ({ user: state.user, token: state.token }), // persist only user
     }
   )
 );

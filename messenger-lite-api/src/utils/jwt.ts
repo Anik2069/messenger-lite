@@ -1,23 +1,28 @@
-import jwt, { SignOptions } from "jsonwebtoken";
+import jwt, { SignOptions, JwtPayload } from "jsonwebtoken";
 
 export type JWTExpiresIn = `${number}${"s" | "m" | "h" | "d"}`;
 
-export interface JWTPayload {
-  [key: string]: any;
-}
-
-export function signJWT(payload: JWTPayload, expiresIn: JWTExpiresIn): string {
+export function signJWT<T extends object>(
+  payload: T,
+  expiresIn: JWTExpiresIn
+): string {
   const secret = process.env.SECRET;
   if (!secret) throw new Error("Missing SECRET env variable");
-  const options: SignOptions = { expiresIn };
+  const options: SignOptions = { expiresIn, algorithm: "HS256" };
   return jwt.sign(payload, secret, options);
 }
 
-export function verifyJWT(token?: string): { id: string } {
+export function verifyJWT<T extends JwtPayload = any>(token?: string): T {
   const secret = process.env.SECRET;
   if (!secret) throw new Error("Missing SECRET env variable");
   if (!token) throw new Error("Missing token");
-  const decoded = jwt.verify(token.replace(/^Bearer\s+/i, ""), secret) as any;
-  if (!decoded?.id) throw new Error("Invalid token payload");
-  return { id: decoded.id };
+
+  try {
+    return jwt.verify(token, secret) as T;
+  } catch (err: any) {
+    if (err.name === "TokenExpiredError") {
+      throw new Error("Token expired");
+    }
+    throw new Error("Invalid token");
+  }
 }

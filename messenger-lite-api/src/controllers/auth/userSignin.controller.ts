@@ -12,6 +12,9 @@ const userSigninDto = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
+const TOKEN_EXPIRY = "12h";
+const COOKIE_EXPIRY_MS = 12 * 60 * 60 * 1000; // 12 hours
+
 export default function userSignin(io: IOServerWithHelpers) {
   return async (req: Request, res: Response) => {
     try {
@@ -23,6 +26,11 @@ export default function userSignin(io: IOServerWithHelpers) {
           .status(StatusCodes.BAD_REQUEST)
           .json({ message: "User not found" });
       }
+      if (!user.password) {
+        return res
+          .status(StatusCodes.BAD_REQUEST)
+          .json({ message: "This account cannot sign in with a password" });
+      }
 
       const ok = await bcrypt.compare(password, user.password);
       if (!ok) {
@@ -32,14 +40,30 @@ export default function userSignin(io: IOServerWithHelpers) {
       }
 
       const id = user.id;
-      const accessToken = signJWT({ id }, "24h");
+      const accessToken = signJWT({ id }, TOKEN_EXPIRY);
 
+      // IMPORTANT: set cookie
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 24 * 60 * 60 * 1000,
+        sameSite: process.env.CROSS_SITE === "true" ? "none" : "strict",
+        maxAge: COOKIE_EXPIRY_MS,
       });
+
+      // (Optional DEV check) confirm Set-Cookie contains our token
+      if (process.env.NODE_ENV !== "production") {
+        const sc = res.getHeader("set-cookie");
+        const cookieHasToken =
+          (Array.isArray(sc) &&
+            sc.some(
+              (c) =>
+                typeof c === "string" &&
+                c.startsWith(`accessToken=${accessToken}`)
+            )) ||
+          (typeof sc === "string" &&
+            sc.startsWith(`accessToken=${accessToken}`));
+        console.log("Cookie set matches token? ", cookieHasToken);
+      }
 
       await prisma.user.update({ where: { id }, data: { isOnline: true } });
 
@@ -47,11 +71,9 @@ export default function userSignin(io: IOServerWithHelpers) {
         where: { userId: id },
         select: { conversationId: true },
       });
-      for (const p of parts) {
-        io.to(io.convRoom(p.conversationId)).emit("presence_update", {
-          userId: id,
-          isOnline: true,
-        });
+      const convIds = parts.map((p) => io.convRoom(p.conversationId));
+      if (convIds.length) {
+        io.to(convIds).emit("presence_update", { userId: id, isOnline: true });
       }
 
       const userInfo = await prisma.user.findUnique({
@@ -65,12 +87,13 @@ export default function userSignin(io: IOServerWithHelpers) {
           updatedAt: true,
         },
       });
+      console.log("User signed in:", userInfo);
 
       return sendResponse({
         res,
         statusCode: StatusCodes.OK,
         message: "User signed in successfully",
-        data: { userInfo },
+        data: { userInfo, accessToken },
       });
     } catch (error: any) {
       if (error?.issues) {
@@ -78,7 +101,19 @@ export default function userSignin(io: IOServerWithHelpers) {
           .status(StatusCodes.BAD_REQUEST)
           .json({ message: "Validation Error", errors: error.issues });
       }
-      console.error("Signin error:", error);
+      if (error.code?.startsWith("P")) {
+        console.error("Database error:", {
+          code: error.code,
+          message: error.message,
+        });
+        return res
+          .status(StatusCodes.SERVICE_UNAVAILABLE)
+          .json({ message: "Database unavailable, please try again later" });
+      }
+      console.error("Signin error:", {
+        message: error.message,
+        stack: error.stack,
+      });
       return res
         .status(StatusCodes.INTERNAL_SERVER_ERROR)
         .json({ message: "Internal server error" });
