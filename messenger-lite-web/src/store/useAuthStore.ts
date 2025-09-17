@@ -1,3 +1,5 @@
+"use client";
+
 import axiosInstance from "@/config/axiosInstance";
 import { socket } from "@/lib/socket";
 import { User } from "@/types/UserType";
@@ -29,13 +31,13 @@ export interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       loading: false,
       error: null,
       token: null,
 
-      // useAuthStore.ts (login)
+      // LOGIN
       login: async (email, password, router) => {
         set({ loading: true, error: null });
         try {
@@ -43,36 +45,31 @@ export const useAuthStore = create<AuthState>()(
             email,
             password,
           });
-
           const user = res.data?.results?.userInfo as User | undefined;
           const token = res.data?.results?.accessToken as string | undefined;
 
-          if (user && token) {
-            console.log(user, "USER after");
-
-            localStorage.setItem("accessToken", token);
-
-            set({ user: user, token: token, loading: false, error: null });
-
-            if (!socket.connected) socket.connect();
-
-            toast.success("Login successful");
-            router?.push("/");
-          } else {
+          if (!user || !token)
             throw new Error("Invalid response: missing userInfo/accessToken");
-          }
+
+          set({ user, token, loading: false, error: null });
+
+          // axiosInstance.defaults.headers.common.Authorization = `Bearer ${token}`;
+
+          if (!socket.connected) socket.connect();
+          toast.success("Login successful");
+          router?.push("/");
         } catch (err) {
           const axiosErr = err as AxiosError<{ message?: string }>;
           const msg =
             axiosErr.response?.data?.message ||
-            (axiosErr.message ?? "Login failed");
+            axiosErr.message ||
+            "Login failed";
           toast.error(msg);
           set({ loading: false, error: msg });
-        } finally {
-          set({ loading: false });
         }
       },
 
+      // REGISTER
       register: async (email, username, password, router) => {
         set({ loading: true, error: null });
         try {
@@ -97,47 +94,56 @@ export const useAuthStore = create<AuthState>()(
           const axiosErr = err as AxiosError<{ message?: string }>;
           const msg =
             axiosErr.response?.data?.message ||
-            (axiosErr.message ?? "Registration failed");
+            axiosErr.message ||
+            "Registration failed";
           toast.error(msg);
           set({ loading: false, error: msg });
-        } finally {
-          set({ loading: false });
         }
       },
 
+      // LOGOUT
       logout: async (router) => {
         set({ loading: true, error: null });
         const { setIsConnected } = useChatStore.getState();
+        try {
+          await axiosInstance.post("auth/user/logout").catch(() => {});
+        } catch {}
 
         try {
-          const res = await axiosInstance.post("auth/user/logout");
-          if (res.status === 200) {
-            if (socket.connected) socket.disconnect();
+          if (socket.connected) socket.disconnect();
+        } catch {}
+        setIsConnected(false);
 
-            setIsConnected(false);
-            set({ user: null, loading: false, error: null, token: null });
-            localStorage.removeItem("accessToken");
-            toast.success("Logout successful");
-            router?.push("/auth?type=login");
-          } else {
-            throw new Error("Logout failed");
-          }
-        } catch (err) {
-          const axiosErr = err as AxiosError<{ message?: string }>;
-          const msg =
-            axiosErr.response?.data?.message ||
-            (axiosErr.message ?? "Logout failed");
-          toast.error(msg);
-          set({ loading: false, error: msg });
-        } finally {
-          set({ loading: false });
-        }
+        set({ user: null, token: null, loading: false, error: null });
+
+        try {
+          useAuthStore.persist?.clearStorage?.();
+        } catch {}
+        try {
+          localStorage.removeItem("auth-storage");
+          localStorage.removeItem("accessToken");
+        } catch {}
+
+        toast.success("Logout successful");
+        router?.push("/auth?type=login");
       },
     }),
     {
       name: "auth-storage",
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ user: state.user, token: state.token }), // persist only user
+      partialize: (state) => ({ user: state.user, token: state.token }),
+      onRehydrateStorage: () => (state, error) => {
+        if (error) console.error("Auth store rehydrate failed:", error);
+        // note: call after a tick so that state is available
+        setTimeout(() => {
+          const { token } = useAuthStore.getState();
+          if (token && !socket.connected) {
+            try {
+              socket.connect();
+            } catch {}
+          }
+        }, 0);
+      },
     }
   )
 );

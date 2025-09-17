@@ -41,6 +41,7 @@ export const initSocket = (server: any) => {
         "http://10.81.100.22:3001",
         "http://10.81.100.22:3002",
         "http://192.168.31.152:3000",
+        "http://192.168.31.152:3001",
       ],
       credentials: true,
     },
