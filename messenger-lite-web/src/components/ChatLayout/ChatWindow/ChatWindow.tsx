@@ -123,7 +123,7 @@ const ChatWindow = ({
           <div className="relative max-w-xs">
             <Image
               src={fileData.url}
-              alt={fileData.originalName}
+              alt={fileData?.originalName || "File"}
               width={200}
               height={200}
               className="rounded-lg shadow-sm"
