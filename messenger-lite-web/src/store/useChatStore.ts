@@ -258,7 +258,7 @@ export const useChatStore = create<ChatState>((set, get) => {
         reactions: [],
         readBy: [],
       };
-      set((state) => ({ messages: [...state.messages, optimistic] }));
+      // set((state) => ({ messages: [...state.messages, optimistic] }));
 
       const isDirect = selectedChat.type === "user";
 
