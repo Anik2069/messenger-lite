@@ -7,19 +7,19 @@ const convRoom = (id: string) => `conv:${id}`;
 const userSockets = new Map<string, Set<string>>(); // userId -> socketIds
 const socketUser = new Map<string, string>(); // socketId -> userId
 
-function parseCookie(header?: string): Record<string, string> {
-  const out: Record<string, string> = {};
-  if (!header) return out;
-  header.split(/;\s*/).forEach((p) => {
-    const idx = p.indexOf("=");
-    if (idx > -1) {
-      const k = decodeURIComponent(p.slice(0, idx));
-      const v = decodeURIComponent(p.slice(idx + 1));
-      out[k] = v;
-    }
-  });
-  return out;
-}
+// function parseCookie(header?: string): Record<string, string> {
+//   const out: Record<string, string> = {};
+//   if (!header) return out;
+//   header.split(/;\s*/).forEach((p) => {
+//     const idx = p.indexOf("=");
+//     if (idx > -1) {
+//       const k = decodeURIComponent(p.slice(0, idx));
+//       const v = decodeURIComponent(p.slice(idx + 1));
+//       out[k] = v;
+//     }
+//   });
+//   return out;
+// }
 
 async function joinAllConversationRooms(socket: Socket, userId: string) {
   const parts = await prisma.conversationParticipant.findMany({
@@ -49,13 +49,15 @@ export const initSocket = (server: any) => {
 
   io.on("connection", async (socket) => {
     try {
-      const cookies = parseCookie(
-        socket.handshake.headers.cookie as string | undefined
-      );
+      // const cookies = parseCookie(
+      //   socket.handshake.headers.cookie as string | undefined
+      // );
       const token = socket.handshake.auth?.token as string | undefined;
       console.log(token, "Socket token", socket.id);
-      const raw = cookies["accessToken"];
-      const { id: userId } = verifyJWT(raw);
+      // const raw = cookies["accessToken"];
+      // const { id: userId } = verifyJWT(raw);
+      const { id: userId } = verifyJWT(token);
+      console.log(userId, "Socket userId");
 
       // mark presence
       await prisma.user.update({
@@ -76,6 +78,7 @@ export const initSocket = (server: any) => {
       );
 
       socket.emit("connected_ok", { userId, roomsJoined: convIds.length });
+      console.log(convIds?.length, "convIds--------------");
     } catch (e) {
       socket.emit("auth_error", { message: "Unauthenticated socket" });
       return socket.disconnect(true);

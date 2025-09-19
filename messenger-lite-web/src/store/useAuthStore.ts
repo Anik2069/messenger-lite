@@ -54,9 +54,10 @@ export const useAuthStore = create<AuthState>()(
           set({ user, token, loading: false, error: null });
 
           // axiosInstance.defaults.headers.common.Authorization = `Bearer ${token}`;
-
+          socket.auth = { token };
           if (!socket.connected) socket.connect();
           toast.success("Login successful");
+          localStorage.setItem("accessToken", token);
           router?.push("/");
         } catch (err) {
           const axiosErr = err as AxiosError<{ message?: string }>;
@@ -79,10 +80,14 @@ export const useAuthStore = create<AuthState>()(
             password,
           });
           const user = res.data?.results?.userInfo as User | undefined;
-
-          if (user) {
-            set({ user, loading: false, error: null });
-            if (!socket.connected) socket.connect();
+          const token = res.data?.results?.accessToken as string | undefined;
+          if (user && token) {
+            localStorage.setItem("accessToken", token);
+            set({ user, token, loading: false, error: null });
+            if (token) {
+              socket.auth = { token };
+              if (!socket.connected) socket.connect();
+            }
             toast.success("Registration successful!");
             router?.push("/");
           } else {
@@ -115,6 +120,7 @@ export const useAuthStore = create<AuthState>()(
         setIsConnected(false);
 
         set({ user: null, token: null, loading: false, error: null });
+        localStorage.removeItem("accessToken");
 
         try {
           useAuthStore.persist?.clearStorage?.();
@@ -139,6 +145,7 @@ export const useAuthStore = create<AuthState>()(
           const { token } = useAuthStore.getState();
           if (token && !socket.connected) {
             try {
+              socket.auth = { token };
               socket.connect();
             } catch {}
           }

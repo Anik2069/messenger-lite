@@ -35,6 +35,7 @@ interface ServerMessage {
   }>;
 }
 
+// 🔹 Normalize server message -> frontend message
 function mapServerMessage(m: ServerMessage): Message {
   return {
     id: m.id,
@@ -65,28 +66,15 @@ function mapServerMessage(m: ServerMessage): Message {
       : undefined,
     isGroupMessage: !!(m.conversation?.type === "GROUP"),
     timestamp: new Date(m.createdAt ?? Date.now()),
-    reactions: (m.reactions ?? []).map(
-      (r: {
-        emoji: string;
-        user?: { username?: string };
-        userId?: string;
-        createdAt?: string | number | Date;
-      }) => ({
-        emoji: r.emoji,
-        username: r.user?.username ?? r.userId ?? "",
-        timestamp: new Date(r.createdAt ?? Date.now()),
-      })
-    ),
-    readBy: (m.receipts ?? []).map(
-      (rc: {
-        user?: { username?: string };
-        userId?: string;
-        readAt?: string | number | Date;
-      }) => ({
-        username: rc.user?.username ?? rc.userId ?? "",
-        timestamp: new Date(rc.readAt ?? Date.now()),
-      })
-    ),
+    reactions: (m.reactions ?? []).map((r) => ({
+      emoji: r.emoji,
+      username: r.user?.username ?? r.userId ?? "",
+      timestamp: new Date(r.createdAt ?? Date.now()),
+    })),
+    readBy: (m.receipts ?? []).map((rc) => ({
+      username: rc.user?.username ?? rc.userId ?? "",
+      timestamp: new Date(rc.readAt ?? Date.now()),
+    })),
   };
 }
 
@@ -107,7 +95,6 @@ export type ChatState = {
   setShowSearch: (show: boolean) => void;
 
   emitTyping: () => void;
-
   onSendMessage: (
     text: string,
     type?: "text" | "file" | "forwarded",
@@ -115,7 +102,6 @@ export type ChatState = {
     forwardedFrom?: ForwardedData,
     currentUser?: { username: string; id: string } | null
   ) => Promise<void>;
-
   onAddReaction: (
     messageId: string,
     emoji: string,
@@ -124,6 +110,7 @@ export type ChatState = {
 };
 
 export const useChatStore = create<ChatState>((set, get) => {
+  // 🔹 initialize socket event listeners once
   if (!listenersInitialized) {
     listenersInitialized = true;
 
@@ -136,6 +123,7 @@ export const useChatStore = create<ChatState>((set, get) => {
     socket.on("connect", () => set({ isConnected: true }));
     socket.on("disconnect", () => set({ isConnected: false }));
 
+    // 📥 Receive new message
     socket.on("receive_message", (incoming: Record<string, unknown>) => {
       const normalized = mapServerMessage(incoming as unknown as ServerMessage);
 
@@ -157,6 +145,7 @@ export const useChatStore = create<ChatState>((set, get) => {
       });
     });
 
+    // 👀 Typing indicator
     socket.on(
       "user_typing",
       (data: { conversationId: string; username?: string }) => {
@@ -166,6 +155,8 @@ export const useChatStore = create<ChatState>((set, get) => {
         }
       }
     );
+
+    // 😀 Reaction updates
     socket.on(
       "message_reaction",
       (payload: {
@@ -206,6 +197,7 @@ export const useChatStore = create<ChatState>((set, get) => {
       }
     );
   }
+
   return {
     selectedChat: null,
     messages: [],
@@ -219,6 +211,7 @@ export const useChatStore = create<ChatState>((set, get) => {
     setIsConnected: (connected) => set({ isConnected: connected }),
     setShowSearch: (show) => set({ showSearch: show }),
 
+    // ✍️ Emit typing
     emitTyping: () => {
       const { selectedChat } = get();
       const { user } = useAuthStore.getState();
@@ -229,6 +222,7 @@ export const useChatStore = create<ChatState>((set, get) => {
       });
     },
 
+    // 📤 Send message
     onSendMessage: async (
       text,
       type = "text",
@@ -242,7 +236,7 @@ export const useChatStore = create<ChatState>((set, get) => {
       const clientTempId = uuidv4();
       const tempId = `temp-${Date.now()}`;
 
-      // optimistic
+      // optimistic UI update
       const optimistic: Message = {
         id: tempId,
         clientTempId,
@@ -258,13 +252,13 @@ export const useChatStore = create<ChatState>((set, get) => {
         reactions: [],
         readBy: [],
       };
-      // set((state) => ({ messages: [...state.messages, optimistic] }));
-
-      const isDirect = selectedChat.type === "user";
+      set((state) => ({ messages: [...state.messages, optimistic] }));
 
       const payload: SendMessagePayload = {
         conversationId: selectedChat.id,
-        ...(isDirect ? { recipientId: selectedChat.id } : {}),
+        ...(selectedChat.type === "user"
+          ? { recipientId: selectedChat.id }
+          : {}),
         message: text,
         messageType: toServerType(type),
         ...(fileData
@@ -286,25 +280,16 @@ export const useChatStore = create<ChatState>((set, get) => {
         const saved = res.data?.results ?? res.data;
         if (saved) {
           const normalized = mapServerMessage(saved);
-          set((state) => {
-            if (state.messages.some((m) => m.clientTempId === clientTempId)) {
-              return {
-                messages: state.messages.map((m) =>
-                  m.clientTempId === clientTempId ? normalized : m
-                ),
-              };
-            }
-            if (state.messages.some((m) => m.id === tempId)) {
-              return {
-                messages: state.messages.map((m) =>
-                  m.id === tempId ? normalized : m
-                ),
-              };
-            }
-            return state;
-          });
+          set((state) => ({
+            messages: state.messages.map((m) =>
+              m.clientTempId === clientTempId || m.id === tempId
+                ? normalized
+                : m
+            ),
+          }));
         }
       } catch (err) {
+        // error → rollback optimistic
         set((state) => ({
           messages: state.messages.filter((m) => m.id !== tempId),
         }));
@@ -312,6 +297,7 @@ export const useChatStore = create<ChatState>((set, get) => {
       }
     },
 
+    // 😀 Add reaction
     onAddReaction: async (messageId, emoji) => {
       try {
         await axiosInstance.post(`reactions/${messageId}/reactions`, { emoji });
