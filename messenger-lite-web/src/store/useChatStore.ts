@@ -3,7 +3,6 @@ import { socket } from "@/lib/socket";
 import { Chat } from "@/types/ChatType";
 import { FileData, ForwardedData, Message } from "@/types/MessageType";
 import { create } from "zustand";
-import { useAuthStore } from "./useAuthStore";
 import { uuidv4 } from "@/lib/utils";
 import { SendMessagePayload, toServerType } from "@/types/sendMessage";
 
@@ -94,7 +93,7 @@ export type ChatState = {
   setIsConnected: (connected: boolean) => void;
   setShowSearch: (show: boolean) => void;
 
-  emitTyping: () => void;
+  emitTyping: ({ user }: { user: { username: string } }) => void;
   onSendMessage: (
     text: string,
     type?: "text" | "file" | "forwarded",
@@ -212,9 +211,9 @@ export const useChatStore = create<ChatState>((set, get) => {
     setShowSearch: (show) => set({ showSearch: show }),
 
     // ✍️ Emit typing
-    emitTyping: () => {
+    emitTyping: ({ user }) => {
       const { selectedChat } = get();
-      const { user } = useAuthStore.getState();
+
       if (!selectedChat || !user) return;
       socket.emit("typing", {
         conversationId: selectedChat.id,

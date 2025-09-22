@@ -14,10 +14,10 @@ import { useGlobalContext } from "@/provider/GlobalContextProvider";
 import NewChat from "./NewChat/NewChat";
 import Modal from "../reusable/Modal";
 import UserSettings from "./UserSettings/UserSettings";
-import { useAuthStore } from "@/store/useAuthStore";
 import { useFriendsStore } from "@/store/useFriendsStrore";
 import { useChatStore } from "@/store/useChatStore";
 import { cleanupTyping, startTyping, stopTyping } from "@/lib/typing";
+import { useAuth } from "@/context/useAuth";
 
 declare global {
   interface Window {
@@ -26,7 +26,7 @@ declare global {
 }
 
 const ChatLayout = () => {
-  const { user } = useAuthStore();
+  const { user } = useAuth();
   const { friends, fetchFriends } = useFriendsStore();
   const {
     selectedChat,

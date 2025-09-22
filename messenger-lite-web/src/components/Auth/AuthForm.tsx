@@ -9,12 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Lock, Mail, MessageSquare, Zap } from "lucide-react";
 import { InputField } from "../reusable/InputField";
-import { useAuthStore } from "@/store/useAuthStore";
 import { FormValues, getSchema } from "@/schema/auth.schema";
+import { useAuth } from "@/context/useAuth";
 
 export default function AuthForm() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const type = searchParams.get("type");
 
   const [isLogin, setIsLogin] = useState(type === "login");
@@ -23,7 +22,7 @@ export default function AuthForm() {
     setIsLogin(type === "login");
   }, [type]);
 
-  const { login, register: registerUser, loading } = useAuthStore();
+  const { login, register: registerUser, loading } = useAuth();
 
   const methods = useForm<FormValues>({
     resolver: zodResolver(getSchema(isLogin)),
@@ -34,9 +33,9 @@ export default function AuthForm() {
 
   const onSubmit = async (data: FormValues) => {
     if (isLogin) {
-      await login(data.email, data.password, router);
+      await login(data.email, data.password);
     } else {
-      await registerUser(data.email, data.username!, data.password, router);
+      await registerUser(data.email, data.username!, data.password);
     }
     reset();
   };

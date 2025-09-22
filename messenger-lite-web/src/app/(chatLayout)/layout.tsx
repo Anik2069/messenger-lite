@@ -1,15 +1,16 @@
 "use client";
-import { GlobalContextProvider } from '@/provider/GlobalContextProvider'
-import React from 'react'
+import { AuthProvider } from "@/context/useAuth";
+import { GlobalContextProvider } from "@/provider/GlobalContextProvider";
+import React from "react";
 
 const layout = ({ children }: { children: React.ReactNode }) => {
-    return (
-        <div>
-            <GlobalContextProvider>
-                {children}
-            </GlobalContextProvider>
-        </div>
-    )
-}
+  return (
+    <div>
+      <GlobalContextProvider>
+        <AuthProvider>{children}</AuthProvider>
+      </GlobalContextProvider>
+    </div>
+  );
+};
 
-export default layout
+export default layout;

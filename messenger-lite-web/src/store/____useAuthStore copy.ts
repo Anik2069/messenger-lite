@@ -45,19 +45,20 @@ export const useAuthStore = create<AuthState>()(
             email,
             password,
           });
+
           const user = res.data?.results?.userInfo as User | undefined;
           const token = res.data?.results?.accessToken as string | undefined;
 
-          if (!user || !token)
+          if (!user || !token) {
             throw new Error("Invalid response: missing userInfo/accessToken");
+          }
 
           set({ user, token, loading: false, error: null });
 
-          // axiosInstance.defaults.headers.common.Authorization = `Bearer ${token}`;
           socket.auth = { token };
           if (!socket.connected) socket.connect();
+
           toast.success("Login successful");
-          localStorage.setItem("accessToken", token);
           router?.push("/");
         } catch (err) {
           const axiosErr = err as AxiosError<{ message?: string }>;
@@ -79,15 +80,16 @@ export const useAuthStore = create<AuthState>()(
             email,
             password,
           });
+
           const user = res.data?.results?.userInfo as User | undefined;
           const token = res.data?.results?.accessToken as string | undefined;
+
           if (user && token) {
-            localStorage.setItem("accessToken", token);
             set({ user, token, loading: false, error: null });
-            if (token) {
-              socket.auth = { token };
-              if (!socket.connected) socket.connect();
-            }
+
+            socket.auth = { token };
+            if (!socket.connected) socket.connect();
+
             toast.success("Registration successful!");
             router?.push("/");
           } else {
@@ -107,9 +109,11 @@ export const useAuthStore = create<AuthState>()(
       },
 
       // LOGOUT
+      // LOGOUT
       logout: async (router) => {
         set({ loading: true, error: null });
         const { setIsConnected } = useChatStore.getState();
+
         try {
           await axiosInstance.post("auth/user/logout").catch(() => {});
         } catch {}
@@ -119,16 +123,15 @@ export const useAuthStore = create<AuthState>()(
         } catch {}
         setIsConnected(false);
 
+        // 1. Clear Zustand in-memory state
         set({ user: null, token: null, loading: false, error: null });
-        localStorage.removeItem("accessToken");
 
+        // 2. Clear persisted storage completely
         try {
-          useAuthStore.persist?.clearStorage?.();
-        } catch {}
-        try {
-          localStorage.removeItem("auth-storage");
-          localStorage.removeItem("accessToken");
-        } catch {}
+          await useAuthStore.persist.clearStorage(); // ✅ অফিসিয়াল persist clear
+        } catch (e) {
+          console.error("Failed to clear auth-storage", e);
+        }
 
         toast.success("Logout successful");
         router?.push("/auth?type=login");
@@ -140,14 +143,13 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({ user: state.user, token: state.token }),
       onRehydrateStorage: () => (state, error) => {
         if (error) console.error("Auth store rehydrate failed:", error);
-        // note: call after a tick so that state is available
+
+        // যখন refresh হবে, token থাকলে socket auto connect হবে
         setTimeout(() => {
           const { token } = useAuthStore.getState();
-          if (token && !socket.connected) {
-            try {
-              socket.auth = { token };
-              socket.connect();
-            } catch {}
+          if (token) {
+            socket.auth = { token };
+            if (!socket.connected) socket.connect();
           }
         }, 0);
       },

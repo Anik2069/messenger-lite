@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { getInitials } from "@/lib/utils";
 import { useGlobalContext } from "@/provider/GlobalContextProvider";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useAuth } from "@/context/useAuth";
 
 interface NavbarProps {
   user: User | null;
@@ -22,7 +22,7 @@ interface NavbarProps {
 
 const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
   const { newDrawerOpen, settingModalOpen } = useGlobalContext();
-  const { logout } = useAuthStore();
+  const { logout } = useAuth();
 
   const handleLogout = async () => await logout();
   const handleClickNew = () => {
