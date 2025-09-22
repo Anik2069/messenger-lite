@@ -80,6 +80,7 @@ export const initSocket = (server: any) => {
       socket.emit("connected_ok", { userId, roomsJoined: convIds.length });
       console.log(convIds?.length, "convIds--------------");
     } catch (e) {
+      console.log(e, "Socket error-----------------------------");
       socket.emit("auth_error", { message: "Unauthenticated socket" });
       return socket.disconnect(true);
     }
