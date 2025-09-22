@@ -15,7 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "messenger-lite-web",
-  description: "Messenger Lite Web is a minimalist, web-based chat application. Built for users who prefer a fast, responsive, and data-efficient messaging experience, this project focuses on delivering core chat functionalities without the distractions of a full-featured messenger.",
+  description:
+    "Messenger Lite Web is a minimalist, web-based chat application. Built for users who prefer a fast, responsive, and data-efficient messaging experience, this project focuses on delivering core chat functionalities without the distractions of a full-featured messenger.",
 };
 
 export default function RootLayout({
@@ -28,8 +29,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AppToastContainer />
         {children}
+        <AppToastContainer />
       </body>
     </html>
   );

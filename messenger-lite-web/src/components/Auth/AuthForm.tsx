@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -11,11 +11,12 @@ import { User, Lock, Mail, MessageSquare, Zap } from "lucide-react";
 import { InputField } from "../reusable/InputField";
 import { FormValues, getSchema } from "@/schema/auth.schema";
 import { useAuth } from "@/context/useAuth";
+import AuthLoading from "./AuthLoading";
 
-export default function AuthForm() {
+// Inner component: এখানে useSearchParams ব্যবহার হচ্ছে
+function AuthFormInner() {
   const searchParams = useSearchParams();
-  const type = searchParams.get("type");
-
+  const type = searchParams.get("type") || "login";
   const [isLogin, setIsLogin] = useState(type === "login");
 
   useEffect(() => {
@@ -140,5 +141,13 @@ export default function AuthForm() {
         </div>
       </div>
     </div>
+  );
+}
+
+export function AuthForm() {
+  return (
+    <Suspense fallback={<AuthLoading />}>
+      <AuthFormInner />
+    </Suspense>
   );
 }

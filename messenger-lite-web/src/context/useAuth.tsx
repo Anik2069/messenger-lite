@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { socket } from "@/lib/socket";
 import axiosInstance from "@/config/axiosInstance";
+import axios from "axios";
 import { User } from "@/types/UserType";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
@@ -28,7 +29,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
 
-  // ✅ Rehydrate on refresh
   useEffect(() => {
     const savedToken = localStorage.getItem("accessToken");
     const savedUser = localStorage.getItem("user");
@@ -42,7 +42,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  // ✅ LOGIN
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
@@ -67,8 +66,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       toast.success("Login successful");
       router.push("/");
-    } catch (err) {
-      toast.error(err?.response?.data?.message || "Login failed");
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.message ?? "Login failed"
+        : "Login failed";
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -107,8 +109,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         toast.success("Registration successful! Please login.");
         router.push("/auth?type=login");
       }
-    } catch (err) {
-      toast.error(err?.response?.data?.message || "Registration failed");
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.message ?? "Registration failed"
+        : "Registration failed";
+      toast.error(message);
     } finally {
       setLoading(false);
     }

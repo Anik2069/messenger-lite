@@ -1,3 +1,4 @@
+"use client";
 import { AuthProvider } from "@/context/useAuth";
 import React from "react";
 
