@@ -1,5 +1,3 @@
-// app/chat/page.tsx (or wherever your route is)
-
 "use client";
 
 import React, { useEffect } from "react";
