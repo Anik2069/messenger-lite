@@ -5,6 +5,7 @@ import { userSignup } from "../../../controllers/auth/userSignup.controller";
 import userLogout from "../../../controllers/auth/userLogout.controller";
 import requireAuth from "../../../middlewares/requireAuth";
 import { prisma } from "../../../configs/prisma.config";
+import userActiveStatus from "../../../controllers/auth/userActiveStatus";
 
 const authRouter = (io: IOServerWithHelpers) => {
   const router = Router();
@@ -28,6 +29,7 @@ const authRouter = (io: IOServerWithHelpers) => {
     });
     return res.json({ results: { userInfo: user } });
   });
+  router.put("/activeStatus", requireAuth, userActiveStatus(io));
 
   return router;
 };

@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // ✅ REGISTER
+  //  REGISTER
   const register = async (
     email: string,
     username: string,
@@ -119,7 +119,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // ✅ LOGOUT
+  //  LOGOUT
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -134,6 +134,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     router.push("/auth?type=login");
   };
 
+  const saveActiveStatus = async (userId: string) => {
+    try {
+      await axiosInstance.post(`users/${userId}`, {});
+    } catch (error) {}
+  };
+
   return (
     <AuthContext.Provider
       value={{ user, token, login, register, logout, loading }}
@@ -143,7 +149,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// ✅ Hook for consuming auth state
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
