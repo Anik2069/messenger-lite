@@ -60,11 +60,11 @@ export default function userLogout(io: IOServerWithHelpers) {
         } catch (e: any) {
           console.error("Logout DB update error:", e?.message);
         }
-        try {
-          io.disconnectUser(userId);
-        } catch (e: any) {
-          console.error("Socket disconnect error:", e?.message);
-        }
+        // try {
+        //   io.disconnectUser();
+        // } catch (e: any) {
+        //   console.error("Socket disconnect error:", e?.message);
+        // }
       }
 
       res.clearCookie("accessToken", cookieOptions);
