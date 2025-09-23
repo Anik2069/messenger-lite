@@ -17,6 +17,7 @@ model User {
   avatar    String?
   isOnline  Boolean  @default(false)
   createdAt DateTime @default(now())
+  lastSeenAt  DateTime?
   updatedAt DateTime @updatedAt
 
   participants ConversationParticipant[]

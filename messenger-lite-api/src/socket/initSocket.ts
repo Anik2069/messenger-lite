@@ -3,137 +3,107 @@ import { prisma } from "../configs/prisma.config";
 import { verifyJWT } from "../utils/jwt";
 
 const convRoom = (id: string) => `conv:${id}`;
-
-const userSockets = new Map<string, Set<string>>(); // userId -> socketIds
-const socketUser = new Map<string, string>(); // socketId -> userId
-
-// function parseCookie(header?: string): Record<string, string> {
-//   const out: Record<string, string> = {};
-//   if (!header) return out;
-//   header.split(/;\s*/).forEach((p) => {
-//     const idx = p.indexOf("=");
-//     if (idx > -1) {
-//       const k = decodeURIComponent(p.slice(0, idx));
-//       const v = decodeURIComponent(p.slice(idx + 1));
-//       out[k] = v;
-//     }
-//   });
-//   return out;
-// }
-
-async function joinAllConversationRooms(socket: Socket, userId: string) {
-  const parts = await prisma.conversationParticipant.findMany({
-    where: { userId },
-    select: { conversationId: true },
-  });
-  parts.forEach((p) => socket.join(convRoom(p.conversationId)));
-  return parts.map((p) => p.conversationId);
+function getTokenFromHeaders(headers: any) {
+  const authHeader = headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    return authHeader.substring(7);
+  }
+  return null;
 }
-
 export const initSocket = (server: any) => {
+  // origin list from env
+  const connectedUsers: { userId: string; socketId: string }[] = [];
+  const origins = (process.env.SOCKET_CORS_ORIGINS ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
   const io = new SocketIOServer(server, {
     cors: {
-      origin: [
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://localhost:3002",
-        "http://172.21.16.3:3000",
-        "http://10.81.100.22:3001",
-        "http://10.81.100.22:3002",
-        "http://192.168.31.152:3000",
-        "http://192.168.31.152:3001",
-      ],
+      origin: origins,
       credentials: true,
     },
   });
 
-  io.on("connection", async (socket) => {
+  // Auth middleware (token verify)
+  io.use((socket, next) => {
     try {
-      // const cookies = parseCookie(
-      //   socket.handshake.headers.cookie as string | undefined
-      // );
-      const token = socket.handshake.auth?.token as string | undefined;
-      console.log(token, "Socket token", socket.id);
-      // const raw = cookies["accessToken"];
-      // const { id: userId } = verifyJWT(raw);
-      const { id: userId } = verifyJWT(token);
-      console.log(userId, "Socket userId");
+      // const token = socket.handshake.auth?.token as string | undefined;
+      const token =
+        socket.handshake.auth?.token ||
+        socket.handshake.query?.token ||
+        getTokenFromHeaders(socket.handshake.headers);
+      if (!token) return next(new Error("Missing token"));
+      const { id } = verifyJWT(token);
+      socket.data.userId = id;
+      next();
+    } catch (err) {
+      next(new Error("Invalid token"));
+    }
+  });
 
-      // mark presence
+  io.on("connection", (socket: Socket) => {
+    const userId = socket.data.userId as string;
+    console.log("Socket connected:", userId, socket.id);
+
+    // set manual status
+    socket.on("set_status", async ({ isOnline }: { isOnline: boolean }) => {
       await prisma.user.update({
         where: { id: userId },
-        data: { isOnline: true },
+        data: {
+          isOnline,
+          lastSeenAt: isOnline ? null : new Date(),
+        },
       });
 
-      socketUser.set(socket.id, userId);
-      if (!userSockets.has(userId)) userSockets.set(userId, new Set());
-      userSockets.get(userId)!.add(socket.id);
+      // myself presence
+      io.to(userId).emit("presence_self", { userId, isOnline });
 
-      socket.join(userId);
-      const convIds = await joinAllConversationRooms(socket, userId);
-
-      io.to(userId).emit("presence_self", { userId, isOnline: true });
-      convIds.forEach((cid) =>
-        io.to(convRoom(cid)).emit("presence_update", { userId, isOnline: true })
+      // converse presence broadcast
+      const convs = await prisma.conversationParticipant.findMany({
+        where: { userId },
+        select: { conversationId: true },
+      });
+      convs.forEach((c) =>
+        io.to(convRoom(c.conversationId)).emit("presence_update", {
+          userId,
+          isOnline,
+        })
       );
+    });
 
-      socket.emit("connected_ok", { userId, roomsJoined: convIds.length });
-      console.log(convIds?.length, "convIds--------------");
-    } catch (e) {
-      console.log(e, "Socket error-----------------------------");
-      socket.emit("auth_error", { message: "Unauthenticated socket" });
-      return socket.disconnect(true);
-    }
-    socket.on("typing", ({ conversationId, username }) => {
+    // conversation join
+    socket.on("join_conversation", async (conversationId: string) => {
+      const member = await prisma.conversationParticipant.findFirst({
+        where: { conversationId, userId },
+        select: { id: true },
+      });
+      if (!member) return;
+      socket.join(convRoom(conversationId));
+      console.log(`${userId} joined conv:${conversationId}`);
+    });
+
+    // conversation leave
+    socket.on("leave_conversation", (conversationId: string) => {
+      socket.leave(convRoom(conversationId));
+      console.log(`${userId} left conv:${conversationId}`);
+    });
+
+    // typing
+    socket.on("typing", ({ conversationId }) => {
       if (!conversationId) return;
       io.to(convRoom(conversationId)).emit("user_typing", {
         conversationId,
-        username,
+        userId,
       });
     });
 
-    socket.on("disconnect", async () => {
-      const userId = socketUser.get(socket.id);
-      if (!userId) return;
-
-      // clean maps
-      socketUser.delete(socket.id);
-      const set = userSockets.get(userId);
-      if (set) {
-        set.delete(socket.id);
-        if (set.size === 0) userSockets.delete(userId);
-      }
-
-      if (!userSockets.has(userId)) {
-        await prisma.user.update({
-          where: { id: userId },
-          data: { isOnline: false },
-        });
-
-        const parts = await prisma.conversationParticipant.findMany({
-          where: { userId },
-          select: { conversationId: true },
-        });
-        io.to(userId).emit("presence_self", { userId, isOnline: false });
-        parts.forEach((p) =>
-          io
-            .to(convRoom(p.conversationId))
-            .emit("presence_update", { userId, isOnline: false })
-        );
-      }
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected:", userId, socket.id);
     });
   });
-  function disconnectUser(userId: string) {
-    const set = userSockets.get(userId);
-    if (!set) return 0;
-    for (const sid of set) {
-      const s = io.sockets.sockets.get(sid);
-      if (s) s.disconnect(true);
-    }
-    return set.size;
-  }
 
-  return Object.assign(io, { disconnectUser, convRoom });
+  return Object.assign(io, { convRoom });
 };
 
 export type IOServerWithHelpers = ReturnType<typeof initSocket>;
