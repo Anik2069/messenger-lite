@@ -1,9 +1,3 @@
-/*
-  Warnings:
-
-  - You are about to drop the `chat` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- CreateEnum
 CREATE TYPE "public"."ConversationType" AS ENUM ('DIRECT', 'GROUP');
 
@@ -13,11 +7,20 @@ CREATE TYPE "public"."ParticipantRole" AS ENUM ('MEMBER', 'ADMIN');
 -- CreateEnum
 CREATE TYPE "public"."MessageType" AS ENUM ('TEXT', 'FILE', 'FORWARDED');
 
--- DropForeignKey
-ALTER TABLE "public"."chat" DROP CONSTRAINT "chat_userId_fkey";
+-- CreateTable
+CREATE TABLE "public"."User" (
+    "id" TEXT NOT NULL,
+    "username" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "avatar" TEXT,
+    "isOnline" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastSeenAt" TIMESTAMP(3),
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
--- DropTable
-DROP TABLE "public"."chat";
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "public"."Conversation" (
@@ -79,6 +82,12 @@ CREATE TABLE "public"."MessageRead" (
 
     CONSTRAINT "MessageRead_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_username_key" ON "public"."User"("username");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "public"."User"("email");
 
 -- CreateIndex
 CREATE INDEX "Conversation_type_idx" ON "public"."Conversation"("type");
