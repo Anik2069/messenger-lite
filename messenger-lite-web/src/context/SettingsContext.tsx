@@ -1,7 +1,9 @@
 "use client";
 
 import axiosInstance from "@/config/axiosInstance";
+import { socket } from "@/lib/socket";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { useAuth } from "./useAuth";
 
 type Settings = {
   theme?: "dark" | "light";
@@ -9,13 +11,18 @@ type Settings = {
   activeStatus?: boolean;
 };
 
+type Status = {
+  userId: string;
+  isOnline: boolean;
+};
+
 type SettingsContextType = {
   settings: Settings;
   toggleTheme: () => void;
   toggleSound: () => void;
   toggleActiveStatus: () => void;
-  saveSettings: (onSave?: () => void) => void;
-  isSaving: boolean;
+  activeStatus: Status | null;
+  otherStatuses: Record<string, Status>; // 👈 map of userId -> Status
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(
@@ -28,62 +35,101 @@ export const SettingsProvider = ({
   children: React.ReactNode;
 }) => {
   const [settings, setSettings] = useState<Settings>({});
-  const [isSaving, setIsSaving] = useState(false);
+  const [activeStatus, setActiveStatus] = useState<Status | null>(null);
+  const [otherStatuses, setOtherStatuses] = useState<Record<string, Status>>(
+    {}
+  );
+  const { user } = useAuth();
+  const userId = user?.id || "";
 
-  // Load from localStorage on mount
+  // --- Hydrate from localStorage
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const raw = localStorage.getItem("settings");
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          setSettings(parsed);
-          document.documentElement.classList.toggle(
-            "dark",
-            parsed.theme === "dark"
-          );
-        } else {
-          // Fallback: respect system preference if nothing is stored
-          const prefersDark =
-            window.matchMedia &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches;
-          document.documentElement.classList.toggle("dark", !!prefersDark);
-        }
-      } catch {
-        setSettings({});
+    if (typeof window === "undefined") return;
+
+    try {
+      const rawSettings = localStorage.getItem("settings");
+      if (rawSettings) {
+        const parsed = JSON.parse(rawSettings);
+        setSettings(parsed);
+        document.documentElement.classList.toggle(
+          "dark",
+          parsed.theme === "dark"
+        );
+      } else {
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
+        document.documentElement.classList.toggle("dark", prefersDark);
       }
+
+      const rawPresence = localStorage.getItem("activeStatus");
+      if (rawPresence) setActiveStatus(JSON.parse(rawPresence));
+    } catch {
+      setSettings({});
+      setActiveStatus(null);
     }
   }, []);
 
-  //   useEffect(() => {
-  //     console.log("Settings updated:", settings);
-  //   }, [settings]);
+  // --- Persist activeStatus
+  useEffect(() => {
+    if (activeStatus) {
+      localStorage.setItem("activeStatus", JSON.stringify(activeStatus));
+    }
+  }, [activeStatus]);
 
-  const saveSettings = async (onSave?: () => void) => {
-    setIsSaving(true);
-    localStorage.setItem("settings", JSON.stringify(settings));
-    setTimeout(() => {
-      setIsSaving(false);
-      onSave?.();
-    }, 1000);
-    await saveActiveStatus(!!settings.activeStatus);
+  // --- Socket listeners
+  useEffect(() => {
+    if (!userId) return;
+
+    // Self
+    const onSelfPresence = ({ userId: uid, isOnline }: Status) => {
+      console.log("[socket] presence_self →", { userId: uid, isOnline });
+      setActiveStatus({ userId: uid, isOnline });
+    };
+
+    // Others
+    const onPresenceUpdate = ({ userId, isOnline }: Status) => {
+      console.log("[socket] presence_update/global →", { userId, isOnline });
+      setOtherStatuses((prev) => ({
+        ...prev,
+        [userId]: { userId, isOnline },
+      }));
+    };
+
+    socket.on("presence_self", onSelfPresence);
+    socket.on("presence_global", onPresenceUpdate);
+    socket.on("presence_update", onPresenceUpdate);
+
+    return () => {
+      socket.off("presence_self", onSelfPresence);
+      socket.off("presence_global", onPresenceUpdate);
+      socket.off("presence_update", onPresenceUpdate);
+    };
+  }, [userId]);
+
+  // --- Helpers
+  const persistSettings = (updated: Settings) => {
+    setSettings(updated);
+    localStorage.setItem("settings", JSON.stringify(updated));
   };
 
-  const saveActiveStatus = async (activeStatus: boolean) => {
+  const saveActiveStatus = async (active: boolean) => {
     try {
-      const res = axiosInstance.post("auth/user/activeStatus", {
-        activeStatus,
+      await axiosInstance.post("auth/user/activeStatus", {
+        activeStatus: active,
       });
-      console.log(res, "-----------------------");
-    } catch (error) {}
+      socket.emit("set_status", { isOnline: active });
+      setActiveStatus({ userId, isOnline: active });
+    } catch (error) {
+      console.error("Failed to save activeStatus:", error);
+    }
   };
 
+  // --- Toggles
   const toggleTheme = () => {
     const newTheme = settings.theme === "dark" ? "light" : "dark";
     const updated = { ...settings, theme: newTheme };
-    setSettings(updated as Settings);
-    localStorage.setItem("settings", JSON.stringify(updated));
-
+    persistSettings(updated as Settings);
     if (typeof window !== "undefined") {
       document.documentElement.classList.toggle("dark", newTheme === "dark");
     }
@@ -94,14 +140,13 @@ export const SettingsProvider = ({
       ...settings,
       soundNotifications: !settings.soundNotifications,
     };
-    setSettings(updated);
-    localStorage.setItem("settings", JSON.stringify(updated));
+    persistSettings(updated);
   };
 
   const toggleActiveStatus = () => {
     const updated = { ...settings, activeStatus: !settings.activeStatus };
-    setSettings(updated);
-    localStorage.setItem("settings", JSON.stringify(updated));
+    persistSettings(updated);
+    saveActiveStatus(!!updated.activeStatus);
   };
 
   return (
@@ -111,8 +156,8 @@ export const SettingsProvider = ({
         toggleTheme,
         toggleSound,
         toggleActiveStatus,
-        saveSettings,
-        isSaving,
+        activeStatus,
+        otherStatuses,
       }}
     >
       {children}
