@@ -6,6 +6,7 @@ import React, { useEffect, useState } from "react";
 import { users } from "../../../../../data/userList";
 import { Chat } from "@/types/ChatType";
 import { useFriendsStore } from "@/store/useFriendsStrore";
+import { socket } from "@/lib/socket";
 
 interface AllContactsProps {
   searchText: string;
@@ -18,6 +19,14 @@ const AllContacts = ({ searchText }: AllContactsProps) => {
     error: friendsError,
   } = useFriendsStore();
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+
+  useEffect(() => {
+    socket.on("user:created", (datid: string, newUser: boolean) => {
+      console.log("New user created with ID:", datid, "New User:", newUser);
+      fetchAllFriends();
+    });
+    socket;
+  }, []);
 
   useEffect(() => {
     fetchAllFriends(searchText);

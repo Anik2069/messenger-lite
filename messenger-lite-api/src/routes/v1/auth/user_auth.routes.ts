@@ -1,18 +1,18 @@
 import { Router } from "express";
 import { IOServerWithHelpers } from "../../../socket/initSocket";
 import userSignin from "../../../controllers/auth/userSignin.controller";
-import { userSignup } from "../../../controllers/auth/userSignup.controller";
 import userLogout from "../../../controllers/auth/userLogout.controller";
 import requireAuth from "../../../middlewares/requireAuth";
 import { prisma } from "../../../configs/prisma.config";
 import userActiveStatus from "../../../controllers/auth/userActiveStatus";
+import { userSignup } from "../../../controllers/auth/userSignup.controller";
 
 const authRouter = (io: IOServerWithHelpers) => {
   const router = Router();
   router.post("/logout", userLogout(io));
 
   router.post("/sign-in", userSignin(io));
-  router.post("/sign-up", userSignup);
+  router.post("/sign-up", userSignup(io));
 
   router.get("/me", requireAuth, async (req, res) => {
     const id = (req as any).auth.userId as string;
