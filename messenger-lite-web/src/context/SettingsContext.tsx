@@ -12,8 +12,8 @@ type Settings = {
 };
 
 type Status = {
-  userId?: string;
-  isOnline?: boolean;
+  userId: string;
+  isOnline: boolean;
 };
 
 type SettingsContextType = {
@@ -22,6 +22,7 @@ type SettingsContextType = {
   toggleSound: () => void;
   toggleActiveStatus: () => void;
   activeStatus: Status | null;
+  otherStatuses: Record<string, Status>; // 👈 map of userId -> Status
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(
@@ -35,6 +36,9 @@ export const SettingsProvider = ({
 }) => {
   const [settings, setSettings] = useState<Settings>({});
   const [activeStatus, setActiveStatus] = useState<Status | null>(null);
+  const [otherStatuses, setOtherStatuses] = useState<Record<string, Status>>(
+    {}
+  );
   const { user } = useAuth();
   const userId = user?.id || "";
 
@@ -77,26 +81,31 @@ export const SettingsProvider = ({
   useEffect(() => {
     if (!userId) return;
 
+    // Self
     const onSelfPresence = ({ userId: uid, isOnline }: Status) => {
       console.log("[socket] presence_self →", { userId: uid, isOnline });
       setActiveStatus({ userId: uid, isOnline });
     };
 
+    // Others
+    const onPresenceUpdate = ({ userId, isOnline }: Status) => {
+      console.log("[socket] presence_update/global →", { userId, isOnline });
+      setOtherStatuses((prev) => ({
+        ...prev,
+        [userId]: { userId, isOnline },
+      }));
+    };
+
     socket.on("presence_self", onSelfPresence);
+    socket.on("presence_global", onPresenceUpdate);
+    socket.on("presence_update", onPresenceUpdate);
+
     return () => {
       socket.off("presence_self", onSelfPresence);
+      socket.off("presence_global", onPresenceUpdate);
+      socket.off("presence_update", onPresenceUpdate);
     };
   }, [userId]);
-
-  useEffect(() => {
-    const onGlobal = ({ userId, isOnline }: Status) => {
-      console.log("[socket] presence_global →", userId, isOnline);
-    };
-    socket.on("presence_global", onGlobal);
-    return () => {
-      socket.off("presence_global", onGlobal);
-    };
-  }, []);
 
   // --- Helpers
   const persistSettings = (updated: Settings) => {
@@ -104,17 +113,19 @@ export const SettingsProvider = ({
     localStorage.setItem("settings", JSON.stringify(updated));
   };
 
-  const saveActiveStatus = async (activeStatus: boolean) => {
+  const saveActiveStatus = async (active: boolean) => {
     try {
-      await axiosInstance.post("auth/user/activeStatus", { activeStatus });
-      socket.emit("set_status", { isOnline: activeStatus });
-      setActiveStatus({ userId, isOnline: activeStatus });
+      await axiosInstance.post("auth/user/activeStatus", {
+        activeStatus: active,
+      });
+      socket.emit("set_status", { isOnline: active });
+      setActiveStatus({ userId, isOnline: active });
     } catch (error) {
       console.error("Failed to save activeStatus:", error);
     }
   };
 
-  // --- Toggles (auto-save on change)
+  // --- Toggles
   const toggleTheme = () => {
     const newTheme = settings.theme === "dark" ? "light" : "dark";
     const updated = { ...settings, theme: newTheme };
@@ -146,6 +157,7 @@ export const SettingsProvider = ({
         toggleSound,
         toggleActiveStatus,
         activeStatus,
+        otherStatuses,
       }}
     >
       {children}
