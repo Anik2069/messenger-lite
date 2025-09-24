@@ -1,5 +1,6 @@
 "use client";
 
+import axiosInstance from "@/config/axiosInstance";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 type Settings = {
@@ -58,13 +59,23 @@ export const SettingsProvider = ({
   //     console.log("Settings updated:", settings);
   //   }, [settings]);
 
-  const saveSettings = (onSave?: () => void) => {
+  const saveSettings = async (onSave?: () => void) => {
     setIsSaving(true);
     localStorage.setItem("settings", JSON.stringify(settings));
     setTimeout(() => {
       setIsSaving(false);
       onSave?.();
     }, 1000);
+    await saveActiveStatus(!!settings.activeStatus);
+  };
+
+  const saveActiveStatus = async (activeStatus: boolean) => {
+    try {
+      const res = axiosInstance.post("auth/user/activeStatus", {
+        activeStatus,
+      });
+      console.log(res, "-----------------------");
+    } catch (error) {}
   };
 
   const toggleTheme = () => {

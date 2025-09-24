@@ -29,7 +29,7 @@ const authRouter = (io: IOServerWithHelpers) => {
     });
     return res.json({ results: { userInfo: user } });
   });
-  router.put("/activeStatus", requireAuth, userActiveStatus(io));
+  router.post("/activeStatus", requireAuth, userActiveStatus(io));
 
   return router;
 };
