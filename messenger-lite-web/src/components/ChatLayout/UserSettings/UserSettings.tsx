@@ -12,82 +12,26 @@ import {
   VolumeX,
 } from "lucide-react";
 import { useGlobalContext } from "@/provider/GlobalContextProvider";
-import React, { useEffect, useState } from "react";
-import { useSocket } from "@/context/useSocket";
-
-type Settings = {
-  theme: "dark" | "light";
-  soundNotifications: boolean;
-  activeStatus: boolean;
-};
+import React from "react";
+import { useSettings } from "@/context/SettingsContext";
 
 const UserSettings = () => {
   const user = demoUser || {};
-  const [isSaving, setIsSaving] = useState(false);
   const { settingModalClose } = useGlobalContext();
-  const { fetchActiveStatus } = useSocket();
-
-  const [settings, setSettings] = useState<Settings>({
-    theme: "light",
-    soundNotifications: true,
-    activeStatus: true,
-  });
-
-  // Load settings from localStorage on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const raw = localStorage.getItem("settings");
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw);
-          setSettings((prev) => ({ ...prev, ...parsed }));
-        } catch {
-          // ignore invalid JSON
-        }
-      }
-    }
-  }, []);
+  const {
+    settings,
+    toggleTheme,
+    toggleSound,
+    toggleActiveStatus,
+    saveSettings,
+    isSaving,
+  } = useSettings();
 
   const handleSave = () => {
-    setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
-      settingModalClose();
-    }, 1000);
-
-    localStorage.setItem("settings", JSON.stringify(settings));
-    fetchActiveStatus;
+    saveSettings(() => settingModalClose());
   };
 
-  const toggleTheme = () => {
-    const newTheme = settings?.theme === "dark" ? "light" : "dark";
-    setSettings((prev) => ({ ...prev, theme: newTheme }));
-    localStorage.setItem(
-      "settings",
-      JSON.stringify({ ...settings, theme: newTheme })
-    );
-
-    if (typeof window !== "undefined") {
-      document.documentElement.classList.toggle("dark", newTheme === "dark");
-    }
-  };
-
-  const toggleSound = () => {
-    const newSound = !settings.soundNotifications;
-    setSettings((prev) => ({ ...prev, soundNotifications: newSound }));
-    localStorage.setItem(
-      "settings",
-      JSON.stringify({ ...settings, soundNotifications: newSound })
-    );
-  };
-  const toggleActiveStatus = () => {
-    const newActiveStatus = !settings.activeStatus;
-    setSettings((prev) => ({ ...prev, activeStatus: newActiveStatus }));
-    localStorage.setItem(
-      "settings",
-      JSON.stringify({ ...settings, activeStatus: newActiveStatus })
-    );
-  };
+  // console.log(settings, "settings in user settings component");
 
   return (
     <div>
@@ -161,6 +105,8 @@ const UserSettings = () => {
             />
           </button>
         </div>
+
+        {/* Active Status */}
         <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700">
           <div className="flex items-center space-x-3">
             {settings.activeStatus ? (

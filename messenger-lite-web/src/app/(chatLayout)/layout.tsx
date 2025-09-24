@@ -1,4 +1,5 @@
 "use client";
+import { SettingsProvider } from "@/context/SettingsContext";
 import { AuthProvider } from "@/context/useAuth";
 import { SocketContextProvider } from "@/context/useSocket";
 import { GlobalContextProvider } from "@/provider/GlobalContextProvider";
@@ -9,7 +10,9 @@ const layout = ({ children }: { children: React.ReactNode }) => {
     <div>
       <GlobalContextProvider>
         <AuthProvider>
-          <SocketContextProvider>{children}</SocketContextProvider>
+          <SocketContextProvider>
+            <SettingsProvider>{children}</SettingsProvider>
+          </SocketContextProvider>
         </AuthProvider>
       </GlobalContextProvider>
     </div>
