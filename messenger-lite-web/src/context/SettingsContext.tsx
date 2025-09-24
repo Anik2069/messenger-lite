@@ -35,6 +35,45 @@ export const SettingsProvider = ({
   const { user } = useAuth();
   const userId = user?.id || "";
 
+  useEffect(() => {
+    if (!userId) return;
+
+    const onSelfPresence = ({
+      userId: uid,
+      isOnline,
+    }: {
+      userId: string;
+      isOnline: boolean;
+    }) => {
+      console.log("[socket] presence_self →", { userId: uid, isOnline });
+      // (optional) keep UI in sync:
+      // setSettings(prev => ({ ...prev, activeStatus: isOnline }));
+    };
+
+    socket.on("presence_self", onSelfPresence);
+
+    return () => {
+      socket.off("presence_self", onSelfPresence);
+    };
+  }, [userId]);
+
+  useEffect(() => {
+    const onGlobal = ({
+      userId,
+      isOnline,
+    }: {
+      userId: string;
+      isOnline: boolean;
+    }) => {
+      // e.g., setUsers(prev => prev.map(u => u.id === userId ? {...u, isOnline} : u));
+      console.log("[socket] presence_global →", userId, isOnline);
+    };
+    socket.on("presence_global", onGlobal);
+    return () => {
+      socket.off("presence_global", onGlobal);
+    };
+  }, []);
+
   // Load from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {

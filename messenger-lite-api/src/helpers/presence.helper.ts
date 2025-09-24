@@ -6,7 +6,7 @@ export async function updateUserPresence(
   userId: string,
   isOnline: boolean
 ) {
-  // Update DB
+  // 1) Update DB
   const updatedUser = await prisma.user.update({
     where: { id: userId },
     data: {
@@ -21,11 +21,10 @@ export async function updateUserPresence(
     },
   });
 
-  // Notify self
+  // 2) Notify self (requires socket.join(userId) on connect)
   io.to(userId).emit("presence_self", { userId, isOnline });
-  // Notify others in the same room
 
-  // Broadcast to all conversations
+  // 3) Broadcast to all conversations the user is in (you already had this)
   const convs = await prisma.conversationParticipant.findMany({
     where: { userId },
     select: { conversationId: true },
@@ -37,6 +36,8 @@ export async function updateUserPresence(
       isOnline,
     })
   );
+
+  io.except(userId).emit("presence_global", { userId, isOnline });
 
   return updatedUser;
 }

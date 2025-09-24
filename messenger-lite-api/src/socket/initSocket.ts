@@ -53,9 +53,17 @@ export const initSocket = (server: any) => {
 
     // Add to joinedUsers
     joinedUsers.push({ userId, socket });
+
     console.log(
       "Current joinedUsers:",
       joinedUsers.map((u) => u.userId)
+    );
+
+    socket.join(userId);
+    console.log(
+      `${userId} joined their personal room ${socket.id}` +
+        "Room size:" +
+        socket.rooms.size
     );
 
     // manual status update
