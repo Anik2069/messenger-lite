@@ -5,14 +5,18 @@ import { StatusCodes } from "http-status-codes";
 import { IOServerWithHelpers } from "../../../socket/initSocket";
 import sendResponse from "../../../libs/sendResponse";
 
-export default function getConversations(
+export function getConversations(
   io: IOServerWithHelpers,
   prisma: PrismaClient
 ) {
   return async (req: Request, res: Response) => {
     const userId = (req as any).userId as string;
 
+    const { search } = req.query || {};
+
     try {
+      const searchTerm = typeof search === "string" ? search : "";
+
       const conversations = await prisma.conversation.findMany({
         where: {
           participants: {
@@ -23,14 +27,12 @@ export default function getConversations(
         },
         include: {
           participants: {
+            where: {
+              userId: { not: userId },
+            },
+
             select: {
-              user: {
-                select: {
-                  id: true,
-                  username: true,
-                  avatar: true,
-                },
-              },
+              user: true,
             },
           },
           messages: {

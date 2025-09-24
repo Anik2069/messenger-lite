@@ -49,11 +49,21 @@ async function ensureDirectConversation(
   });
 
   if (existing) return existing;
+  const userMe = await tx.user.findUnique({
+    where: { id: meUserId },
+    select: { username: true },
+  });
+
+  const peerUser = await tx.user.findUnique({
+    where: { id: peerUserId },
+    select: { username: true },
+  });
 
   // Otherwise, create a new DIRECT conversation with both participants
   return tx.conversation.create({
     data: {
       type: "DIRECT",
+      name: peerUser?.username + " & " + userMe?.username || null,
       participants: { create: [{ userId: meUserId }, { userId: peerUserId }] },
     },
     select: { id: true },

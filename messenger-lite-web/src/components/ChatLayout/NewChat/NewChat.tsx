@@ -4,8 +4,9 @@ import NewActionButton from "@/components/reusable/NewActionButton";
 import ReusableSearchInput from "@/components/reusable/ReusableSearchInput";
 import React, { useState } from "react";
 import AllContacts from "./AllContacts/AllContacts";
+import { Chat } from "@/types/ChatType";
 
-const NewChat = () => {
+const NewChat = ({ onChatSelect }: { onChatSelect: (chat: Chat) => void }) => {
   const [searchText, setSearchText] = useState<string>("");
   return (
     <div className="space-y-2  ">
@@ -30,7 +31,7 @@ const NewChat = () => {
         />
       </div>
       <div className="">
-        <AllContacts searchText={searchText} />
+        <AllContacts searchText={searchText} onChatSelect={onChatSelect} />
       </div>
     </div>
   );

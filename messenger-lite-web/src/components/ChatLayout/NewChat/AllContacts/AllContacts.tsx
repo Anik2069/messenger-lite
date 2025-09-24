@@ -8,12 +8,14 @@ import { socket } from "@/lib/socket";
 import { useAuth } from "@/context/useAuth";
 import { useSettings } from "@/context/SettingsContext";
 import { Chat } from "@/types/ChatType";
+import { useGlobalContext } from "@/provider/GlobalContextProvider";
 
 interface AllContactsProps {
   searchText: string;
+  onChatSelect: (chat: Chat) => void;
 }
 
-const AllContacts = ({ searchText }: AllContactsProps) => {
+const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
   const {
     Allfriends: friends,
     fetchAllFriends,
@@ -23,6 +25,7 @@ const AllContacts = ({ searchText }: AllContactsProps) => {
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const { user } = useAuth();
   const { activeStatus, otherStatuses } = useSettings();
+  const { newDrawerClose } = useGlobalContext();
 
   useEffect(() => {
     const newUserCreate = (datid: string, newUser: boolean) => {
@@ -48,6 +51,8 @@ const AllContacts = ({ searchText }: AllContactsProps) => {
     isOnline?: boolean
   ) => {
     setSelectedChat({ type, id, name, avatar, isOnline });
+    onChatSelect({ type, id, name, avatar, isOnline });
+    newDrawerClose();
   };
 
   return (

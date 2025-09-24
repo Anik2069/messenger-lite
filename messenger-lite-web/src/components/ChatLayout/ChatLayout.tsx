@@ -136,7 +136,7 @@ const ChatLayout = () => {
         title="New Chat"
         className="w-80"
       >
-        <NewChat />
+        <NewChat onChatSelect={onChatSelect} />
       </RightSideDrawer>
       <Modal
         maxWidth="2xl"

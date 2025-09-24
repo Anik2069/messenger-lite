@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 import { User } from "../../../types/UserType";
 import { Group } from "../../../types/GroupType";
 import { Chat } from "../../../types/ChatType";
-import { Hash, MessageCircle, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { getInitials } from "@/lib/utils";
+import { MessageCircle } from "lucide-react";
 import Image from "next/image";
 import { DummyAvatar, dummyGroupAvatar } from "@/assets/image";
 import ReusableSearchInput from "@/components/reusable/ReusableSearchInput";
+import { socket } from "@/lib/socket";
+import { useConversationStore } from "@/store/useConversationStore";
+import { useChatStore } from "@/store/useChatStore";
 interface ChatSidebarProps {
   users: User[];
   groups: Group[];
@@ -20,13 +22,17 @@ const ChatSidebar = ({
   selectedChat,
   onChatSelect,
 }: ChatSidebarProps) => {
+  const { setSelectedChat } = useChatStore();
   const [searchQuery, setSearchQuery] = useState("");
-  const filteredUsers = users.filter((user) =>
+  const filteredConversations = users.filter((user) =>
     user?.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
   const filteredGroups = groups.filter((group) =>
     group.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const { conversations, fetchConversations, loading, error } =
+    useConversationStore();
 
   const handleChatSelect = (
     type: "user" | "group",
@@ -37,6 +43,25 @@ const ChatSidebar = ({
   ) => {
     onChatSelect({ type, id, name, avatar, isOnline });
   };
+
+  useEffect(() => {
+    fetchConversations();
+  }, []);
+
+  useEffect(() => {
+    const joinNewChat = (conversationId: string, userId: string) => {
+      console.log(
+        "User joined chat event received:",
+        conversationId,
+        "User:",
+        userId
+      );
+    };
+    socket.on("join_conversation", joinNewChat);
+    return () => {
+      socket.off("join_conversation", joinNewChat);
+    };
+  }, []);
 
   return (
     <div className="h-full flex flex-col  max-h-[100vh] ">
@@ -51,7 +76,7 @@ const ChatSidebar = ({
       {/* Chat List */}
       <div className="flex-1 overflow-y-auto scrollbar-none">
         {/* Groups */}
-        {filteredGroups.length > 0 && (
+        {/* {filteredGroups.length > 0 && (
           <div>
             <div className="px-4 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide bg-gray-50 dark:bg-gray-800">
               Groups
@@ -91,71 +116,78 @@ const ChatSidebar = ({
               </div>
             ))}
           </div>
-        )}
+        )} */}
 
-        {/* Users */}
+        {/* Conversations */}
         <div>
           <div className="px-4 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide bg-gray-50 dark:bg-gray-800">
-            Contacts
+            Conversations
           </div>
-          {filteredUsers.map((user, index) => (
-            <div
-              key={index}
-              onClick={() =>
-                handleChatSelect(
-                  "user",
-                  user?.id,
-                  user?.username,
-                  user?.avatar,
-                  user.isOnline
-                )
-              }
-              className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
-                selectedChat?.type === "user" && selectedChat?.id === user?.id
-                  ? "bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500"
-                  : ""
-              }`}
-            >
-              <div className="relative">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-white mr-3`}
-                >
-                  <div className="">
-                    <Image
-                      src={DummyAvatar}
-                      alt={user?.username}
-                      width={40}
-                      height={40}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                  </div>
+          {conversations?.map((conv) => {
+            const isGroup = conv.type === "GROUP";
+
+            // Replace with actual current user id (from store/auth)
+            const currentUserId = "YOUR_CURRENT_USER_ID";
+
+            const otherParticipant = !isGroup
+              ? conv.participants[0].user
+              : null;
+
+            const displayName = conv.name
+              ? conv.name
+              : otherParticipant?.username;
+            const displayAvatar = isGroup
+              ? conv.avatar
+              : otherParticipant?.avatar;
+
+            return (
+              <div
+                key={conv.id}
+                onClick={() =>
+                  handleChatSelect(
+                    isGroup ? "group" : "user",
+                    conv.id,
+                    displayName || "Unknown",
+                    displayAvatar || undefined,
+                    otherParticipant?.isOnline || false
+                  )
+                }
+                className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
+                  selectedChat?.id === conv.id
+                    ? "bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500"
+                    : ""
+                }`}
+              >
+                {/* Avatar */}
+                <div className="relative">
+                  <Image
+                    src={displayAvatar || DummyAvatar}
+                    alt={displayName || "Avatar"}
+                    width={40}
+                    height={40}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
                 </div>
-                <div
-                  className={`absolute bottom-0 right-2 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${
-                    user.isOnline ? "bg-green-400" : "bg-gray-400"
-                  }`}
-                />
+
+                {/* Info */}
+                <div className="flex-1 min-w-0 ml-3">
+                  <h3 className="font-medium text-gray-900 dark:text-white truncate">
+                    {displayName}
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                    {isGroup
+                      ? `${conv.participants.length} members`
+                      : conv.messages[conv.messages.length - 1]?.message ||
+                        "No messages yet"}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-gray-900 dark:text-white truncate">
-                  {user?.username}
-                </h3>
-                <p
-                  className={`text-sm truncate ${
-                    user.isOnline
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-gray-500 dark:text-gray-400"
-                  }`}
-                >
-                  {user.isOnline ? "Online" : "Offline"}
-                </p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Empty State */}
-        {filteredUsers.length === 0 && filteredGroups.length === 0 && (
+        {filteredConversations.length === 0 && filteredGroups.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400">
             <MessageCircle className="w-12 h-12 mb-3 opacity-50" />
             <p className="text-sm">No conversations found</p>
