@@ -1,7 +1,9 @@
 "use client";
 
 import axiosInstance from "@/config/axiosInstance";
+import { socket } from "@/lib/socket";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { useAuth } from "./useAuth";
 
 type Settings = {
   theme?: "dark" | "light";
@@ -29,6 +31,9 @@ export const SettingsProvider = ({
 }) => {
   const [settings, setSettings] = useState<Settings>({});
   const [isSaving, setIsSaving] = useState(false);
+
+  const { user } = useAuth();
+  const userId = user?.id || "";
 
   // Load from localStorage on mount
   useEffect(() => {
