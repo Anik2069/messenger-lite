@@ -25,11 +25,15 @@ const AllContacts = ({ searchText }: AllContactsProps) => {
   const { activeStatus, otherStatuses } = useSettings();
 
   useEffect(() => {
-    socket.on("user:created", (datid: string, newUser: boolean) => {
-      console.log("New user created with ID:", datid, "New User:", newUser);
-      fetchAllFriends();
-    });
-    socket;
+    const newUserCreate = (datid: string, newUser: boolean) => {
+      console.log("User created event received:", datid, "New User:", newUser);
+      // setActiveStatus({ userId: uid, isOnline });
+      fetchAllFriends(searchText);
+    };
+    socket.on("user:created", newUserCreate);
+    return () => {
+      socket.off("user:created", newUserCreate);
+    };
   }, []);
 
   useEffect(() => {
