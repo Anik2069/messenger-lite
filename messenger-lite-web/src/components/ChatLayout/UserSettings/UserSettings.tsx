@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import { demoUser } from "../../../../data/demoUser";
 import {
@@ -18,20 +17,8 @@ import { useSettings } from "@/context/SettingsContext";
 const UserSettings = () => {
   const user = demoUser || {};
   const { settingModalClose } = useGlobalContext();
-  const {
-    settings,
-    toggleTheme,
-    toggleSound,
-    toggleActiveStatus,
-    saveSettings,
-    isSaving,
-  } = useSettings();
-
-  const handleSave = () => {
-    saveSettings(() => settingModalClose());
-  };
-
-  // console.log(settings, "settings in user settings component");
+  const { settings, toggleTheme, toggleSound, toggleActiveStatus } =
+    useSettings();
 
   return (
     <div>
@@ -41,7 +28,9 @@ const UserSettings = () => {
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             {user?.username}
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Online</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {settings.activeStatus ? "Online" : "Offline"}
+          </p>
         </div>
 
         {/* Theme Toggle */}
@@ -137,22 +126,14 @@ const UserSettings = () => {
           </button>
         </div>
 
-        {/* Save Button */}
-        <div className="flex space-x-3 pt-4">
-          <Button
-            variant="outline"
+        {/* Footer (only Close button now) */}
+        <div className="flex pt-4">
+          <button
             onClick={settingModalClose}
-            className="flex-1 bg-transparent"
+            className="flex-1 rounded-md border border-gray-300 dark:border-gray-600 py-2 text-gray-700 dark:text-gray-300 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-600"
           >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSave}
-            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
-            disabled={isSaving}
-          >
-            {isSaving ? "Saving..." : "Save Settings"}
-          </Button>
+            Close
+          </button>
         </div>
       </CardContent>
     </div>

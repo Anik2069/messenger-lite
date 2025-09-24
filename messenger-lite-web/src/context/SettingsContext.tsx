@@ -11,13 +11,17 @@ type Settings = {
   activeStatus?: boolean;
 };
 
+type Status = {
+  userId?: string;
+  isOnline?: boolean;
+};
+
 type SettingsContextType = {
   settings: Settings;
   toggleTheme: () => void;
   toggleSound: () => void;
   toggleActiveStatus: () => void;
-  saveSettings: (onSave?: () => void) => void;
-  isSaving: boolean;
+  activeStatus: Status | null;
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(
@@ -30,42 +34,62 @@ export const SettingsProvider = ({
   children: React.ReactNode;
 }) => {
   const [settings, setSettings] = useState<Settings>({});
-  const [isSaving, setIsSaving] = useState(false);
-
+  const [activeStatus, setActiveStatus] = useState<Status | null>(null);
   const { user } = useAuth();
   const userId = user?.id || "";
 
+  // --- Hydrate from localStorage
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const rawSettings = localStorage.getItem("settings");
+      if (rawSettings) {
+        const parsed = JSON.parse(rawSettings);
+        setSettings(parsed);
+        document.documentElement.classList.toggle(
+          "dark",
+          parsed.theme === "dark"
+        );
+      } else {
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
+        document.documentElement.classList.toggle("dark", prefersDark);
+      }
+
+      const rawPresence = localStorage.getItem("activeStatus");
+      if (rawPresence) setActiveStatus(JSON.parse(rawPresence));
+    } catch {
+      setSettings({});
+      setActiveStatus(null);
+    }
+  }, []);
+
+  // --- Persist activeStatus
+  useEffect(() => {
+    if (activeStatus) {
+      localStorage.setItem("activeStatus", JSON.stringify(activeStatus));
+    }
+  }, [activeStatus]);
+
+  // --- Socket listeners
   useEffect(() => {
     if (!userId) return;
 
-    const onSelfPresence = ({
-      userId: uid,
-      isOnline,
-    }: {
-      userId: string;
-      isOnline: boolean;
-    }) => {
+    const onSelfPresence = ({ userId: uid, isOnline }: Status) => {
       console.log("[socket] presence_self →", { userId: uid, isOnline });
-      // (optional) keep UI in sync:
-      // setSettings(prev => ({ ...prev, activeStatus: isOnline }));
+      setActiveStatus({ userId: uid, isOnline });
     };
 
     socket.on("presence_self", onSelfPresence);
-
     return () => {
       socket.off("presence_self", onSelfPresence);
     };
   }, [userId]);
 
   useEffect(() => {
-    const onGlobal = ({
-      userId,
-      isOnline,
-    }: {
-      userId: string;
-      isOnline: boolean;
-    }) => {
-      // e.g., setUsers(prev => prev.map(u => u.id === userId ? {...u, isOnline} : u));
+    const onGlobal = ({ userId, isOnline }: Status) => {
       console.log("[socket] presence_global →", userId, isOnline);
     };
     socket.on("presence_global", onGlobal);
@@ -74,60 +98,27 @@ export const SettingsProvider = ({
     };
   }, []);
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const raw = localStorage.getItem("settings");
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          setSettings(parsed);
-          document.documentElement.classList.toggle(
-            "dark",
-            parsed.theme === "dark"
-          );
-        } else {
-          // Fallback: respect system preference if nothing is stored
-          const prefersDark =
-            window.matchMedia &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches;
-          document.documentElement.classList.toggle("dark", !!prefersDark);
-        }
-      } catch {
-        setSettings({});
-      }
-    }
-  }, []);
-
-  //   useEffect(() => {
-  //     console.log("Settings updated:", settings);
-  //   }, [settings]);
-
-  const saveSettings = async (onSave?: () => void) => {
-    setIsSaving(true);
-    localStorage.setItem("settings", JSON.stringify(settings));
-    setTimeout(() => {
-      setIsSaving(false);
-      onSave?.();
-    }, 1000);
-    await saveActiveStatus(!!settings.activeStatus);
+  // --- Helpers
+  const persistSettings = (updated: Settings) => {
+    setSettings(updated);
+    localStorage.setItem("settings", JSON.stringify(updated));
   };
 
   const saveActiveStatus = async (activeStatus: boolean) => {
     try {
-      const res = axiosInstance.post("auth/user/activeStatus", {
-        activeStatus,
-      });
-      console.log(res, "-----------------------");
-    } catch (error) {}
+      await axiosInstance.post("auth/user/activeStatus", { activeStatus });
+      socket.emit("set_status", { isOnline: activeStatus });
+      setActiveStatus({ userId, isOnline: activeStatus });
+    } catch (error) {
+      console.error("Failed to save activeStatus:", error);
+    }
   };
 
+  // --- Toggles (auto-save on change)
   const toggleTheme = () => {
     const newTheme = settings.theme === "dark" ? "light" : "dark";
     const updated = { ...settings, theme: newTheme };
-    setSettings(updated as Settings);
-    localStorage.setItem("settings", JSON.stringify(updated));
-
+    persistSettings(updated as Settings);
     if (typeof window !== "undefined") {
       document.documentElement.classList.toggle("dark", newTheme === "dark");
     }
@@ -138,14 +129,13 @@ export const SettingsProvider = ({
       ...settings,
       soundNotifications: !settings.soundNotifications,
     };
-    setSettings(updated);
-    localStorage.setItem("settings", JSON.stringify(updated));
+    persistSettings(updated);
   };
 
   const toggleActiveStatus = () => {
     const updated = { ...settings, activeStatus: !settings.activeStatus };
-    setSettings(updated);
-    localStorage.setItem("settings", JSON.stringify(updated));
+    persistSettings(updated);
+    saveActiveStatus(!!updated.activeStatus);
   };
 
   return (
@@ -155,8 +145,7 @@ export const SettingsProvider = ({
         toggleTheme,
         toggleSound,
         toggleActiveStatus,
-        saveSettings,
-        isSaving,
+        activeStatus,
       }}
     >
       {children}
