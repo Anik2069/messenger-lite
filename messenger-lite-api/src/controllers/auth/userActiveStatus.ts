@@ -18,21 +18,6 @@ export default function userActiveStatus(io: IOServerWithHelpers) {
 
       const userId = (req as any).userId as string;
 
-      // update user online/offline status
-      // const updatedUser = await prisma.user.update({
-      //   where: { id: userId },
-      //   data: {
-      //     isOnline: activeStatus,
-      //     lastSeenAt: activeStatus ? null : new Date(),
-      //   },
-      //   select: {
-      //     id: true,
-      //     username: true,
-      //     isOnline: true,
-      //     lastSeenAt: true,
-      //   },
-      // });
-
       // emit event to other connected clients
       const updatedUser = await updateUserPresence(io, userId, activeStatus);
 
