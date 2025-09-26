@@ -1,3 +1,5 @@
+import { User } from "./UserType";
+
 export type MessageKind = "text" | "file" | "forwarded";
 
 export interface MiniUserRef {
@@ -45,4 +47,6 @@ export interface Message {
   timestamp: Date;
   reactions: Reaction[];
   readBy: ReadReceipt[];
+  author?: User;
+  createdAt?: string;
 }
