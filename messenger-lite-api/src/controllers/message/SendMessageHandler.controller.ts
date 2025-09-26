@@ -5,38 +5,49 @@ import { StatusCodes } from "http-status-codes";
 import sendResponse from "../../libs/sendResponse";
 import type { IOServerWithHelpers } from "../../socket/initSocket";
 
-/** Socket.io room name for a conversation */
 const conversationRoom = (conversationId: string) => `conv:${conversationId}`;
 
-/** Expected request body shape */
 type SendMessageBody = {
-  // If sending to an existing conversation
   conversationId?: string;
-
-  // If starting (or ensuring) a direct message with someone
   recipientId?: string;
-
-  // Message content & metadata
   message?: string;
-  messageType?: MessageType; // defaults to TEXT when not provided
+  messageType?: MessageType;
   fileUrl?: string;
   fileName?: string;
   fileMime?: string;
   fileSize?: number;
-
-  // Optional: message was forwarded from another id
   forwardedFrom?: string;
-
-  // Optional: client-generated temp id for UI reconciliation
   clientTempId?: string;
 };
+
+// helper: sorted conversation list for a user
+async function getUserConversationsSorted(
+  prisma: PrismaClient | Prisma.TransactionClient,
+  userId: string
+) {
+  return prisma.conversation.findMany({
+    where: {
+      participants: { some: { userId } },
+    },
+    include: {
+      participants: {
+        where: { userId: { not: userId } },
+        select: { user: true },
+      },
+      messages: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      },
+    },
+    orderBy: { updatedAt: "desc" },
+  });
+}
 
 async function ensureDirectConversation(
   tx: Prisma.TransactionClient,
   meUserId: string,
   peerUserId: string
 ) {
-  // Check if a DIRECT conversation already exists for (me, peer)
   const existing = await tx.conversation.findFirst({
     where: {
       type: "DIRECT",
@@ -47,24 +58,24 @@ async function ensureDirectConversation(
     },
     select: { id: true },
   });
-
   if (existing) return existing;
+
   const userMe = await tx.user.findUnique({
     where: { id: meUserId },
     select: { username: true },
   });
-
   const peerUser = await tx.user.findUnique({
     where: { id: peerUserId },
     select: { username: true },
   });
 
-  // Otherwise, create a new DIRECT conversation with both participants
   return tx.conversation.create({
     data: {
       type: "DIRECT",
-      name: peerUser?.username + " & " + userMe?.username || null,
-      participants: { create: [{ userId: meUserId }, { userId: peerUserId }] },
+      name: `${peerUser?.username} & ${userMe?.username}`,
+      participants: {
+        create: [{ userId: meUserId }, { userId: peerUserId }],
+      },
     },
     select: { id: true },
   });
@@ -76,9 +87,8 @@ export default function createSendMessageController(
 ) {
   return async (req: Request, res: Response) => {
     try {
-      const userId = (req as any).userId as string; // assumed set by auth middleware
+      const userId = (req as any).userId as string;
 
-      // Normalize & default body fields
       const {
         conversationId: conversationIdRaw,
         recipientId: recipientIdRaw,
@@ -97,11 +107,8 @@ export default function createSendMessageController(
       const recipientId: string | undefined =
         recipientIdRaw?.trim() || undefined;
 
-      // Do everything in a single DB transaction so it's consistent or rolled back
+      // save message
       const savedMessage = await prisma.$transaction(async (tx) => {
-        // -------------------------------------------------------------------
-        // 1) Resolve conversation (existing group/direct OR ensure a new direct)
-        // -------------------------------------------------------------------
         let conversation =
           conversationId &&
           (await tx.conversation.findUnique({
@@ -109,11 +116,8 @@ export default function createSendMessageController(
             select: { id: true, type: true },
           }));
 
-        // If conversation not found:
-        // - We allow the client to pass peer user id in conversationId (convIdRaw)
-        // - Or pass recipientId explicitly. We then ensure a DIRECT conversation.
         if (!conversation) {
-          const peerUserId = recipientId || conversationIdRaw; // tolerate DM peer id in convId slot
+          const peerUserId = recipientId || conversationIdRaw;
           if (!peerUserId) {
             const err: any = new Error(
               "conversationId or recipientId required"
@@ -122,7 +126,6 @@ export default function createSendMessageController(
             throw err;
           }
 
-          // Sanity check: the peer must exist
           const peerExists = await tx.user.findUnique({
             where: { id: peerUserId },
             select: { id: true },
@@ -133,7 +136,6 @@ export default function createSendMessageController(
             throw err;
           }
 
-          // Ensure (or create) a DIRECT conversation with the peer
           const ensured = await ensureDirectConversation(
             tx,
             userId,
@@ -147,21 +149,17 @@ export default function createSendMessageController(
           where: { conversationId: conversation.id, userId },
           select: { id: true },
         });
-
         if (!membership) {
           const err: any = new Error("Not a participant");
           err.status = StatusCodes.FORBIDDEN;
           throw err;
         }
 
-        // -------------------------------------------------------------------
-        // 3) Create the message
-        // -------------------------------------------------------------------
         const createdMessage = await tx.message.create({
           data: {
             conversationId: conversation.id,
             authorId: userId,
-            message: message ?? "", // empty string allowed for pure file message
+            message: message ?? "",
             messageType,
             fileUrl: fileUrl ?? null,
             fileName: fileName ?? null,
@@ -181,30 +179,40 @@ export default function createSendMessageController(
           },
         });
 
-        // -------------------------------------------------------------------
-        // 4) Mark the sender's read receipt for their own message
-        // -------------------------------------------------------------------
         await tx.messageRead.upsert({
           where: { messageId_userId: { messageId: createdMessage.id, userId } },
           create: { messageId: createdMessage.id, userId },
           update: { readAt: new Date() },
         });
 
-        // Attach the clientTempId back so the client can reconcile optimistic UI
         (createdMessage as any).clientTempId = clientTempId ?? null;
+
+        // update conversation.updatedAt
+        await tx.conversation.update({
+          where: { id: conversation.id },
+          data: { updatedAt: new Date() },
+        });
 
         return createdMessage;
       });
 
-      // ---------------------------------------------------------------------
-      // 5) Notify all clients in the conversation room via Socket.io
-      // ---------------------------------------------------------------------
+      // broadcast to conversation room
       io.to(conversationRoom(savedMessage.conversationId)).emit(
         "receive_message",
         savedMessage
       );
 
-      // Done!
+      // now push updated conversation list to each participant’s personal room
+      const participants = await prisma.conversationParticipant.findMany({
+        where: { conversationId: savedMessage.conversationId },
+        select: { userId: true },
+      });
+
+      for (const p of participants) {
+        const updatedList = await getUserConversationsSorted(prisma, p.userId);
+        io.to(p.userId).emit("conversations_updated", updatedList);
+      }
+
       return sendResponse({
         res,
         statusCode: StatusCodes.CREATED,
