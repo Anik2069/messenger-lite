@@ -133,9 +133,9 @@ const ChatSidebar = ({
               ? conv.participants[0].user
               : null;
 
-            const displayName = conv.name
-              ? conv.name
-              : otherParticipant?.username;
+            const displayName = otherParticipant?.username
+              ? otherParticipant.username
+              : conv.name;
             const displayAvatar = isGroup
               ? conv.avatar
               : otherParticipant?.avatar;
