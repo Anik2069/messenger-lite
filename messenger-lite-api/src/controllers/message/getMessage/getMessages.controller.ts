@@ -34,11 +34,16 @@ export default function getMessagesController(prisma: PrismaClient) {
         orderBy: { createdAt: "asc" },
       });
 
+      const normalized = messages.map((m) => ({
+        ...m,
+        author: { ...m.author, id: String(m.author.id) },
+      }));
+
       return sendResponse({
         res,
         statusCode: StatusCodes.OK,
         message: "Messages fetched",
-        data: messages,
+        data: normalized,
       });
     } catch (err) {
       console.error(err);
