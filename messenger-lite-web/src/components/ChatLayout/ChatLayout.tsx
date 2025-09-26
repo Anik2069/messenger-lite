@@ -1,14 +1,11 @@
 "use client";
-import React, { useState, useEffect, use } from "react";
-import { demoUser } from "../../../data/demoUser";
-import { users } from "../../../data/userList";
+import React, { useState, useEffect } from "react";
 import { demoGroups } from "../../../data/GroupList";
 import ChatSidebar from "./ChatSidebar/ChatSidebar";
 import Navbar from "./Navbar/Navbar";
 import ChatWindow from "./ChatWindow/ChatWindow";
-import { Message, FileData, ForwardedData } from "../../types/MessageType";
+import { FileData, ForwardedData } from "../../types/MessageType";
 import { Chat } from "../../types/ChatType";
-import { demoMessages } from "../../../data/demoMessage";
 import { RightSideDrawer } from "../reusable/RightSideDrawer";
 import { useGlobalContext } from "@/provider/GlobalContextProvider";
 import NewChat from "./NewChat/NewChat";
@@ -18,6 +15,7 @@ import { useFriendsStore } from "@/store/useFriendsStrore";
 import { useChatStore } from "@/store/useChatStore";
 import { cleanupTyping, startTyping, stopTyping } from "@/lib/typing";
 import { useAuth } from "@/context/useAuth";
+import { socket } from "@/lib/socket"; // ✅ socket import
 
 declare global {
   interface Window {
@@ -50,6 +48,7 @@ const ChatLayout = () => {
     settingModalIsOpen,
   } = useGlobalContext();
 
+  // rack socket connection
   useEffect(() => {
     if (user) {
       setIsConnected(true);
@@ -66,9 +65,22 @@ const ChatLayout = () => {
     return () => cleanupTyping();
   }, []);
 
+  // Join/Leave conversation room on selection
+  useEffect(() => {
+    if (selectedChat) {
+      socket.emit("join_conversation", selectedChat.id);
+      console.log("➡️ Joined conversation:", selectedChat.id);
+
+      return () => {
+        socket.emit("leave_conversation", selectedChat.id);
+        console.log("⬅️ Left conversation:", selectedChat.id);
+      };
+    }
+  }, [selectedChat]);
+
   const onChatSelect = (chat: Chat) => {
     setSelectedChat(chat);
-    setMessages(demoMessages[chat.id] || []);
+    setMessages([]);
     setOtherUserTyping(null);
   };
 
@@ -90,6 +102,10 @@ const ChatLayout = () => {
     if (selectedChat.id === user?.id) return;
 
     startTyping(setOtherUserTyping, user?.id ?? "Unknown");
+    socket.emit("typing", {
+      conversationId: selectedChat.id,
+      userId: user?.id,
+    });
   };
 
   const handleTypingStop = () => {

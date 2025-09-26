@@ -12,7 +12,6 @@ export interface ConversationState {
 }
 
 export const useConversationStore = create<ConversationState>((set) => {
-  // ✅ Listen for realtime updates
   socket.off("conversations_updated");
   socket.on("conversations_updated", (conversations: Conversation[]) => {
     console.log("📩 conversations_updated", conversations);

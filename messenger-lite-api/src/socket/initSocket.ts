@@ -86,7 +86,7 @@ export const initSocket = (server: any) => {
 
     // conversation leave
     socket.on("leave_conversation", (conversationId: string) => {
-      const userId = socket.data.userId as string; // ✅ taken from JWT
+      const userId = socket.data.userId as string;
       socket.leave(convRoom(conversationId));
       console.log(`${userId} left conv:${conversationId}`);
     });
