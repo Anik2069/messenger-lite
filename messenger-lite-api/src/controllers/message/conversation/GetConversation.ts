@@ -42,9 +42,12 @@ export function getConversations(
             take: 1,
           },
         },
+        orderBy: {
+          updatedAt: "desc",
+        },
       });
 
-      console.log("Fetched conversations for user:", userId, conversations);
+      // console.log("Fetched conversations for user:", userId, conversations);
 
       return sendResponse({
         res,
