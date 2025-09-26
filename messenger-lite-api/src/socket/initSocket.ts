@@ -73,27 +73,23 @@ export const initSocket = (server: any) => {
     });
 
     // conversation join
-    socket.on(
-      "join_conversation",
-      async (conversationId: string, userId: string) => {
-        const member = await prisma.conversationParticipant.findFirst({
-          where: { conversationId, userId },
-          select: { id: true },
-        });
-        if (!member) return;
-        socket.join(convRoom(conversationId));
-        console.log(`${userId} joined conv:${conversationId}`);
-      }
-    );
+    socket.on("join_conversation", async (conversationId: string) => {
+      const userId = socket.data.userId as string;
+      const member = await prisma.conversationParticipant.findFirst({
+        where: { conversationId, userId },
+        select: { id: true },
+      });
+      if (!member) return;
+      socket.join(convRoom(conversationId));
+      console.log(`${userId} joined conv:${conversationId}`);
+    });
 
     // conversation leave
-    socket.on(
-      "leave_conversation",
-      (conversationId: string, userId: string) => {
-        socket.leave(convRoom(conversationId));
-        console.log(`${userId} left conv:${conversationId}`);
-      }
-    );
+    socket.on("leave_conversation", (conversationId: string) => {
+      const userId = socket.data.userId as string; // ✅ taken from JWT
+      socket.leave(convRoom(conversationId));
+      console.log(`${userId} left conv:${conversationId}`);
+    });
 
     // typing
     socket.on("typing", ({ conversationId, userId }) => {
