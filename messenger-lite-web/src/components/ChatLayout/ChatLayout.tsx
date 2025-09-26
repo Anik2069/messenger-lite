@@ -16,6 +16,7 @@ import { useChatStore } from "@/store/useChatStore";
 import { cleanupTyping, startTyping, stopTyping } from "@/lib/typing";
 import { useAuth } from "@/context/useAuth";
 import { socket } from "@/lib/socket"; // ✅ socket import
+import axiosInstance from "@/config/axiosInstance";
 
 declare global {
   interface Window {
@@ -69,11 +70,24 @@ const ChatLayout = () => {
   useEffect(() => {
     if (selectedChat) {
       socket.emit("join_conversation", selectedChat.id);
-      console.log("➡️ Joined conversation:", selectedChat.id);
+      console.log("Joined conversation:", selectedChat.id);
+
+      (async () => {
+        try {
+          const response = await axiosInstance.get(
+            `messages/${selectedChat.id}`
+          );
+          if (response.status === 200) {
+            useChatStore.getState().setMessages(response?.data?.results);
+          }
+        } catch (error) {
+          console.error("Failed to fetch messages", error);
+        }
+      })();
 
       return () => {
         socket.emit("leave_conversation", selectedChat.id);
-        console.log("⬅️ Left conversation:", selectedChat.id);
+        console.log(" Left conversation:", selectedChat.id);
       };
     }
   }, [selectedChat]);
