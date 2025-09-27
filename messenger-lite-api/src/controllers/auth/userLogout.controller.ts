@@ -27,13 +27,10 @@ export default function userLogout(io: IOServerWithHelpers) {
       const cookieToken = (req as any).cookies?.accessToken as
         | string
         | undefined;
-      console.log(cookieToken, "cookie token");
       const auth = req.headers.authorization;
-      console.log(auth, "auth header on logout");
       const bearer =
         auth && auth.startsWith("Bearer ") ? auth.slice(7) : undefined;
       const token = cookieToken ?? bearer;
-      console.log("Logging out user with token:", token ?? "no token");
       if (token) {
         try {
           const payload = verifyJWT<{ id: string }>(token);
@@ -55,7 +52,6 @@ export default function userLogout(io: IOServerWithHelpers) {
             updatedAt: true,
           },
         });
-        console.log(userInfo, "user info when logout");
 
         // try {
         // await prisma.user.update({

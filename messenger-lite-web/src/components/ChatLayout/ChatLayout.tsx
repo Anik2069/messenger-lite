@@ -71,6 +71,7 @@ const ChatLayout = () => {
     if (selectedChat) {
       socket.emit("join_conversation", selectedChat.id);
       console.log("Joined conversation:", selectedChat.id);
+      console.log("Fetching messages for conversation:", selectedChat);
 
       (async () => {
         try {
