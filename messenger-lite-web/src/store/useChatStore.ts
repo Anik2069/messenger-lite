@@ -129,14 +129,14 @@ export const useChatStore = create<ChatState>((set, get) => {
     listenersInitialized = true;
 
     // cleanup old listeners
-    socket.off("connect");
-    socket.off("disconnect");
+    // socket.off("connect");
+    // socket.off("disconnect");
     socket.off("receive_message");
     socket.off("user_typing");
     socket.off("message_reaction");
 
-    socket.on("connect", () => set({ isConnected: true }));
-    socket.on("disconnect", () => set({ isConnected: false }));
+    // socket.on("connect", () => set({ isConnected: true }));
+    // socket.on("disconnect", () => set({ isConnected: false }));
 
     socket.on("receive_message", (raw: unknown) => {
       const msg = mapServerMessage(raw as ServerMessage);

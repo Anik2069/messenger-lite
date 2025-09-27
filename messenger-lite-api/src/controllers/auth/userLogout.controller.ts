@@ -23,20 +23,25 @@ export default function userLogout(io: IOServerWithHelpers) {
     let userId: string | undefined;
 
     try {
+      console.log("Processing logout request");
       const cookieToken = (req as any).cookies?.accessToken as
         | string
         | undefined;
+      console.log(cookieToken, "cookie token");
       const auth = req.headers.authorization;
+      console.log(auth, "auth header on logout");
       const bearer =
         auth && auth.startsWith("Bearer ") ? auth.slice(7) : undefined;
       const token = cookieToken ?? bearer;
-
+      console.log("Logging out user with token:", token ?? "no token");
       if (token) {
         try {
           const payload = verifyJWT<{ id: string }>(token);
           userId = payload?.id;
         } catch {}
       }
+      if (!userId)
+        throw Error(`No user ID found in JWT token ${JSON.stringify(token)}!`);
 
       if (userId) {
         const userInfo = await prisma.user.findUnique({
@@ -52,14 +57,15 @@ export default function userLogout(io: IOServerWithHelpers) {
         });
         console.log(userInfo, "user info when logout");
 
-        try {
-          await prisma.user.update({
-            where: { id: userId },
-            data: { isOnline: false },
-          });
-        } catch (e: any) {
-          console.error("Logout DB update error:", e?.message);
-        }
+        // try {
+        // await prisma.user.update({
+        //   where: { id: userId },
+        //   data: { isOnline: false },
+        // });
+        // console.log("User set to offline:", userId);
+        // } catch (e: any) {
+        //   console.error("Logout DB update error:", e?.message);
+        // }
         // try {
         //   io.disconnectUser();
         // } catch (e: any) {

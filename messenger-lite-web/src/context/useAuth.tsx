@@ -120,18 +120,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   //  LOGOUT
-  const logout = () => {
-    setUser(null);
-    setToken(null);
+  const logout = async () => {
+    try {
+      const response = await axiosInstance.post("auth/user/logout");
+      if (response.status === 200) {
+        console.log("Logout successful");
+        setUser(null);
+        setToken(null);
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("user");
+        if (socket.connected) socket.disconnect();
+        socket.auth = { token: "" };
 
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("user");
-
-    if (socket.connected) socket.disconnect();
-    socket.auth = { token: "" };
-
-    toast.success("Logout successful");
-    router.push("/auth?type=login");
+        toast.success("Logout successful");
+        router.push("/auth?type=login");
+      }
+    } catch (error) {
+      console.error("Logout failed", error);
+      toast.error("Logout failed, please try again.");
+    }
   };
 
   const saveActiveStatus = async (userId: string) => {

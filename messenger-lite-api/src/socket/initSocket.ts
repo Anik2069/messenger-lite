@@ -79,6 +79,7 @@ export const initSocket = (server: any) => {
         where: { conversationId, userId },
         select: { id: true },
       });
+
       if (!member) return;
       socket.join(convRoom(conversationId));
       console.log(`${userId} joined conv:${conversationId}`);
