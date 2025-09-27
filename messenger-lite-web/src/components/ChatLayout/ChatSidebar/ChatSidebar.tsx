@@ -8,6 +8,8 @@ import Image from "next/image";
 import { DummyAvatar, dummyGroupAvatar } from "@/assets/image";
 import ReusableSearchInput from "@/components/reusable/ReusableSearchInput";
 import { useConversationStore } from "@/store/useConversationStore";
+import { useAuth } from "@/context/useAuth";
+import { useSettings } from "@/context/SettingsContext";
 
 interface ChatSidebarProps {
   users: User[];
@@ -24,7 +26,8 @@ const ChatSidebar = ({
 }: ChatSidebarProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const { conversations, fetchConversations } = useConversationStore();
-
+  const { user } = useAuth();
+  const { activeStatus, otherStatuses } = useSettings();
   const filteredGroups = groups.filter((group) =>
     group.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -62,6 +65,15 @@ const ChatSidebar = ({
               ? conv.avatar
               : otherParticipant?.avatar;
 
+            const isSelf = conv?.participants[0]?.user.id === user?.id;
+            const status = isSelf
+              ? activeStatus
+              : otherStatuses[otherParticipant?.id as string] || {
+                  isOnline: otherParticipant?.isOnline,
+                };
+
+            const isOnline = !!status?.isOnline;
+
             return (
               <div
                 key={conv.id}
@@ -88,6 +100,11 @@ const ChatSidebar = ({
                     width={40}
                     height={40}
                     className="w-10 h-10 rounded-full object-cover"
+                  />
+                  <div
+                    className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${
+                      isOnline ? "bg-green-400" : "bg-gray-400"
+                    }`}
                   />
                 </div>
 
