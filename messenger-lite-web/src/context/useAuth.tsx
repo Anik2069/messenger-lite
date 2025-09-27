@@ -19,6 +19,7 @@ interface AuthContextType {
   ) => Promise<void>;
   logout: () => void;
   loading: boolean;
+  isLogoutLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -28,7 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
-
+  const [isLogoutLoading, setIsLogoutLoading] = useState(false);
   useEffect(() => {
     const savedToken = localStorage.getItem("accessToken");
     const savedUser = localStorage.getItem("user");
@@ -64,7 +65,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       socket.auth = { token: t };
       if (!socket.connected) socket.connect();
 
-      toast.success("Login successful");
+      // toast.success("Login successful");
       router.push("/");
     } catch (err: unknown) {
       const message = axios.isAxiosError(err)
@@ -103,7 +104,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         socket.auth = { token: t };
         if (!socket.connected) socket.connect();
 
-        toast.success("Registration successful");
+        // toast.success("Registration successful");
         router.push("/");
       } else {
         toast.success("Registration successful! Please login.");
@@ -121,6 +122,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   //  LOGOUT
   const logout = async () => {
+    setIsLogoutLoading(true);
     try {
       const response = await axiosInstance.post("auth/user/logout");
       if (response.status === 200) {
@@ -132,12 +134,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (socket.connected) socket.disconnect();
         socket.auth = { token: "" };
 
-        toast.success("Logout successful");
+        // toast.success("Logout successful");
         router.push("/auth?type=login");
       }
     } catch (error) {
       console.error("Logout failed", error);
       toast.error("Logout failed, please try again.");
+    } finally {
+      setIsLogoutLoading(false);
     }
   };
 
@@ -149,7 +153,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, login, register, logout, loading }}
+      value={{ user, token, login, register, logout, loading, isLogoutLoading }}
     >
       {children}
     </AuthContext.Provider>
