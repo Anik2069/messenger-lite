@@ -11,7 +11,7 @@ export async function updateUserPresence(
     where: { id: userId },
     data: {
       isOnline,
-      lastSeenAt: isOnline ? null : new Date(),
+      ...(isOnline ? {} : { lastSeenAt: new Date() }),
     },
     select: {
       id: true,
