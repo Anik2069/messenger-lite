@@ -51,21 +51,21 @@ export default function userSignin(io: IOServerWithHelpers) {
       });
 
       // (Optional DEV check) confirm Set-Cookie contains our token
-      if (process.env.NODE_ENV !== "production") {
-        const sc = res.getHeader("set-cookie");
-        const cookieHasToken =
-          (Array.isArray(sc) &&
-            sc.some(
-              (c) =>
-                typeof c === "string" &&
-                c.startsWith(`accessToken=${accessToken}`)
-            )) ||
-          (typeof sc === "string" &&
-            sc.startsWith(`accessToken=${accessToken}`));
-        console.log("Cookie set matches token? ", cookieHasToken);
-      }
+      // if (process.env.NODE_ENV !== "production") {
+      //   const sc = res.getHeader("set-cookie");
+      //   const cookieHasToken =
+      //     (Array.isArray(sc) &&
+      //       sc.some(
+      //         (c) =>
+      //           typeof c === "string" &&
+      //           c.startsWith(`accessToken=${accessToken}`)
+      //       )) ||
+      //     (typeof sc === "string" &&
+      //       sc.startsWith(`accessToken=${accessToken}`));
+      //   console.log("Cookie set matches token? ", cookieHasToken);
+      // }
 
-      await prisma.user.update({ where: { id }, data: { isOnline: true } });
+      // await prisma.user.update({ where: { id }, data: { isOnline: true } });
 
       const parts = await prisma.conversationParticipant.findMany({
         where: { userId: id },
