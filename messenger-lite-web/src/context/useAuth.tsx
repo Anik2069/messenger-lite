@@ -65,13 +65,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       socket.auth = { token: t };
       if (!socket.connected) socket.connect();
 
-      // toast.success("Login successful");
+      toast.success("Login successful");
       router.push("/");
     } catch (err: unknown) {
       const message = axios.isAxiosError(err)
         ? err.response?.data?.message ?? "Login failed"
         : "Login failed";
-      toast.error(message);
+      toast.error(message || "Login failed");
     } finally {
       setLoading(false);
     }
