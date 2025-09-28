@@ -60,7 +60,7 @@ export default function getMessagesController(prisma: PrismaClient) {
       if (!conversation) {
         return sendResponse({
           res,
-          statusCode: StatusCodes.FORBIDDEN,
+          statusCode: StatusCodes.OK,
           message: "Not a participant",
           data: [],
         });
