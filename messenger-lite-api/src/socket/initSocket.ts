@@ -80,9 +80,30 @@ export const initSocket = (server: any) => {
         select: { id: true },
       });
 
-      if (!member) return;
-      socket.join(convRoom(conversationId));
-      console.log(`${userId} joined conv:${conversationId}`);
+      if (!member) {
+        const peerUserId = conversationId;
+        const conversation = await prisma.conversation.findFirst({
+          where: {
+            type: "DIRECT",
+            participants: {
+              some: { userId },
+            },
+            AND: {
+              participants: { some: { userId: peerUserId } },
+            },
+          },
+          include: { participants: true },
+        });
+
+        if (!conversation) return;
+        socket.join(convRoom(conversation.id));
+        console.log(`${userId} joined conv:${conversation.id}`);
+      } else {
+        socket.join(convRoom(conversationId));
+        console.log(`${userId} joined conv:${conversationId}`);
+      }
+
+      // socket.join(convRoom(conversationId));
     });
 
     // conversation leave
