@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Paperclip, Send } from "lucide-react";
+import { Mic, Paperclip, Send } from "lucide-react";
 import { FileData } from "../../../types/MessageType";
 
 interface ChatInputProps {
@@ -85,13 +85,22 @@ const ChatInput = ({
           className="flex-1 border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500"
         />
 
-        <Button
-          type="submit"
-          disabled={!message.trim()}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4"
-        >
-          <Send className="w-4 h-4" />
-        </Button>
+        {message.trim() ? (
+          <Button
+            type="submit"
+            disabled={!message.trim()}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4"
+          >
+            <Mic className="w-4 h-4" />
+          </Button>
+        )}
       </form>
     </div>
   );
