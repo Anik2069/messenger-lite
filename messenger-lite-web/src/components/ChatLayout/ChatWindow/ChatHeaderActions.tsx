@@ -14,7 +14,7 @@ const ChatHeaderActions = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline">
+        <Button className="cursor-pointer" variant="ghost" size={"icon"}>
           <EllipsisVertical className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
