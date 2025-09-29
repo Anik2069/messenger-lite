@@ -16,6 +16,10 @@ interface GlobalContextType {
   sidebarClose: () => void;
   isSidebarOpen: boolean;
   setIsSidebarOpen: (isOpen: boolean) => void;
+  addFriendModalOpen: () => void;
+  addFriendModalClose: () => void;
+  isAddFriendModalOpen: boolean;
+  setIsAddFriendModalOpen: (isOpen: boolean) => void;
 }
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
@@ -43,6 +47,12 @@ export const GlobalContextProvider = ({
     isOpen: isSidebarOpen,
     setIsOpen: setIsSidebarOpen,
   } = useModal();
+  const {
+    open: addFriendModalOpen,
+    close: addFriendModalClose,
+    isOpen: isAddFriendModalOpen,
+    setIsOpen: setIsAddFriendModalOpen,
+  } = useModal();
 
   return (
     <GlobalContext.Provider
@@ -60,6 +70,11 @@ export const GlobalContextProvider = ({
         sidebarClose,
         isSidebarOpen,
         setIsSidebarOpen,
+
+        addFriendModalOpen,
+        addFriendModalClose,
+        isAddFriendModalOpen,
+        setIsAddFriendModalOpen,
       }}
     >
       {children}

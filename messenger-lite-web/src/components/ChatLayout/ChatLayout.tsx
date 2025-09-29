@@ -17,6 +17,8 @@ import { cleanupTyping, startTyping, stopTyping } from "@/lib/typing";
 import { useAuth } from "@/context/useAuth";
 import { socket } from "@/lib/socket"; // ✅ socket import
 import axiosInstance from "@/config/axiosInstance";
+import { is } from "zod/v4/locales";
+import AddFriend from "./AddFriend/AddFriend";
 
 declare global {
   interface Window {
@@ -49,6 +51,9 @@ const ChatLayout = () => {
     settingModalIsOpen,
     isSidebarOpen,
     setIsSidebarOpen,
+    addFriendModalClose,
+    isAddFriendModalOpen,
+    setIsAddFriendModalOpen,
   } = useGlobalContext();
 
   // rack socket connection
@@ -170,6 +175,15 @@ const ChatLayout = () => {
         className="w-80"
       >
         <NewChat onChatSelect={onChatSelect} />
+      </RightSideDrawer>
+      <RightSideDrawer
+        isOpen={isAddFriendModalOpen}
+        onOpenChange={setIsAddFriendModalOpen}
+        title="Add Friend"
+        className="w-80"
+      >
+        {/* <NewChat onChatSelect={onChatSelect} /> */}
+        <AddFriend />
       </RightSideDrawer>
       <RightSideDrawer
         isOpen={isSidebarOpen}

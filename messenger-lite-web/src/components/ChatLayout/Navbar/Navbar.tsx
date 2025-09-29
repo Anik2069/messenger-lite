@@ -2,10 +2,12 @@ import React from "react";
 import { User } from "../../../types/UserType";
 import {
   LogOut,
+  MailPlus,
   MessageSquare,
   Plus,
   Search,
   Settings,
+  UserRoundPlus,
   Wifi,
   WifiOff,
 } from "lucide-react";
@@ -22,13 +24,19 @@ interface NavbarProps {
 }
 
 const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
-  const { newDrawerOpen, settingModalOpen, isSidebarOpen, setIsSidebarOpen } =
-    useGlobalContext();
+  const {
+    newDrawerOpen,
+    settingModalOpen,
+    isSidebarOpen,
+    setIsSidebarOpen,
+    addFriendModalOpen,
+  } = useGlobalContext();
   const { logout } = useAuth();
   const { activeStatus } = useSettings();
 
   const handleLogout = async () => await logout();
   const handleClickNew = () => newDrawerOpen();
+  const handleClickAddFriend = () => addFriendModalOpen();
 
   // presence logic
   const isSelf = activeStatus?.userId === user?.id;
@@ -85,7 +93,10 @@ const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
         </Button>
 
         <Button variant="ghost" size="sm" onClick={handleClickNew}>
-          <Plus className="w-4 h-4" />
+          <MailPlus className="w-4 h-4" />
+        </Button>
+        <Button variant="ghost" size="sm" onClick={handleClickAddFriend}>
+          <UserRoundPlus className="w-4 h-4" />
         </Button>
 
         <Button variant="ghost" size="sm" onClick={settingModalOpen}>
