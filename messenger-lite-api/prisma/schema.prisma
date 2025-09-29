@@ -24,7 +24,34 @@ model User {
   messages     Message[]                 @relation("MessageAuthor")
   reactions    MessageReaction[]
   reads        MessageRead[]
+
+   sentFriendRequests     FriendRequest[] @relation("SentFriendRequests")
+  receivedFriendRequests FriendRequest[] @relation("ReceivedFriendRequests")
 }
+
+model FriendRequest {
+  id         String         @id @default(uuid())
+  senderId   String
+  receiverId String
+  status     FriendStatus   @default(PENDING)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  sender   User @relation("SentFriendRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceivedFriendRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@index([receiverId])
+  @@index([senderId])
+}
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
 
 model Conversation {
   id        String           @id @default(uuid())
