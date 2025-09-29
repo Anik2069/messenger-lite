@@ -16,6 +16,7 @@ interface ChatSidebarProps {
   groups: Group[];
   selectedChat: Chat | null;
   onChatSelect: (chat: Chat) => void;
+  sidebarMode?: boolean;
 }
 
 const ChatSidebar = ({
@@ -23,6 +24,7 @@ const ChatSidebar = ({
   groups,
   selectedChat,
   onChatSelect,
+  sidebarMode = false,
 }: ChatSidebarProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const { conversations, fetchConversations } = useConversationStore();
@@ -39,19 +41,23 @@ const ChatSidebar = ({
   return (
     <div className="h-full flex flex-col max-h-[100vh]">
       {/* Search */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <ReusableSearchInput
-          placeholder="Search Conversations"
-          onDebouncedChange={setSearchQuery}
-        />
-      </div>
+      {!sidebarMode && (
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <ReusableSearchInput
+            placeholder="Search Conversations"
+            onDebouncedChange={setSearchQuery}
+          />
+        </div>
+      )}
 
       {/* Conversation List */}
       <div className="flex-1 overflow-y-auto scrollbar-none">
         <div>
-          <div className="px-4 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide bg-gray-50 dark:bg-gray-800">
-            Conversations
-          </div>
+          {!sidebarMode && (
+            <div className="px-4 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide bg-gray-50 dark:bg-gray-800">
+              Conversations
+            </div>
+          )}
           {conversations?.map((conv) => {
             const isGroup = conv.type === "GROUP";
 

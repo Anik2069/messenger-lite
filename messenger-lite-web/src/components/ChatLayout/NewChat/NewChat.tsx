@@ -10,7 +10,7 @@ const NewChat = ({ onChatSelect }: { onChatSelect: (chat: Chat) => void }) => {
   const [searchText, setSearchText] = useState<string>("");
   return (
     <div className="space-y-2  ">
-      <div className="">
+      <div className="p-4">
         <ReusableSearchInput
           placeholder="Search Name"
           onDebouncedChange={setSearchText}

@@ -1,30 +1,43 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { demoGroups } from "../../../data/GroupList";
 import ChatSidebar from "./ChatSidebar/ChatSidebar";
 import Navbar from "./Navbar/Navbar";
 import ChatWindow from "./ChatWindow/ChatWindow";
+import { FileData, ForwardedData } from "../../types/MessageType";
+import { Chat } from "../../types/ChatType";
 import { RightSideDrawer } from "../reusable/RightSideDrawer";
+import { useGlobalContext } from "@/provider/GlobalContextProvider";
+import NewChat from "./NewChat/NewChat";
 import Modal from "../reusable/Modal";
 import UserSettings from "./UserSettings/UserSettings";
-import { useGlobalContext } from "@/provider/GlobalContextProvider";
-import { useChatStore } from "@/store/useChatStore";
 import { useFriendsStore } from "@/store/useFriendsStrore";
+import { useChatStore } from "@/store/useChatStore";
+import { cleanupTyping, startTyping, stopTyping } from "@/lib/typing";
 import { useAuth } from "@/context/useAuth";
-import { socket } from "@/lib/socket";
+import { socket } from "@/lib/socket"; // ✅ socket import
 import axiosInstance from "@/config/axiosInstance";
+
+declare global {
+  interface Window {
+    typingTimeout: NodeJS.Timeout | null;
+  }
+}
 
 const ChatLayout = () => {
   const { user } = useAuth();
-  const { fetchFriends, friends } = useFriendsStore();
+  const { friends, fetchFriends } = useFriendsStore();
   const {
     selectedChat,
+    messages,
+    otherUserTyping,
+    isConnected,
+    showSearch,
     setSelectedChat,
     setMessages,
     setOtherUserTyping,
     setIsConnected,
-    isConnected,
-    messages,
-    otherUserTyping,
+    setShowSearch,
     onSendMessage,
     onAddReaction,
   } = useChatStore();
@@ -32,110 +45,147 @@ const ChatLayout = () => {
   const {
     newDrawerIsOpen,
     setNewDrawerIsOpen,
-    settingModalIsOpen,
     settingModalClose,
+    settingModalIsOpen,
+    isSidebarOpen,
+    setIsSidebarOpen,
   } = useGlobalContext();
+
+  // rack socket connection
+  useEffect(() => {
+    if (user) {
+      setIsConnected(true);
+    } else {
+      setIsConnected(false);
+    }
+  }, [user, setIsConnected]);
 
   useEffect(() => {
     fetchFriends();
   }, [fetchFriends]);
 
   useEffect(() => {
-    if (user) setIsConnected(true);
-    else setIsConnected(false);
-  }, [user, setIsConnected]);
+    return () => cleanupTyping();
+  }, []);
 
+  // Join/Leave conversation room on selection
   useEffect(() => {
-    if (!selectedChat) return;
+    if (selectedChat) {
+      socket.emit("join_conversation", selectedChat.id);
+      console.log("Joined conversation:", selectedChat.id);
+      console.log("Fetching messages for conversation:", selectedChat);
 
-    socket.emit("join_conversation", selectedChat.id);
-
-    (async () => {
-      try {
-        const response = await axiosInstance.get(`messages/${selectedChat.id}`);
-        if (response.status === 200) {
-          setMessages(response.data?.results);
+      (async () => {
+        try {
+          const response = await axiosInstance.get(
+            `messages/${selectedChat.id}`
+          );
+          if (response.status === 200) {
+            useChatStore.getState().setMessages(response?.data?.results);
+          }
+        } catch (error) {
+          console.error("Failed to fetch messages", error);
         }
-      } catch (e) {
-        console.error("Failed to fetch messages", e);
-      }
-    })();
+      })();
 
-    return () => {
-      socket.emit("leave_conversation", selectedChat.id);
-    };
-  }, [selectedChat, setMessages]);
+      return () => {
+        socket.emit("leave_conversation", selectedChat.id);
+        console.log(" Left conversation:", selectedChat.id);
+      };
+    }
+  }, [selectedChat]);
+
+  const onChatSelect = (chat: Chat) => {
+    setSelectedChat(chat);
+    setMessages([]);
+    setOtherUserTyping(null);
+  };
+
+  const handleSendMessage = (
+    message: string,
+    type: "text" | "file" | "forwarded" = "text",
+    fileData?: FileData,
+    forwardedFrom?: ForwardedData
+  ) => {
+    onSendMessage(message, type, fileData, forwardedFrom, user);
+  };
+
+  const handleAddReaction = (messageId: string, emoji: string) => {
+    onAddReaction(messageId, emoji, user);
+  };
+
+  const handleTypingStart = () => {
+    if (!selectedChat || selectedChat.type !== "user") return;
+    if (selectedChat.id === user?.id) return;
+
+    startTyping(setOtherUserTyping, user?.id ?? "Unknown");
+    socket.emit("typing", {
+      conversationId: selectedChat.id,
+      userId: user?.id,
+    });
+  };
+
+  const handleTypingStop = () => {
+    stopTyping(setOtherUserTyping);
+  };
 
   return (
     <div className="w-screen h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-      {/* Top Navbar */}
       <div className="shrink-0">
         <Navbar
           user={user ?? null}
           isConnected={isConnected}
-          onSearchClick={() => setNewDrawerIsOpen(true)} // open sidebar on mobile
+          onSearchClick={() => setShowSearch(true)}
         />
       </div>
 
-      {/* Main Area */}
+      {/* Main Chat Area */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar (Desktop only) */}
         <div className="hidden md:block w-80 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <ChatSidebar
             users={friends ?? []}
-            groups={[]} // pass groups if needed
+            groups={demoGroups}
             selectedChat={selectedChat}
-            onChatSelect={(chat) => {
-              setSelectedChat(chat);
-              setMessages([]);
-              setOtherUserTyping(null);
-            }}
+            onChatSelect={onChatSelect}
           />
         </div>
-
-        {/* Chat Window (Always full flex) */}
         <div className="flex-1 bg-white dark:bg-gray-900 flex flex-col">
           <ChatWindow
             currentUser={user ?? null}
             selectedChat={selectedChat}
             messages={messages}
             otherUserTyping={otherUserTyping}
-            onSendMessage={(msg, type, file, forwarded) =>
-              onSendMessage(msg, type, file, forwarded, user)
-            }
-            onAddReaction={(id, emoji) => onAddReaction(id, emoji, user)}
-            onTypingStart={() =>
-              socket.emit("typing", {
-                conversationId: selectedChat?.id,
-                userId: user?.id,
-              })
-            }
-            onTypingStop={() => setOtherUserTyping(null)}
+            onSendMessage={handleSendMessage}
+            onAddReaction={handleAddReaction}
+            onTypingStart={handleTypingStart}
+            onTypingStop={handleTypingStop}
           />
         </div>
       </div>
 
-      {/* Mobile Sidebar Drawer */}
       <RightSideDrawer
         isOpen={newDrawerIsOpen}
         onOpenChange={setNewDrawerIsOpen}
-        title="Chats"
-        className="w-[85%] sm:w-[70%] md:hidden" // only show on mobile
+        title="New Chat"
+        className="w-80"
+      >
+        <NewChat onChatSelect={onChatSelect} />
+      </RightSideDrawer>
+      <RightSideDrawer
+        isOpen={isSidebarOpen}
+        onOpenChange={setIsSidebarOpen}
+        title="Conversations"
+        className="w-80"
+        direction="left"
       >
         <ChatSidebar
           users={friends ?? []}
-          groups={[]}
+          groups={demoGroups}
           selectedChat={selectedChat}
-          onChatSelect={(chat) => {
-            setSelectedChat(chat);
-            setMessages([]);
-            setOtherUserTyping(null);
-            setNewDrawerIsOpen(false);
-          }}
+          onChatSelect={onChatSelect}
+          sidebarMode
         />
       </RightSideDrawer>
-
-      {/* Settings Modal */}
       <Modal
         maxWidth="2xl"
         title="Settings"

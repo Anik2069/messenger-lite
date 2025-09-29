@@ -22,7 +22,8 @@ interface NavbarProps {
 }
 
 const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
-  const { newDrawerOpen, settingModalOpen } = useGlobalContext();
+  const { newDrawerOpen, settingModalOpen, isSidebarOpen, setIsSidebarOpen } =
+    useGlobalContext();
   const { logout } = useAuth();
   const { activeStatus } = useSettings();
 
@@ -39,15 +40,23 @@ const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
 
   const presenceText = isOnline ? "Online" : "Offline";
 
+  const onIconClick = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   return (
     <div className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 flex items-center justify-between">
       {/* Left side - Brand */}
       <div className="flex items-center space-x-3">
         <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-          <MessageSquare className="w-5 h-5 text-white" />
+          <MessageSquare
+            onClick={onIconClick}
+            className="w-5 h-5 text-white  lg:hidden cursor-pointer"
+          />
+          <MessageSquare className="w-5 h-5 text-white hidden lg:block" />
         </div>
         <div>
-          <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h1 className="text-sm lg:text-lg font-semibold text-gray-900 dark:text-white">
             Messenger Lite
           </h1>
           <p className="text-xs text-gray-500 dark:text-gray-400">
