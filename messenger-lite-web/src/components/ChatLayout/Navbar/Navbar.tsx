@@ -16,6 +16,7 @@ import { getInitials } from "@/lib/utils";
 import { useGlobalContext } from "@/provider/GlobalContextProvider";
 import { useAuth } from "@/context/useAuth";
 import { useSettings } from "@/context/SettingsContext";
+import { APP_NAME } from "@/constant";
 
 interface NavbarProps {
   user: User | null;
@@ -65,7 +66,7 @@ const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
         </div>
         <div>
           <h1 className="text-sm lg:text-lg font-semibold text-gray-900 dark:text-white">
-            Messenger Lite
+            {APP_NAME}
           </h1>
           <p className="text-xs text-gray-500 dark:text-gray-400">
             {user?.username}
