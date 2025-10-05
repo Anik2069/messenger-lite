@@ -15,6 +15,16 @@ export interface FriendsState {
   suggestedFriends: User[];
   suggestedFriendsLoading: boolean;
   getSuggestedFriends: (search?: string) => void;
+  requestedFriends: User[];
+  requestedFriendsLoading: boolean;
+  getRequestedFriends: (search?: string) => void;
+  activeTab: string;
+  setActiveTab: (tad: string) => void;
+  searchText: string;
+  setSearchText: (text: string) => void;
+  pendingRequestsLIst: User[];
+  pendingRequestsLIstLoading: boolean;
+  getPendingRequestsLIst: (search?: string) => void;
 }
 
 export const useFriendsStore = create<FriendsState>()(
@@ -26,17 +36,25 @@ export const useFriendsStore = create<FriendsState>()(
       error: null,
       suggestedFriends: [],
       suggestedFriendsLoading: false,
+      requestedFriends: [],
+      requestedFriendsLoading: false,
+      activeTab: "suggestion",
+      searchText: "",
+      pendingRequestsLIst: [],
+      pendingRequestsLIstLoading: false,
+      setSearchText: (text: string) => set({ searchText: text }),
+      setActiveTab: (tab: string) => set({ activeTab: tab }),
 
       getSuggestedFriends: async (search?: string) => {
         set({ suggestedFriendsLoading: true, error: null });
 
         try {
           const response = await axiosInstance.get(
-            "meta/friends/list?search=" + search
+            `/friend/suggested?search=${search || ""}`
           );
           if (response.status === 200) {
             set({
-              suggestedFriends: response.data?.results?.friendsList,
+              suggestedFriends: response.data?.results,
               suggestedFriendsLoading: false,
               error: null,
             });
@@ -47,6 +65,54 @@ export const useFriendsStore = create<FriendsState>()(
 
           set({
             suggestedFriendsLoading: false,
+            error: axiosError.response?.data?.message,
+          });
+        }
+      },
+      getRequestedFriends: async (search?: string) => {
+        set({ requestedFriendsLoading: true, error: null });
+
+        try {
+          const response = await axiosInstance.get(
+            `/friend/friend-list?search=${search || ""}`
+          );
+          if (response.status === 200) {
+            set({
+              requestedFriends: response.data?.results?.friendsList,
+              requestedFriendsLoading: false,
+              error: null,
+            });
+          }
+        } catch (error) {
+          const axiosError = error as AxiosError<{ message?: string }>;
+          toast.error(axiosError.response?.data?.message || "Fetch failed");
+
+          set({
+            requestedFriendsLoading: false,
+            error: axiosError.response?.data?.message,
+          });
+        }
+      },
+      getPendingRequestsLIst: async (search?: string) => {
+        set({ pendingRequestsLIstLoading: true, error: null });
+
+        try {
+          const response = await axiosInstance.get(
+            `/friend/requested-users?${search ? ` search=${search}` : ""}`
+          );
+          if (response.status === 200) {
+            set({
+              pendingRequestsLIst: response.data?.results,
+              pendingRequestsLIstLoading: false,
+              error: null,
+            });
+          }
+        } catch (error) {
+          const axiosError = error as AxiosError<{ message?: string }>;
+          toast.error(axiosError.response?.data?.message || "Fetch failed");
+
+          set({
+            pendingRequestsLIstLoading: false,
             error: axiosError.response?.data?.message,
           });
         }

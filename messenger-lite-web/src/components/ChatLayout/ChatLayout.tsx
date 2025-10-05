@@ -177,7 +177,7 @@ const ChatLayout = () => {
         className="w-80"
       >
         {/* <NewChat onChatSelect={onChatSelect} /> */}
-        <AddFriend />
+        <AddFriend isAddFriendModalOpen={isAddFriendModalOpen} />
       </RightSideDrawer>
       <RightSideDrawer
         isOpen={isSidebarOpen}

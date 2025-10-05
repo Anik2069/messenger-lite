@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import sendResponse from "../../libs/sendResponse";
 import { prisma } from "../../configs/prisma.config";
+import { FriendStatus } from "@prisma/client";
 
 export const FriendsList = async (
   req: Request,
@@ -10,11 +11,12 @@ export const FriendsList = async (
   try {
     const search = req.query.search as string | undefined;
     const userId = (req as any).userId;
+    const status = (req.query.status as FriendStatus) || "ACCEPTED";
 
     // 1. Get all accepted friendships
     const friends = await prisma.friendRequest.findMany({
       where: {
-        status: "ACCEPTED",
+        status: status,
         OR: [{ senderId: userId }, { receiverId: userId }],
       },
       include: {
