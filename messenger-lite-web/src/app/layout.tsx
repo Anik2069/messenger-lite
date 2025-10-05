@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "messenger-lite-web",
+  title: "messenger lite",
   description:
-    "Messenger Lite Web is a minimalist, web-based chat application. Built for users who prefer a fast, responsive, and data-efficient messaging experience, this project focuses on delivering core chat functionalities without the distractions of a full-featured messenger.",
+    "Messenger Lite is a minimalist, web-based chat application. Built for users who prefer a fast, responsive, and data-efficient messaging experience, this project focuses on delivering core chat functionalities without the distractions of a full-featured messenger.",
 };
 
 export default function RootLayout({
