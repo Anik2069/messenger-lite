@@ -10,15 +10,15 @@ import React, { useEffect, useState } from "react";
 const AddFriend = () => {
   const [searchText, setSearchText] = useState<string>("");
   const {
-    Allfriends: friends,
-    fetchAllFriends,
-    loading: friendsLoading,
+    suggestedFriends,
+    getSuggestedFriends,
+    suggestedFriendsLoading,
     error: friendsError,
   } = useFriendsStore();
 
   useEffect(() => {
-    fetchAllFriends(searchText);
-  }, [searchText, fetchAllFriends]);
+    getSuggestedFriends(searchText);
+  }, [searchText, getSuggestedFriends]);
   return (
     <div className="">
       <Tabs defaultValue="suggestion" className="p-4">
@@ -35,7 +35,7 @@ const AddFriend = () => {
         </div>
         <TabsContent value="suggestion">
           <div className="">
-            {friends?.map((userInfo) => {
+            {suggestedFriends?.map((userInfo) => {
               return (
                 <div
                   key={userInfo?.id}
@@ -80,7 +80,7 @@ const AddFriend = () => {
         </TabsContent>
         <TabsContent value="request">
           <div className="">
-            {friends?.map((userInfo) => {
+            {suggestedFriends?.map((userInfo) => {
               return (
                 <div
                   key={userInfo?.id}

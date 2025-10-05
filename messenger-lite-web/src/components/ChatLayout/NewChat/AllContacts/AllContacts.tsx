@@ -17,9 +17,9 @@ interface AllContactsProps {
 
 const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
   const {
-    Allfriends: friends,
-    fetchAllFriends,
-    loading: friendsLoading,
+    friends,
+    friendLoading,
+    fetchFriends,
     error: friendsError,
   } = useFriendsStore();
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
@@ -31,7 +31,7 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
     const newUserCreate = (datid: string, newUser: boolean) => {
       console.log("User created event received:", datid, "New User:", newUser);
       // setActiveStatus({ userId: uid, isOnline });
-      fetchAllFriends(searchText);
+      fetchFriends(searchText);
     };
     socket.on("user:created", newUserCreate);
     return () => {
@@ -40,8 +40,8 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
   }, []);
 
   useEffect(() => {
-    fetchAllFriends(searchText);
-  }, [searchText, fetchAllFriends]);
+    fetchFriends(searchText);
+  }, [searchText, fetchFriends]);
 
   const handleChatSelect = (
     type: "user" | "group",
