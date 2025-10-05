@@ -20,7 +20,11 @@ const friendRouter = (io: IOServerWithHelpers) => {
   );
   router.get("/request/pending", requireAuth, GetPendingRequests(prisma));
 
-  router.patch("/request/:id", requireAuth, AcceptOrRejectRequest(io, prisma));
+  router.patch(
+    "/request-action/:id",
+    requireAuth,
+    AcceptOrRejectRequest(io, prisma)
+  );
   router.get("/friend-list", requireAuth, FriendsList);
   router.get("/suggested", requireAuth, GetSuggestedFriends);
   router.get("/requested-users", requireAuth, GetRequestedUsers(prisma));

@@ -6,17 +6,13 @@ import React, { useEffect } from "react";
 
 const RequestFriendsList = () => {
   const {
-    suggestedFriends,
-    getSuggestedFriends,
-    suggestedFriendsLoading,
     error: friendsError,
     getRequestedFriends,
-    requestedFriendsLoading,
     requestedFriends,
     activeTab,
-    setActiveTab,
     searchText,
-    setSearchText,
+    onAcceptRequest,
+    onDeclineFriendRequest,
   } = useFriendsStore();
 
   useEffect(() => {
@@ -54,6 +50,8 @@ const RequestFriendsList = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Button
+                  onClick={() => onAcceptRequest(userInfo.id)}
+                  type="button"
                   className="cursor-pointer"
                   size={"sm"}
                   variant={"default"}
@@ -61,6 +59,8 @@ const RequestFriendsList = () => {
                   Confirm
                 </Button>
                 <Button
+                  onClick={() => onDeclineFriendRequest(userInfo.id)}
+                  type="button"
                   className="cursor-pointer"
                   size={"sm"}
                   variant={"outline"}

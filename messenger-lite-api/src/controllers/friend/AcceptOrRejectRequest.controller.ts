@@ -10,7 +10,7 @@ const AcceptOrRejectRequest = (
   return async (req: any, res: any) => {
     try {
       const { id } = (req as any).params as { id: string };
-      const { status } = (req as any).body as { status: FriendStatus };
+      const { status } = (req as any).params as { status: FriendStatus };
       const userId = (req as any).userId;
 
       const request = await prisma.friendRequest.update({

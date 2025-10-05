@@ -26,6 +26,8 @@ export interface FriendsState {
   pendingRequestsLIstLoading: boolean;
   getPendingRequestsLIst: (search?: string) => void;
   onSendRequest: (userId: string) => Promise<void>;
+  onAcceptRequest: (userId: string) => Promise<void>;
+  onDeclineFriendRequest: (userId: string) => Promise<void>;
 }
 
 export const useFriendsStore = create<FriendsState>()(
@@ -170,6 +172,34 @@ export const useFriendsStore = create<FriendsState>()(
           if (response.status === 200) {
             await useFriendsStore.getState().getSuggestedFriends();
             // toast.success(response.data.message);
+          }
+        } catch (error) {
+          const axiosError = error as AxiosError<{ message?: string }>;
+          toast.error(axiosError.response?.data?.message || "Request failed");
+        }
+      },
+      onAcceptRequest: async (userId: string) => {
+        try {
+          const response = await axiosInstance.patch(
+            `friend/request-action/${userId}?status=ACCEPTED`
+          );
+          if (response.status === 200) {
+            await useFriendsStore.getState().getRequestedFriends();
+            toast.success(response.data.message);
+          }
+        } catch (error) {
+          const axiosError = error as AxiosError<{ message?: string }>;
+          toast.error(axiosError.response?.data?.message || "Request failed");
+        }
+      },
+      onDeclineFriendRequest: async (userId: string) => {
+        try {
+          const response = await axiosInstance.patch(
+            `friend/request-action/${userId}?status=REJECTED`
+          );
+          if (response.status === 200) {
+            await useFriendsStore.getState().getRequestedFriends();
+            toast.success(response.data.message);
           }
         } catch (error) {
           const axiosError = error as AxiosError<{ message?: string }>;
