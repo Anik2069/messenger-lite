@@ -28,7 +28,6 @@ declare global {
 
 const ChatLayout = () => {
   const { user } = useAuth();
-  const { friends, fetchFriends } = useFriendsStore();
   const {
     selectedChat,
     messages,
@@ -64,10 +63,6 @@ const ChatLayout = () => {
       setIsConnected(false);
     }
   }, [user, setIsConnected]);
-
-  useEffect(() => {
-    fetchFriends();
-  }, [fetchFriends]);
 
   useEffect(() => {
     return () => cleanupTyping();
@@ -148,7 +143,6 @@ const ChatLayout = () => {
       <div className="flex-1 flex overflow-hidden">
         <div className="hidden md:block w-80 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <ChatSidebar
-            users={friends ?? []}
             groups={demoGroups}
             selectedChat={selectedChat}
             onChatSelect={onChatSelect}
@@ -193,7 +187,6 @@ const ChatLayout = () => {
         direction="left"
       >
         <ChatSidebar
-          users={friends ?? []}
           groups={demoGroups}
           selectedChat={selectedChat}
           onChatSelect={onChatSelect}

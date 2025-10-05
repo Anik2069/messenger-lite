@@ -6,6 +6,7 @@ import SendFriendRequest from "../../../controllers/friend/SendFriendRequest.con
 import GetPendingRequests from "../../../controllers/friend/GetPendingRequests.controller";
 import AcceptOrRejectRequest from "../../../controllers/friend/AcceptOrRejectRequest.controller";
 import { FriendsList } from "../../../controllers/friend/FriendsList.controller";
+import { GetSuggestedFriends } from "../../../controllers/friend/GetSuggestedFriends.controller";
 
 const friendRouter = (io: IOServerWithHelpers) => {
   const prisma = new PrismaClient();
@@ -19,7 +20,8 @@ const friendRouter = (io: IOServerWithHelpers) => {
   router.get("/request/pending", requireAuth, GetPendingRequests(prisma));
 
   router.patch("/request/:id", requireAuth, AcceptOrRejectRequest(io, prisma));
-  router.get("/list", requireAuth, FriendsList);
+  router.get("/Friend-list", requireAuth, FriendsList);
+  router.get("/suggested", requireAuth, GetSuggestedFriends);
   return router;
 };
 

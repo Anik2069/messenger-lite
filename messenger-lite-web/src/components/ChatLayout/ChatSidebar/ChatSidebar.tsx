@@ -12,7 +12,6 @@ import { useAuth } from "@/context/useAuth";
 import { useSettings } from "@/context/SettingsContext";
 
 interface ChatSidebarProps {
-  users: User[];
   groups: Group[];
   selectedChat: Chat | null;
   onChatSelect: (chat: Chat) => void;
@@ -20,7 +19,6 @@ interface ChatSidebarProps {
 }
 
 const ChatSidebar = ({
-  users,
   groups,
   selectedChat,
   onChatSelect,
