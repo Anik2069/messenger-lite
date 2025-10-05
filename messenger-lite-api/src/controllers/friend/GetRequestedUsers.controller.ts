@@ -29,7 +29,15 @@ const GetRequestedUsers =
       });
 
       // 🧩 Extract only the receiver user info
-      const users = requestedUsers.map((req) => req.receiver);
+      const users = requestedUsers.map((req) => ({
+        id: req.receiver.id,
+        username: req.receiver.username,
+        email: req.receiver.email,
+        avatar: req.receiver.avatar,
+        isOnline: req.receiver.isOnline,
+        requestCreatedAt: req.createdAt,
+        requestUpdatedAt: req.updatedAt,
+      }));
       console.log(users);
       return sendResponse({
         res,

@@ -10,16 +10,16 @@ const SuggestedFriendList = () => {
     getSuggestedFriends,
     suggestedFriendsLoading,
     error: friendsError,
-    getRequestedFriends,
-    requestedFriendsLoading,
-    requestedFriends,
     activeTab,
-    setActiveTab,
     searchText,
+    onSendRequest,
   } = useFriendsStore();
   useEffect(() => {
     getSuggestedFriends(searchText);
   }, [searchText, getSuggestedFriends, activeTab]);
+
+  useEffect(() => {}, [friendsError]);
+
   return (
     <div className="">
       {suggestedFriends?.map((userInfo) => {
@@ -52,6 +52,8 @@ const SuggestedFriendList = () => {
               </div>
               <div className="my-auto">
                 <Button
+                  type="button"
+                  onClick={() => onSendRequest(userInfo?.id)}
                   className="cursor-pointer"
                   size={"sm"}
                   variant={"default"}

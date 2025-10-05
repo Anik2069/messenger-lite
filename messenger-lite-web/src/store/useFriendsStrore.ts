@@ -25,6 +25,7 @@ export interface FriendsState {
   pendingRequestsLIst: User[];
   pendingRequestsLIstLoading: boolean;
   getPendingRequestsLIst: (search?: string) => void;
+  onSendRequest: (userId: string) => Promise<void>;
 }
 
 export const useFriendsStore = create<FriendsState>()(
@@ -74,11 +75,11 @@ export const useFriendsStore = create<FriendsState>()(
 
         try {
           const response = await axiosInstance.get(
-            `/friend/friend-list?search=${search || ""}`
+            `/friend/friend-list?search=${search || ""}&status=PENDING`
           );
           if (response.status === 200) {
             set({
-              requestedFriends: response.data?.results?.friendsList,
+              requestedFriends: response.data?.results,
               requestedFriendsLoading: false,
               error: null,
             });
@@ -161,6 +162,18 @@ export const useFriendsStore = create<FriendsState>()(
             friendLoading: false,
             error: axiosError.response?.data?.message,
           });
+        }
+      },
+      onSendRequest: async (userId: string) => {
+        try {
+          const response = await axiosInstance.post(`friend/request/${userId}`);
+          if (response.status === 200) {
+            await useFriendsStore.getState().getSuggestedFriends();
+            // toast.success(response.data.message);
+          }
+        } catch (error) {
+          const axiosError = error as AxiosError<{ message?: string }>;
+          toast.error(axiosError.response?.data?.message || "Request failed");
         }
       },
     }),

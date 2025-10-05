@@ -5,6 +5,11 @@ export interface User {
   avatar: string;
   settings: UserSettings;
   email: string;
+  createdAt: Date;
+  updatedAt: Date;
+  requestCreatedAt?: Date;
+  requestUpdatedAt?: Date;
+  lastSeenAt?: Date;
 }
 
 export interface UserSettings {
