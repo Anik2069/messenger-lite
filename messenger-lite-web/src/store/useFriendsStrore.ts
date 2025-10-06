@@ -262,6 +262,11 @@ export const useFriendsStore = create<FriendsState>()(
           }));
 
           if (request.status === "ACCEPTED") {
+            if (request.sender.id === userId) {
+              toast.success(
+                `${request.sender.username} accepted your friend request`
+              );
+            }
             get().fetchFriends(); // refresh accepted friends
             get().getSuggestedFriends(); // refresh suggestions
           }
