@@ -12,7 +12,7 @@ const SendFriendRequest =
     try {
       const request = await prisma.friendRequest.create({
         data: { senderId, receiverId },
-        include: { sender: true },
+        include: { receiver: true, sender: true },
       });
 
       io.to(receiverId).emit("friend_request", { request });

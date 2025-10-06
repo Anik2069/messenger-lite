@@ -3,7 +3,6 @@ import { IOServerWithHelpers } from "../../../socket/initSocket";
 import { Router } from "express";
 import requireAuth from "../../../middlewares/requireAuth";
 import SendFriendRequest from "../../../controllers/friend/SendFriendRequest.controller";
-import GetPendingRequests from "../../../controllers/friend/GetPendingRequests.controller";
 import AcceptOrRejectRequest from "../../../controllers/friend/AcceptOrRejectRequest.controller";
 import { FriendsList } from "../../../controllers/friend/FriendsList.controller";
 import { GetSuggestedFriends } from "../../../controllers/friend/GetSuggestedFriends.controller";
@@ -18,7 +17,6 @@ const friendRouter = (io: IOServerWithHelpers) => {
     requireAuth,
     SendFriendRequest(io, prisma)
   );
-  router.get("/request/pending", requireAuth, GetPendingRequests(prisma));
 
   router.patch(
     "/request-action/:id",

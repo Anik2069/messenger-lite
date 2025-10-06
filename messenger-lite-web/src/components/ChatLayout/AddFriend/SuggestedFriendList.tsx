@@ -18,8 +18,6 @@ const SuggestedFriendList = () => {
     getSuggestedFriends(searchText);
   }, [searchText, getSuggestedFriends, activeTab]);
 
-  useEffect(() => {}, [friendsError]);
-
   return (
     <div className="">
       {suggestedFriends?.map((userInfo) => {

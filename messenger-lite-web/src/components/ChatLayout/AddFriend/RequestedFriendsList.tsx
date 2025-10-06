@@ -11,10 +11,13 @@ import {
   differenceInDays,
   differenceInWeeks,
   format,
-  formatDistanceToNow,
 } from "date-fns";
+import { socket } from "@/lib/socket";
+import { useAuth } from "@/context/useAuth";
 
 const RequestedFriendsList = () => {
+  const { user } = useAuth();
+  const userId = user?.id;
   const {
     error: friendsError,
     activeTab,
@@ -22,6 +25,7 @@ const RequestedFriendsList = () => {
     pendingRequestsLIst,
     getPendingRequestsLIst,
     pendingRequestsLIstLoading,
+    setupSocketListeners,
   } = useFriendsStore();
 
   useEffect(() => {
