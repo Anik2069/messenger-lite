@@ -9,39 +9,77 @@ export const FriendsList = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const search = req.query.search as string | undefined;
+    const search = (req.query.search as string) || "";
     const userId = (req as any).userId;
     const status = (req.query.status as FriendStatus) || "ACCEPTED";
 
-    // 1. Get all accepted friendships
-    const friends = await prisma.friendRequest.findMany({
+    if (status === "PENDING") {
+      //  Fetch only requests where *you are the receiver* (i.e., others sent you a request)
+      const incomingRequests = await prisma.friendRequest.findMany({
+        where: {
+          receiverId: userId,
+          status: "PENDING",
+          sender: {
+            username: {
+              contains: search,
+              mode: "insensitive",
+            },
+          },
+        },
+        include: {
+          sender: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      const users = incomingRequests.map((req) => ({
+        id: req.sender.id,
+        username: req.sender.username,
+        email: req.sender.email,
+        avatar: req.sender.avatar,
+        isOnline: req.sender.isOnline,
+        requestCreatedAt: req.createdAt,
+        requestUpdatedAt: req.updatedAt,
+      }));
+
+      return sendResponse({
+        res,
+        statusCode: StatusCodes.OK,
+        message: "Users who sent you friend requests fetched successfully",
+        data: users,
+      });
+    }
+
+    //  Default: accepted friends list
+    const acceptedFriends = await prisma.friendRequest.findMany({
       where: {
-        status: status,
+        status: "ACCEPTED",
         OR: [{ senderId: userId }, { receiverId: userId }],
       },
       include: {
         sender: true,
         receiver: true,
       },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
-    // 2. Map to actual friend (not self)
-    let friendsList = friends.map((f) =>
+    const friendsList = acceptedFriends.map((f) =>
       f.senderId === userId ? f.receiver : f.sender
     );
 
-    // 3. Optional search filter
-    if (search) {
-      friendsList = friendsList.filter((u) =>
-        u.username.toLowerCase().includes(search.toLowerCase())
-      );
-    }
+    const filteredFriends = friendsList.filter((u) =>
+      u.username.toLowerCase().includes(search.toLowerCase())
+    );
 
     return sendResponse({
       res,
       statusCode: StatusCodes.OK,
-      message: "User friends list fetched successfully",
-      data: friendsList,
+      message: "Friends list fetched successfully",
+      data: filteredFriends,
     });
   } catch (error) {
     console.error("Friends list error:", error);

@@ -148,11 +148,11 @@ export const useFriendsStore = create<FriendsState>()(
         set({ friendLoading: true, error: null });
         try {
           const response = await axiosInstance.get(
-            "friend/friend-list" + search
+            `friend/friend-list?search=${search || ""}&status=ACCEPTED`
           );
           if (response.status === 200) {
             set({
-              friends: response.data?.results?.friendsList,
+              friends: response.data?.results,
               friendLoading: false,
               error: null,
             });
@@ -184,8 +184,15 @@ export const useFriendsStore = create<FriendsState>()(
             `friend/request-action/${userId}?status=ACCEPTED`
           );
           if (response.status === 200) {
-            await useFriendsStore.getState().getRequestedFriends();
             toast.success(response.data.message);
+            const refresh = useFriendsStore.getState();
+            await Promise.all([
+              refresh.getRequestedFriends(),
+              refresh.fetchFriends(),
+              refresh.fetchAllFriends(),
+              refresh.getPendingRequestsLIst(),
+              refresh.getSuggestedFriends(),
+            ]);
           }
         } catch (error) {
           const axiosError = error as AxiosError<{ message?: string }>;
@@ -198,8 +205,15 @@ export const useFriendsStore = create<FriendsState>()(
             `friend/request-action/${userId}?status=REJECTED`
           );
           if (response.status === 200) {
-            await useFriendsStore.getState().getRequestedFriends();
             toast.success(response.data.message);
+            const refresh = useFriendsStore.getState();
+            await Promise.all([
+              refresh.getRequestedFriends(),
+              refresh.fetchFriends(),
+              refresh.fetchAllFriends(),
+              refresh.getPendingRequestsLIst(),
+              refresh.getSuggestedFriends(),
+            ]);
           }
         } catch (error) {
           const axiosError = error as AxiosError<{ message?: string }>;
