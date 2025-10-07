@@ -195,7 +195,7 @@ export const useFriendsStore = create<FriendsState>()(
             `friend/request-action/${userId}?status=ACCEPTED`
           );
           if (response.status === 200) {
-            toast.success(response.data.message);
+            // toast.success(response.data.message);
             const refresh = get();
             await Promise.all([
               refresh.getRequestedFriends(),
