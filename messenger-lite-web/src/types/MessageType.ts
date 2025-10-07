@@ -1,3 +1,4 @@
+import { format, isValid } from "date-fns";
 import { User } from "./UserType";
 
 export type MessageKind = "text" | "file" | "forwarded";
@@ -27,6 +28,26 @@ export interface Reaction {
   timestamp: Date;
 }
 
+export function formatLocalDateTime(timestamp?: string | Date | null): string {
+  if (!timestamp) return "-";
+
+  const date = new Date(timestamp);
+
+  if (!isValid(date)) return "-";
+
+  return format(date, "MMM d, yyyy, hh:mm a");
+}
+
+export function formatLocalTime(timestamp?: string | Date | null): string {
+  if (!timestamp) return "-"; // or "N/A"
+
+  const date = new Date(timestamp);
+
+  if (!isValid(date)) return "-"; // avoid crashing
+
+  return format(date, "hh:mm a");
+}
+
 export interface ReadReceipt {
   userId?: string;
   username?: string | null;
@@ -48,5 +69,5 @@ export interface Message {
   reactions: Reaction[];
   readBy: ReadReceipt[];
   author?: User;
-  createdAt?: string;
+  createdAt?: string | number | Date;
 }

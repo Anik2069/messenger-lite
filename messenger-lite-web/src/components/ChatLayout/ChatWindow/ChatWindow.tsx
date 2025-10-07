@@ -56,7 +56,7 @@ const ChatWindow = ({
         onForward={(msg) =>
           onSendMessage(msg.message, "forwarded", undefined, {
             originalSender: msg?.from?.username || "Unknown",
-            originalTimestamp: new Date(msg.timestamp),
+            originalTimestamp: new Date(msg.timestamp || msg.timestamp),
           })
         }
         onAddReaction={onAddReaction}
