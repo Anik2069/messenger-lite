@@ -5,7 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 // Reusable Toast Container Component
 export const AppToastContainer = () => (
   <ToastContainer
-    position="top-right"
+    position="bottom-right"
     autoClose={5000}
     hideProgressBar={false}
     newestOnTop={true}
