@@ -39,6 +39,15 @@ export function getConversations(
             orderBy: {
               createdAt: "desc",
             },
+            include: {
+              author: {
+                select: {
+                  id: true,
+                  username: true,
+                  avatar: true,
+                },
+              },
+            },
             take: 1,
           },
         },
