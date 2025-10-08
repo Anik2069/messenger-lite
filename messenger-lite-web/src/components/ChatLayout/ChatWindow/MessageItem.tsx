@@ -84,13 +84,13 @@ const MessageItem = ({
         >
           <Smile className="w-3 h-3" />
         </button>
-        <button
+        {/* <button
           onClick={() => onForward(msg)}
           className="p-1 rounded hover:bg-black/10"
           aria-label="Forward message"
         >
           <Forward className="w-3 h-3" />
-        </button>
+        </button> */}
       </div>
     );
   };

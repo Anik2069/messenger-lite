@@ -2,6 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import sendResponse from "../../libs/sendResponse";
 import { IOServerWithHelpers } from "../../socket/initSocket";
 import { FriendStatus, PrismaClient } from "@prisma/client";
+import { getUserConversationsSorted } from "../message/SendMessageHandler.controller";
 
 const AcceptOrRejectRequest = (
   io: IOServerWithHelpers,
@@ -44,6 +45,41 @@ const AcceptOrRejectRequest = (
           data: { status },
           include: { sender: true, receiver: true },
         });
+
+        // Optional: create direct conversation if not exists
+        const existingConversation = await prisma.conversation.findFirst({
+          where: {
+            type: "DIRECT",
+            participants: {
+              every: {
+                userId: { in: [userId, id] },
+              },
+            },
+          },
+        });
+
+        if (!existingConversation) {
+          const conversation = await prisma.conversation.create({
+            data: {
+              type: "DIRECT",
+              participants: { create: [{ userId }, { userId: id }] },
+            },
+          });
+
+          const participants = await prisma.conversationParticipant.findMany({
+            where: { conversationId: conversation.id },
+            select: { userId: true },
+          });
+
+          for (const p of participants) {
+            const updatedList = await getUserConversationsSorted(
+              prisma,
+              p.userId
+            );
+            io.to(p.userId).emit("conversations_updated", updatedList);
+          }
+        }
+        //here i want to emit socket event
       } else {
         // REJECTED → delete
         await prisma.friendRequest.delete({ where: { id: request.id } });

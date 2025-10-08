@@ -119,33 +119,41 @@ const ChatSidebar = ({
                   <h3 className="font-medium text-gray-900 dark:text-white truncate">
                     {displayName}
                   </h3>
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate w-24">
-                      {isGroup
-                        ? `${conv.participants.length} members`
-                        : `${
-                            conv.messages?.[0]?.author?.username ===
-                            user?.username
-                              ? "You"
-                              : conv.messages?.[0]?.author?.username
-                          } : ${conv.messages?.[0]?.message}` ||
-                          "No messages yet"}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      <span>
-                        {conv.messages?.[0]?.createdAt
-                          ? (() => {
-                              const localDate = parseISO(
-                                conv.messages[0].createdAt as string
-                              ); // converts Z string to Date in local timezone
-                              return isToday(localDate)
-                                ? formatLocalTime(localDate) // show time if today
-                                : format(localDate, "dd-MM-yyyy"); // show date if not today
-                            })()
-                          : ""}
-                      </span>
-                    </p>
-                  </div>
+                  {conv?.messages?.length > 0 ? (
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate w-24">
+                        {isGroup
+                          ? `${conv.participants.length} members`
+                          : `${
+                              conv.messages?.[0]?.author?.username ===
+                              user?.username
+                                ? "You"
+                                : conv.messages?.[0]?.author?.username
+                            } : ${conv.messages?.[0]?.message}` ||
+                            "No messages yet"}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <span>
+                          {conv.messages?.[0]?.createdAt
+                            ? (() => {
+                                const localDate = parseISO(
+                                  conv.messages[0].createdAt as string
+                                ); // converts Z string to Date in local timezone
+                                return isToday(localDate)
+                                  ? formatLocalTime(localDate) // show time if today
+                                  : format(localDate, "dd-MM-yyyy"); // show date if not today
+                              })()
+                            : ""}
+                        </span>
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        No messages yet
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             );
