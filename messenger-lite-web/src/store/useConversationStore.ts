@@ -30,6 +30,7 @@ export const useConversationStore = create<ConversationState>((set) => {
           `messages/conversations?search=${search || ""}`
         );
         const data = await response.data;
+        console.log("📩 conversations", data);
         set({ conversations: data?.results, loading: false });
       } catch (error) {
         set({ error: "Failed to fetch conversations", loading: false });

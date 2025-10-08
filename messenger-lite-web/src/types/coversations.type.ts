@@ -12,4 +12,5 @@ export type Conversation = {
     user: User;
   }[];
   messages: Message[];
+  author: User;
 };

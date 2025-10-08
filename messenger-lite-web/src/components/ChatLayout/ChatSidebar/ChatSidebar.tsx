@@ -10,6 +10,8 @@ import ReusableSearchInput from "@/components/reusable/ReusableSearchInput";
 import { useConversationStore } from "@/store/useConversationStore";
 import { useAuth } from "@/context/useAuth";
 import { useSettings } from "@/context/SettingsContext";
+import { formatLocalTime } from "@/types/MessageType";
+import { format, isToday, parseISO } from "date-fns";
 
 interface ChatSidebarProps {
   groups: Group[];
@@ -117,11 +119,33 @@ const ChatSidebar = ({
                   <h3 className="font-medium text-gray-900 dark:text-white truncate">
                     {displayName}
                   </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                    {isGroup
-                      ? `${conv.participants.length} members`
-                      : conv.messages?.[0]?.message || "No messages yet"}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate w-24">
+                      {isGroup
+                        ? `${conv.participants.length} members`
+                        : `${
+                            conv.messages?.[0]?.author?.username ===
+                            user?.username
+                              ? "You"
+                              : conv.messages?.[0]?.author?.username
+                          } : ${conv.messages?.[0]?.message}` ||
+                          "No messages yet"}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <span>
+                        {conv.messages?.[0]?.createdAt
+                          ? (() => {
+                              const localDate = parseISO(
+                                conv.messages[0].createdAt as string
+                              ); // converts Z string to Date in local timezone
+                              return isToday(localDate)
+                                ? formatLocalTime(localDate) // show time if today
+                                : format(localDate, "dd-MM-yyyy"); // show date if not today
+                            })()
+                          : ""}
+                      </span>
+                    </p>
+                  </div>
                 </div>
               </div>
             );
