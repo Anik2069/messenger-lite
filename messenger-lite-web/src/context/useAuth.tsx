@@ -131,6 +131,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setToken(null);
         localStorage.removeItem("accessToken");
         localStorage.removeItem("user");
+        localStorage.removeItem("friend-storage");
+
         if (socket.connected) socket.disconnect();
         socket.auth = { token: "" };
 

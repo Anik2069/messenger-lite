@@ -286,7 +286,7 @@ export const useFriendsStore = create<FriendsState>()(
       },
     }),
     {
-      name: "auth-storage",
+      name: "friend-storage",
       storage: createJSONStorage(() => localStorage),
     }
   )
