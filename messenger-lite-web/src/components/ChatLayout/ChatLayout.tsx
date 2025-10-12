@@ -19,6 +19,7 @@ import { socket } from "@/lib/socket"; // ✅ socket import
 import axiosInstance from "@/config/axiosInstance";
 import { is } from "zod/v4/locales";
 import AddFriend from "./AddFriend/AddFriend";
+import PrivacySettings from "./UserSettings/PrivacySettings";
 
 declare global {
   interface Window {
@@ -214,12 +215,14 @@ const ChatLayout = () => {
         <div className=""></div>
       </Modal>
       <Modal
+        // overflowAuto={true}
         maxWidth="7xl"
+        className="!p-0"
         title="Privacy Settings"
         open={isPrivacySettingModalOpen}
         onClose={privacySettingModalClose}
       >
-        <div className=""></div>
+        <PrivacySettings />
       </Modal>
     </div>
   );

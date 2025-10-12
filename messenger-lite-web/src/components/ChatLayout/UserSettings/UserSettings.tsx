@@ -145,7 +145,7 @@ const UserSettings = () => {
         </div>
 
         {/* Footer (only Close button now) */}
-        <div className="flex pt-4">
+        <div className="flex">
           <button
             onClick={settingModalClose}
             className="flex-1 rounded-md border border-gray-300 dark:border-gray-600 py-2 text-gray-700 dark:text-gray-300 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-600"

@@ -10,6 +10,7 @@ interface ModalProps {
   description?: string;
   children: React.ReactNode;
   showCloseIcon?: boolean;
+  className?: string;
   maxWidth?:
     | "sm"
     | "md"
@@ -46,6 +47,7 @@ export default function Modal({
   children,
   showCloseIcon = true,
   maxWidth = "lg",
+  className,
 }: ModalProps) {
   const modalRef = useRef<HTMLDivElement | null>(null);
 
@@ -61,13 +63,13 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 dark:bg-black/40 px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 dark:bg-black/40 "
       role="dialog"
       aria-modal="true"
     >
       <div
         ref={modalRef}
-        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white dark:bg-gray-900 rounded-lg shadow-lg focus:outline-none max-h-[90vh] flex flex-col`}
+        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white dark:bg-gray-900 rounded-lg shadow-lg focus:outline-none max-h-[90vh]  overflow-auto scrollbar-none flex flex-col`}
       >
         {/* Header */}
         {title && (
@@ -96,7 +98,7 @@ export default function Modal({
 
         {/* Scrollable Content */}
         <div
-          className={`px-6 py-4 ${
+          className={`${className} px-6 py-4  ${
             overflowAuto ? "overflow-y-auto flex-grow" : ""
           } text-gray-900 dark:text-gray-100`}
         >
