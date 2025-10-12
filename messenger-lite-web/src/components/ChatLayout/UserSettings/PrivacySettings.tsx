@@ -9,6 +9,8 @@ import ChangePassword from "./@privacy/ChangePassword";
 import TwoFactorAuth from "./@privacy/TwoFactorAuth";
 import LoggedInDevices from "./@privacy/LoggedInDevices";
 import { useAuth } from "@/context/useAuth";
+import ConfirmationModal from "@/components/reusable/ConfirmationModal";
+import { useGlobalContext } from "@/provider/GlobalContextProvider";
 
 const menuItems = [
   { id: "password", label: "Change Password", icon: Lock },
@@ -19,12 +21,17 @@ const menuItems = [
 const PrivacySettings = () => {
   const [activeTab, setActiveTab] = useState("password");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { getMyself, setSetupError } = useAuth();
-
+  const { getMyself, setSetupError, handleRemove } = useAuth();
+  const { removeModalClose, removeModalIsOpen } = useGlobalContext();
   useEffect(() => {
     getMyself();
     setSetupError(false);
   }, []);
+
+  const remove2FA = async () => {
+    handleRemove();
+    removeModalClose();
+  };
 
   return (
     <div className=" h-[70dvh] bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex ">
@@ -93,6 +100,13 @@ const PrivacySettings = () => {
           {activeTab === "2fa" && <TwoFactorAuth />}
           {activeTab === "devices" && <LoggedInDevices />}
         </div>
+        <ConfirmationModal
+          open={removeModalIsOpen}
+          onClose={removeModalClose}
+          onConfirm={remove2FA}
+          title="Remove 2FA"
+          description="Are you sure you want to remove 2FA?"
+        />
       </main>
     </div>
   );

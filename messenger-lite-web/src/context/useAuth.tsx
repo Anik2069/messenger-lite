@@ -34,6 +34,10 @@ interface AuthContextType {
   currentUserDetails: User | null;
   setupError: boolean;
   setSetupError: (setupError: boolean) => void;
+  remove2FA: () => void;
+  handleRemove: () => void;
+  is2FAEnabled: boolean;
+  handleVerifyAtSignIn: (codeFrom2FA: string | number) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -43,6 +47,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [currentUserDetails, setCurrentUserDetails] = useState<User | null>(
     null
   );
+
+  const [is2FAEnabled, setIs2FAEnabled] = useState<boolean>(false);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [qr, setQr] = useState<string | null>(null);
@@ -51,6 +57,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [codeFrom2FA, setCodeFrom2FA] = useState<string | number | undefined>(
     undefined
   );
+  const [userId, setUserId] = useState<string | null>(null);
   const [setupError, setSetupError] = useState<boolean>(false);
   const [verified, setVerified] = useState<boolean>(false);
   const router = useRouter();
@@ -75,23 +82,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
       });
+      console.log(res.data?.results);
 
-      const u = res.data?.results?.userInfo as User;
       const t = res.data?.results?.accessToken as string;
+      const is2FA = res.data?.results?.twoFA as boolean;
 
-      if (!u || !t) throw new Error("Invalid login response");
+      if (!t) throw new Error("Invalid login response");
 
-      setUser(u);
       setToken(t);
 
       localStorage.setItem("accessToken", t);
-      localStorage.setItem("user", JSON.stringify(u));
 
       socket.auth = { token: t };
       if (!socket.connected) socket.connect();
-
-      toast.success("Login successful");
-      router.push("/");
+      if (is2FA === true) {
+        const id = res.data?.results?.userId as string;
+        setIs2FAEnabled(true);
+        setUserId(id);
+      } else {
+        const u = res.data?.results?.userInfo as User;
+        setUser(u);
+        localStorage.setItem("user", JSON.stringify(u));
+        router.push("/");
+        toast.success("Login successful");
+      }
     } catch (err: unknown) {
       const message = axios.isAxiosError(err)
         ? err.response?.data?.message ?? "Login failed"
@@ -222,6 +236,65 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {}
   };
 
+  const remove2FA = async () => {
+    try {
+      const response = await axiosInstance.post("auth/user/2fa/remove");
+      if (response.status === 200) {
+        console.log(response.data?.results);
+        setQr(null);
+        setSecret(null);
+        setVerified(false);
+        setCodeFrom2FA(undefined);
+        await getMyself();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleRemove = async () => {
+    setSetupError(false);
+    await remove2FA();
+  };
+
+  const handleVerifyAtSignIn = async (codeFrom2FA: string | number) => {
+    try {
+      const response = await axiosInstance.post(
+        "auth/user/verify-2FA/sign-in",
+        {
+          token: codeFrom2FA,
+          userId: userId,
+        }
+      );
+
+      if (response.status === 200) {
+        const data = response.data?.results;
+        const accessToken = data?.accessToken;
+        const u = data?.user;
+
+        if (accessToken && u) {
+          setUser(u);
+          setToken(accessToken);
+          localStorage.setItem("accessToken", accessToken);
+          localStorage.setItem("user", JSON.stringify(u));
+
+          socket.auth = { token: accessToken };
+          if (!socket.connected) socket.connect();
+
+          setIs2FAEnabled(false);
+          setCodeFrom2FA(undefined);
+          setVerified(true);
+
+          router.push("/");
+          toast.success("Login successful ");
+        }
+      }
+    } catch (error) {
+      console.error("2FA verification during sign-in failed:", error);
+      toast.error("Invalid or expired 2FA code ");
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -248,6 +321,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         setSetupError,
         setupError,
+        remove2FA,
+        handleRemove,
+        is2FAEnabled,
+        handleVerifyAtSignIn,
       }}
     >
       {children}

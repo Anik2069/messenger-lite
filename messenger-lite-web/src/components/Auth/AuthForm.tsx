@@ -23,7 +23,7 @@ function AuthFormInner() {
     setIsLogin(type === "login");
   }, [type]);
 
-  const { login, register: registerUser, loading } = useAuth();
+  const { login, register: registerUser, loading, is2FAEnabled } = useAuth();
 
   const methods = useForm<FormValues>({
     resolver: zodResolver(getSchema(isLogin)),
@@ -98,7 +98,6 @@ function AuthFormInner() {
                 />
 
                 <Button
-                  type="submit"
                   className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm"
                   disabled={loading}
                 >

@@ -9,15 +9,28 @@ type OtpInputProps = {
 
 export function OtpInput({ name, length }: OtpInputProps) {
   const { setupError } = useAuth();
-  const { control, setValue, getValues } = useFormContext();
+  const { control, setValue, getValues, watch } = useFormContext();
   const { field } = useController({ name, control });
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
   const [shake, setShake] = useState(false);
 
+  // Watch for reset() or value clear from parent
+  const otpValue = watch(name);
+
+  // 👉 Automatically clear input boxes if reset() was called
+  useEffect(() => {
+    if (!otpValue) {
+      inputsRef.current.forEach((input) => {
+        if (input) input.value = "";
+      });
+    }
+  }, [otpValue]);
+
+  // Shake animation on error
   useEffect(() => {
     if (setupError) {
       setShake(true);
-      const timer = setTimeout(() => setShake(false), 500); // shake duration
+      const timer = setTimeout(() => setShake(false), 500);
       return () => clearTimeout(timer);
     }
   }, [setupError]);
@@ -27,7 +40,7 @@ export function OtpInput({ name, length }: OtpInputProps) {
     index: number
   ) => {
     const val = e.target.value;
-    if (!/^\d*$/.test(val)) return; // only allow digits
+    if (!/^\d*$/.test(val)) return;
 
     const current = getValues(name)?.split("") || [];
     current[index] = val;
@@ -48,10 +61,7 @@ export function OtpInput({ name, length }: OtpInputProps) {
     }
   };
 
-  const handlePaste = (
-    e: React.ClipboardEvent<HTMLInputElement>,
-    index: number
-  ) => {
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const pasteData = e.clipboardData.getData("Text").trim();
     if (!/^\d+$/.test(pasteData)) return;
@@ -88,7 +98,7 @@ export function OtpInput({ name, length }: OtpInputProps) {
           value={valueArray[i] || ""}
           onChange={(e) => handleChange(e, i)}
           onKeyDown={(e) => handleBackspace(e, i)}
-          onPaste={(e) => handlePaste(e, i)}
+          onPaste={(e) => handlePaste(e)}
           ref={(el) => {
             inputsRef.current[i] = el;
           }}

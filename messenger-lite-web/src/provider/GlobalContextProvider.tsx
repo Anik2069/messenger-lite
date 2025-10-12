@@ -30,6 +30,10 @@ interface GlobalContextType {
   privacySettingModalClose: () => void;
   isPrivacySettingModalOpen: boolean;
   setIsPrivacySettingModalOpen: (isOpen: boolean) => void;
+
+  removeModalOpen: () => void;
+  removeModalClose: () => void;
+  removeModalIsOpen: boolean;
 }
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
@@ -76,6 +80,12 @@ export const GlobalContextProvider = ({
     setIsOpen: setIsPrivacySettingModalOpen,
   } = useModal();
 
+  const {
+    open: removeModalOpen,
+    close: removeModalClose,
+    isOpen: removeModalIsOpen,
+  } = useModal();
+
   return (
     <GlobalContext.Provider
       value={{
@@ -107,6 +117,10 @@ export const GlobalContextProvider = ({
         privacySettingModalClose,
         isPrivacySettingModalOpen,
         setIsPrivacySettingModalOpen,
+
+        removeModalOpen,
+        removeModalClose,
+        removeModalIsOpen,
       }}
     >
       {children}

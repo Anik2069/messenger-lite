@@ -76,25 +76,34 @@ export default function userSignin(io: IOServerWithHelpers) {
         io.to(convIds).emit("presence_update", { userId: id, isOnline: true });
       }
 
-      const userInfo = await prisma.user.findUnique({
-        where: { id },
-        select: {
-          id: true,
-          username: true,
-          email: true,
-          isOnline: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      });
-      console.log("User signed in:", userInfo);
+      if (user?.isTwoFAEnable) {
+        return sendResponse({
+          res,
+          statusCode: StatusCodes.OK,
+          message: "User signed in successfully",
+          data: { accessToken, twoFA: user?.isTwoFAEnable, userId: user.id },
+        });
+      } else {
+        const userInfo = await prisma.user.findUnique({
+          where: { id },
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            isOnline: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        });
+        console.log("User signed in:", userInfo);
 
-      return sendResponse({
-        res,
-        statusCode: StatusCodes.OK,
-        message: "User signed in successfully",
-        data: { userInfo, accessToken },
-      });
+        return sendResponse({
+          res,
+          statusCode: StatusCodes.OK,
+          message: "User signed in successfully",
+          data: { userInfo, accessToken, twoFA: user?.isTwoFAEnable },
+        });
+      }
     } catch (error: any) {
       if (error?.issues) {
         return res

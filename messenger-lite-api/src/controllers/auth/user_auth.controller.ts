@@ -94,7 +94,7 @@ export const verify2FASetup = async (req: Request, res: Response) => {
       secret: decryptedSecret,
       encoding: "base32",
       token,
-      window: 1, // allow ±1 step
+      window: 0, // allow ±1 step
     });
 
     if (!verified) {
@@ -114,6 +114,7 @@ export const verify2FASetup = async (req: Request, res: Response) => {
       res,
       statusCode: StatusCodes.OK,
       message: "2FA enabled successfully",
+      // data: { user: user },
     });
   } catch (error: any) {
     console.error(error);
@@ -121,6 +122,37 @@ export const verify2FASetup = async (req: Request, res: Response) => {
       res,
       statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
       message: "Failed to verify 2FA",
+    });
+  }
+};
+
+export const remove2FA = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).auth.userId;
+    if (!userId) {
+      return sendResponse({
+        res,
+        statusCode: StatusCodes.UNAUTHORIZED,
+        message: "User not authenticated",
+      });
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { isTwoFAEnable: false, twoFASecret: "", lockedUntil: null },
+    });
+
+    return sendResponse({
+      res,
+      statusCode: StatusCodes.OK,
+      message: "2FA removed successfully",
+    });
+  } catch (error: any) {
+    console.error(error);
+    return sendResponse({
+      res,
+      statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+      message: "Failed to remove 2FA",
     });
   }
 };
