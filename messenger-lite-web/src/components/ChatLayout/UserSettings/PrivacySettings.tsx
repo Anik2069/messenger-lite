@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Lock, ShieldCheck, MonitorSmartphone, Menu } from "lucide-react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import ChangePassword from "./@privacy/ChangePassword";
 import TwoFactorAuth from "./@privacy/TwoFactorAuth";
 import LoggedInDevices from "./@privacy/LoggedInDevices";
+import { useAuth } from "@/context/useAuth";
 
 const menuItems = [
   { id: "password", label: "Change Password", icon: Lock },
@@ -18,6 +19,12 @@ const menuItems = [
 const PrivacySettings = () => {
   const [activeTab, setActiveTab] = useState("password");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { getMyself, setSetupError } = useAuth();
+
+  useEffect(() => {
+    getMyself();
+    setSetupError(false);
+  }, []);
 
   return (
     <div className=" h-[70dvh] bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex ">
