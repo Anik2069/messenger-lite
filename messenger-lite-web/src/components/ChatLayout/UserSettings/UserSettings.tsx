@@ -16,7 +16,11 @@ import { useSettings } from "@/context/SettingsContext";
 
 const UserSettings = () => {
   const user = demoUser || {};
-  const { settingModalClose } = useGlobalContext();
+  const {
+    settingModalClose,
+    privacySettingModalOpen,
+    generalSettingModalOpen,
+  } = useGlobalContext();
   const { settings, toggleTheme, toggleSound, toggleActiveStatus } =
     useSettings();
 
@@ -123,6 +127,20 @@ const UserSettings = () => {
                 settings.activeStatus ? "translate-x-6" : "translate-x-1"
               }`}
             />
+          </button>
+        </div>
+        <div className="flex gap-6">
+          <button
+            onClick={generalSettingModalOpen}
+            className="cursor-pointer flex-1 rounded-md border border-gray-300 dark:border-gray-600 py-2 text-gray-700 dark:text-gray-300 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-600"
+          >
+            General Settings
+          </button>
+          <button
+            onClick={privacySettingModalOpen}
+            className="cursor-pointer flex-1 rounded-md border border-gray-300 dark:border-gray-600 py-2 text-gray-700 dark:text-gray-300 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-600"
+          >
+            Privacy Settings
           </button>
         </div>
 

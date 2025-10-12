@@ -53,6 +53,10 @@ const ChatLayout = () => {
     addFriendModalClose,
     isAddFriendModalOpen,
     setIsAddFriendModalOpen,
+    isGeneralSettingModalOpen,
+    isPrivacySettingModalOpen,
+    generalSettingModalClose,
+    privacySettingModalClose,
   } = useGlobalContext();
 
   // rack socket connection
@@ -200,6 +204,22 @@ const ChatLayout = () => {
         onClose={settingModalClose}
       >
         <UserSettings />
+      </Modal>
+      <Modal
+        maxWidth="7xl"
+        title="General Settings"
+        open={isGeneralSettingModalOpen}
+        onClose={generalSettingModalClose}
+      >
+        <div className=""></div>
+      </Modal>
+      <Modal
+        maxWidth="7xl"
+        title="Privacy Settings"
+        open={isPrivacySettingModalOpen}
+        onClose={privacySettingModalClose}
+      >
+        <div className=""></div>
       </Modal>
     </div>
   );
