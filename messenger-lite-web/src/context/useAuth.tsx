@@ -78,39 +78,53 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const res = await axiosInstance.post("auth/user/sign-in", {
+      const response = await axiosInstance.post("/auth/user/sign-in", {
         email,
         password,
       });
-      console.log(res.data?.results);
 
-      const is2FA = res.data?.results?.twoFA as boolean;
+      const result = response.data?.results;
 
-      if (is2FA === true) {
-        const id = res.data?.results?.userId as string;
+      if (!result) throw new Error("Invalid server response");
+
+      const is2FA = Boolean(result.twoFA);
+
+      // If 2FA is enabled, go to OTP verification step
+      if (is2FA) {
+        const id = result.userId as string;
+        if (!id) throw new Error("Missing user ID for 2FA");
         setIs2FAEnabled(true);
         setUserId(id);
-      } else {
-        const t = res.data?.results?.accessToken as string;
-        const u = res.data?.results?.userInfo as User;
-        if (!t || !u) throw new Error("Invalid login response");
-        setUser(u);
-        setToken(t);
-
-        socket.auth = { token: t };
-        if (!socket.connected) socket.connect();
-
-        localStorage.setItem("accessToken", t);
-        localStorage.setItem("user", JSON.stringify(u));
-
-        router.push("/");
-        toast.success("Login successful");
+        toast.info("Two-Factor Authentication required");
+        return;
       }
-    } catch (err: unknown) {
-      const message = axios.isAxiosError(err)
-        ? err.response?.data?.message ?? "Login failed"
-        : "Login failed";
-      toast.error(message || "Login failed");
+
+      //  Otherwise, normal login flow
+      const token = result.accessToken as string;
+      const userInfo = result.userInfo as User;
+
+      if (!token || !userInfo) throw new Error("Incomplete login data");
+
+      //  Update local states
+      setUser(userInfo);
+      setToken(token);
+
+      //  Setup socket authentication
+      socket.auth = { token };
+      if (!socket.connected) socket.connect();
+
+      // Persist session locally
+      localStorage.setItem("accessToken", token);
+      localStorage.setItem("user", JSON.stringify(userInfo));
+
+      toast.success(`Welcome back, ${userInfo.username || "User"}!`);
+      router.replace("/"); // use replace instead of push to prevent going back to login
+    } catch (error) {
+      console.error("Login error:", error);
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message || "Invalid credentials"
+        : (error as Error).message || "Login failed";
+      toast.error(message);
     } finally {
       setLoading(false);
     }

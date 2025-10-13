@@ -15,7 +15,7 @@ const ChatLayoutPage = () => {
   const { setupSocketListeners } = useFriendsStore();
   useEffect(() => {
     console.log(user, "from useEffect");
-    if (user === null || (user === undefined && !isLogoutLoading && !loading)) {
+    if (user === null || (user === undefined && !isLogoutLoading)) {
       router.push("/auth?type=login");
     } else {
       router.push("/");
