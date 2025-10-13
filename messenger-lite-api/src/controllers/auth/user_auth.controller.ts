@@ -34,12 +34,7 @@ export const generate2FA = async (req: Request, res: Response) => {
       data: { twoFASecret: encryptedSecret },
     });
 
-    console.log(
-      "2FA secret:",
-      secret.base32,
-      "encryptedSecret:",
-      encryptedSecret
-    );
+    console.log("2FA secret:", secret, "encryptedSecret:", encryptedSecret);
 
     // Generate QR code
     const qr = await qrcode.toDataURL(secret.otpauth_url!);
@@ -94,9 +89,9 @@ export const verify2FASetup = async (req: Request, res: Response) => {
       secret: decryptedSecret,
       encoding: "base32",
       token,
-      window: 0, // allow ±1 step
+      window: 1, // allow ±1 step
     });
-
+    console.log(verified);
     if (!verified) {
       return sendResponse({
         res,

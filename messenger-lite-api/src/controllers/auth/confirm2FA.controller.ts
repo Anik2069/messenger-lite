@@ -5,6 +5,7 @@ import sendResponse from "../../libs/sendResponse";
 import { StatusCodes } from "http-status-codes";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { signJWT } from "../../utils/jwt";
 
 export const confirm2FA = async (req: Request, res: Response) => {
   try {
@@ -45,7 +46,7 @@ export const confirm2FA = async (req: Request, res: Response) => {
       secret: decryptedSecret,
       encoding: "base32",
       token,
-      window: 1, // allow ±1 step for time drift
+      window: 1,
     });
 
     if (!verified) {
@@ -55,21 +56,21 @@ export const confirm2FA = async (req: Request, res: Response) => {
         message: "Invalid or expired 2FA code",
       });
     }
+    const TOKEN_EXPIRY = "12h";
+    const accessToken = signJWT({ id: userId }, TOKEN_EXPIRY);
 
-    // ✅ Optional: Generate JWT after successful 2FA login
-    // const accessToken = jwt.sign(
-    //   { userId: user.id, email: user.email },
-    //   process.env.JWT_SECRET!,
-    //   { expiresIn: "1h" }
-    // );
+    const userInfo = await prisma.user.findUnique({
+      where: { id: userId },
+      omit: { password: true, twoFASecret: true },
+    });
 
     return sendResponse({
       res,
       statusCode: StatusCodes.OK,
       message: "2FA verified successfully",
       data: {
-        user,
-        // accessToken,
+        user: userInfo, //121532,
+        accessToken,
       },
     });
   } catch (error: any) {

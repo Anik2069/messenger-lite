@@ -84,25 +84,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
       console.log(res.data?.results);
 
-      const t = res.data?.results?.accessToken as string;
       const is2FA = res.data?.results?.twoFA as boolean;
 
-      if (!t) throw new Error("Invalid login response");
-
-      setToken(t);
-
-      localStorage.setItem("accessToken", t);
-
-      socket.auth = { token: t };
-      if (!socket.connected) socket.connect();
       if (is2FA === true) {
         const id = res.data?.results?.userId as string;
         setIs2FAEnabled(true);
         setUserId(id);
       } else {
+        const t = res.data?.results?.accessToken as string;
         const u = res.data?.results?.userInfo as User;
+        if (!t || !u) throw new Error("Invalid login response");
         setUser(u);
+        setToken(t);
+
+        socket.auth = { token: t };
+        if (!socket.connected) socket.connect();
+
+        localStorage.setItem("accessToken", t);
         localStorage.setItem("user", JSON.stringify(u));
+
         router.push("/");
         toast.success("Login successful");
       }
@@ -266,12 +266,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           userId: userId,
         }
       );
-
+      console.log(response, "=====");
       if (response.status === 200) {
         const data = response.data?.results;
         const accessToken = data?.accessToken;
         const u = data?.user;
-
+        console.log(accessToken, "acc", u, "user");
         if (accessToken && u) {
           setUser(u);
           setToken(accessToken);
@@ -284,13 +284,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setIs2FAEnabled(false);
           setCodeFrom2FA(undefined);
           setVerified(true);
-
           router.push("/");
           toast.success("Login successful ");
         }
       }
     } catch (error) {
-      console.error("2FA verification during sign-in failed:", error);
+      // console.error("2FA verification during sign-in failed:", error);
       toast.error("Invalid or expired 2FA code ");
     }
   };

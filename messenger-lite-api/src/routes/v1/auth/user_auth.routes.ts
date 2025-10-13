@@ -21,7 +21,7 @@ const authRouter = (io: IOServerWithHelpers) => {
   router.post("/2fa/remove", requireAuth, remove2FA);
 
   router.post("/sign-in", userSignin(io));
-  router.post("/verify-2FA/sign-in", requireAuth, confirm2FA);
+  router.post("/verify-2FA/sign-in", confirm2FA);
   router.post("/sign-up", userSignup(io));
 
   router.get("/me", requireAuth, async (req, res) => {

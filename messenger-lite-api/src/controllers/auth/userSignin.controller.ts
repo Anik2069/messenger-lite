@@ -86,14 +86,7 @@ export default function userSignin(io: IOServerWithHelpers) {
       } else {
         const userInfo = await prisma.user.findUnique({
           where: { id },
-          select: {
-            id: true,
-            username: true,
-            email: true,
-            isOnline: true,
-            createdAt: true,
-            updatedAt: true,
-          },
+          omit: { password: true, twoFASecret: true },
         });
         console.log("User signed in:", userInfo);
 
