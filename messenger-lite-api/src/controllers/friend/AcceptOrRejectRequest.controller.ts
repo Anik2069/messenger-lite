@@ -94,6 +94,26 @@ const AcceptOrRejectRequest = (
         request: updatedRequest,
       });
 
+      //  update conversations
+      const updatedConversations = await getUserConversationsSorted(
+        prisma,
+        request.senderId
+      );
+      io.to(request.senderId).emit(
+        "conversations_updated",
+        updatedConversations
+      );
+
+      //  accept friends conversation update
+      const updatedConversations2 = await getUserConversationsSorted(
+        prisma,
+        request.receiverId
+      );
+      io.to(request.receiverId).emit(
+        "conversations_updated",
+        updatedConversations2
+      );
+
       return sendResponse({
         res,
         statusCode: StatusCodes.OK,
