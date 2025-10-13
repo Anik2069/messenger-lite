@@ -93,7 +93,8 @@ const ChatSidebar = ({
                   })
                 }
                 className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
-                  selectedChat?.id === conv.id
+                  selectedChat?.id === conv.id ||
+                  selectedChat?.id === conv.participants[0]?.user.id
                     ? "bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500"
                     : ""
                 }`}
