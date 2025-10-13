@@ -1,8 +1,23 @@
+// src/prisma.ts
 import { PrismaClient } from "@prisma/client";
 
-export const prisma = new PrismaClient();
+declare global {
+  // Prevent multiple instances of Prisma Client in development
+  // Allows hot reload without creating new connections
+  var prisma: PrismaClient | undefined;
+}
 
-// Connect Prisma client
+// Use existing Prisma client if available, otherwise create new
+export const prisma =
+  global.prisma ||
+  new PrismaClient({
+    log: ["query", "warn", "error"],
+  });
+
+// Only set global in development
+if (process.env.NODE_ENV !== "production") global.prisma = prisma;
+
+// Optional: helper to connect (for local/dev usage)
 export const connectDB = async (): Promise<void> => {
   try {
     await prisma.$connect();
@@ -13,7 +28,7 @@ export const connectDB = async (): Promise<void> => {
   }
 };
 
-// Disconnect Prisma client gracefully
+// Optional: helper to disconnect (mainly for local dev)
 export const disconnectPrismaClient = async (): Promise<void> => {
   try {
     await prisma.$disconnect();
