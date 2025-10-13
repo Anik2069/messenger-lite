@@ -14,6 +14,7 @@ const app = express();
 app.use(
   cors({
     origin: [
+      "https://messenger-lite-two.vercel.app",
       "http://localhost:3000",
       "http://localhost:3001",
       "http://localhost:3002",
@@ -23,6 +24,7 @@ app.use(
       "http://192.168.31.152:3000",
       "http://192.168.31.152:3001",
       "http://192.168.137.1:3000",
+      // "https://messenger-lite-two.vercel.app",
     ],
     credentials: true,
   })
