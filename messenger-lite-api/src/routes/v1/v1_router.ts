@@ -6,6 +6,7 @@ import messagesRouter from "./messages.route/messages.route";
 import reactionsRouter from "./reactions/reactions.router";
 import readsRouter from "./reads/reads.router";
 import friendRouter from "./friend/friend.router";
+import settingsRouter from "./settings/settings.router";
 
 const v1Router = (io: IOServerWithHelpers) => {
   const router = Router();
@@ -19,6 +20,8 @@ const v1Router = (io: IOServerWithHelpers) => {
   router.use("/reactions", reactionsRouter(io));
   router.use("/reads", readsRouter(io));
   router.use("/friend", friendRouter(io));
+
+  router.use("/settings", settingsRouter(io));
 
   return router;
 };

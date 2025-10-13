@@ -30,6 +30,7 @@ model User {
   messages     Message[]                 @relation("MessageAuthor")
   reactions    MessageReaction[]
   reads        MessageRead[]
+  setting UserSettings?
 
   sentFriendRequests     FriendRequest[] @relation("SentFriendRequests")
   receivedFriendRequests FriendRequest[] @relation("ReceivedFriendRequests")
@@ -45,7 +46,6 @@ model FriendRequest {
 
   sender   User @relation("SentFriendRequests", fields: [senderId], references: [id], onDelete: Cascade)
   receiver User @relation("ReceivedFriendRequests", fields: [receiverId], references: [id], onDelete: Cascade)
-
   @@unique([senderId, receiverId])
   @@index([receiverId])
   @@index([senderId])
@@ -153,4 +153,23 @@ model MessageRead {
   @@unique([messageId, userId])
   @@index([messageId])
   @@index([userId])
+}
+
+model UserSettings {
+  id                 String     @id @default(cuid())
+  activeStatus       Boolean    @default(false)
+  soundNotifications Boolean    @default(false)
+  theme              ThemeType  @default(LIGHT)
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ThemeType {
+  LIGHT
+  DARK
+  SYSTEM
 }
