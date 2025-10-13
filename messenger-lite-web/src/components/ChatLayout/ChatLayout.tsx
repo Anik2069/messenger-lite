@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { demoGroups } from "../../../data/GroupList";
 import ChatSidebar from "./ChatSidebar/ChatSidebar";
 import Navbar from "./Navbar/Navbar";
 import ChatWindow from "./ChatWindow/ChatWindow";
@@ -148,7 +147,7 @@ const ChatLayout = () => {
       <div className="flex-1 flex overflow-hidden">
         <div className="hidden md:block w-80 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <ChatSidebar
-            groups={demoGroups}
+            groups={[]}
             selectedChat={selectedChat}
             onChatSelect={onChatSelect}
           />
@@ -192,7 +191,7 @@ const ChatLayout = () => {
         direction="left"
       >
         <ChatSidebar
-          groups={demoGroups}
+          groups={[]}
           selectedChat={selectedChat}
           onChatSelect={onChatSelect}
           sidebarMode

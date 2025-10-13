@@ -1,7 +1,6 @@
 "use client";
 
 import { CardContent } from "@/components/ui/card";
-import { demoUser } from "../../../../data/demoUser";
 import {
   Moon,
   Sun,
@@ -13,9 +12,10 @@ import {
 import { useGlobalContext } from "@/provider/GlobalContextProvider";
 import React from "react";
 import { useSettings } from "@/context/SettingsContext";
+import { useAuth } from "@/context/useAuth";
 
 const UserSettings = () => {
-  const user = demoUser || {};
+  const { user } = useAuth();
   const {
     settingModalClose,
     privacySettingModalOpen,
