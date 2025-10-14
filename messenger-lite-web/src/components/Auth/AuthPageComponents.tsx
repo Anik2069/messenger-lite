@@ -5,8 +5,8 @@ import { useAuth } from "@/context/useAuth";
 import { SubmitOtpForm } from "./SubmitOtpForm";
 
 const AuthPageComponents = () => {
-  const { is2FAEnabled } = useAuth();
-  return <div>{is2FAEnabled ? <SubmitOtpForm /> : <AuthForm />}</div>;
+  const { user } = useAuth();
+  return <div>{!user && <AuthForm />}</div>;
 };
 
 export default AuthPageComponents;

@@ -12,6 +12,7 @@ import { InputField } from "../reusable/InputField";
 import { FormValues, getSchema } from "@/schema/auth.schema";
 import { useAuth } from "@/context/useAuth";
 import AuthLoading from "./AuthLoading";
+import { SubmitOtpForm } from "./SubmitOtpForm";
 
 // Inner component: এখানে useSearchParams ব্যবহার হচ্ছে
 function AuthFormInner() {
@@ -23,7 +24,13 @@ function AuthFormInner() {
     setIsLogin(type === "login");
   }, [type]);
 
-  const { login, register: registerUser, loading, is2FAEnabled } = useAuth();
+  const {
+    login,
+    register: registerUser,
+    loading,
+    is2FAEnabled,
+    user,
+  } = useAuth();
 
   const methods = useForm<FormValues>({
     resolver: zodResolver(getSchema(isLogin)),
@@ -60,68 +67,72 @@ function AuthFormInner() {
         </div>
 
         {/* Auth Card */}
-        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm dark:bg-gray-800/80">
-          <CardHeader className="text-center pb-4">
-            <CardTitle className="text-xl font-semibold">
-              {isLogin ? "Welcome back" : "Get started"}
-            </CardTitle>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {isLogin ? "Sign in to continue" : "Create your account"}
-            </p>
-          </CardHeader>
+        {is2FAEnabled ? (
+          <SubmitOtpForm />
+        ) : (
+          <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm dark:bg-gray-800/80">
+            <CardHeader className="text-center pb-4">
+              <CardTitle className="text-xl font-semibold">
+                {isLogin ? "Welcome back" : "Get started"}
+              </CardTitle>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {isLogin ? "Sign in to continue" : "Create your account"}
+              </p>
+            </CardHeader>
 
-          <CardContent>
-            <FormProvider {...methods}>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                {!isLogin && (
+            <CardContent>
+              <FormProvider {...methods}>
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                  {!isLogin && (
+                    <InputField
+                      name="username"
+                      label="Username"
+                      placeholder="Only letters, numbers, _ and ."
+                      icon={<User className="w-4 h-4" />}
+                    />
+                  )}
+
                   <InputField
-                    name="username"
-                    label="Username"
-                    placeholder="Only letters, numbers, _ and ."
-                    icon={<User className="w-4 h-4" />}
+                    name="email"
+                    label="Email"
+                    placeholder="Enter your email"
+                    icon={<Mail className="w-4 h-4" />}
                   />
-                )}
 
-                <InputField
-                  name="email"
-                  label="Email"
-                  placeholder="Enter your email"
-                  icon={<Mail className="w-4 h-4" />}
-                />
+                  <InputField
+                    name="password"
+                    label="Password"
+                    placeholder="Enter your password (min. 6 characters)"
+                    type="password"
+                    icon={<Lock className="w-4 h-4" />}
+                  />
 
-                <InputField
-                  name="password"
-                  label="Password"
-                  placeholder="Enter your password (min. 6 characters)"
-                  type="password"
-                  icon={<Lock className="w-4 h-4" />}
-                />
+                  <Button
+                    className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm"
+                    disabled={loading}
+                  >
+                    {loading
+                      ? "Please wait..."
+                      : isLogin
+                      ? "Sign In"
+                      : "Create Account"}
+                  </Button>
+                </form>
+              </FormProvider>
 
-                <Button
-                  className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm"
-                  disabled={loading}
+              <div className="mt-6 text-center">
+                <a
+                  href={`/auth?type=${isLogin ? "register" : "login"}`}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                 >
-                  {loading
-                    ? "Please wait..."
-                    : isLogin
-                    ? "Sign In"
-                    : "Create Account"}
-                </Button>
-              </form>
-            </FormProvider>
-
-            <div className="mt-6 text-center">
-              <a
-                href={`/auth?type=${isLogin ? "register" : "login"}`}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-              >
-                {isLogin
-                  ? "Don't have an account? Sign up"
-                  : "Already have an account? Sign in"}
-              </a>
-            </div>
-          </CardContent>
-        </Card>
+                  {isLogin
+                    ? "Don't have an account? Sign up"
+                    : "Already have an account? Sign in"}
+                </a>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Features */}
         <div className="grid grid-cols-3 gap-4 text-center">
