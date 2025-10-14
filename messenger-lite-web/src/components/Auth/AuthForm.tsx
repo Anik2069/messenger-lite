@@ -77,7 +77,7 @@ function AuthFormInner() {
                   <InputField
                     name="username"
                     label="Username"
-                    placeholder="Enter your username"
+                    placeholder="Only letters, numbers, _ and ."
                     icon={<User className="w-4 h-4" />}
                   />
                 )}
@@ -92,7 +92,7 @@ function AuthFormInner() {
                 <InputField
                   name="password"
                   label="Password"
-                  placeholder="Enter your password"
+                  placeholder="Enter your password (min. 6 characters)"
                   type="password"
                   icon={<Lock className="w-4 h-4" />}
                 />
