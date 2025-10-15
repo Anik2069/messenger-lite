@@ -10,36 +10,42 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  username  String   @unique
-  email     String   @unique
-  password  String
-  avatar    String?
-  isOnline  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  lastSeenAt  DateTime?
-  updatedAt DateTime @updatedAt
+  id         String    @id @default(uuid())
+  username   String    @unique
+  email      String    @unique
+  password   String
+  avatar     String?
+  isOnline   Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  lastSeenAt DateTime?
+  updatedAt  DateTime  @updatedAt
+
+  //  2FA / Google Authentication
+  twoFASecret       String?
+  isTwoFAEnable     Boolean   @default(false)
+  failed2FAAttempts Int       @default(0)
+  lockedUntil       DateTime?
 
   participants ConversationParticipant[]
   messages     Message[]                 @relation("MessageAuthor")
   reactions    MessageReaction[]
   reads        MessageRead[]
+  setting UserSettings?
 
-   sentFriendRequests     FriendRequest[] @relation("SentFriendRequests")
+  sentFriendRequests     FriendRequest[] @relation("SentFriendRequests")
   receivedFriendRequests FriendRequest[] @relation("ReceivedFriendRequests")
 }
 
 model FriendRequest {
-  id         String         @id @default(uuid())
+  id         String       @id @default(uuid())
   senderId   String
   receiverId String
-  status     FriendStatus   @default(PENDING)
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  status     FriendStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
 
   sender   User @relation("SentFriendRequests", fields: [senderId], references: [id], onDelete: Cascade)
   receiver User @relation("ReceivedFriendRequests", fields: [receiverId], references: [id], onDelete: Cascade)
-
   @@unique([senderId, receiverId])
   @@index([receiverId])
   @@index([senderId])
@@ -51,7 +57,6 @@ enum FriendStatus {
   REJECTED
   BLOCKED
 }
-
 
 model Conversation {
   id        String           @id @default(uuid())
@@ -148,4 +153,23 @@ model MessageRead {
   @@unique([messageId, userId])
   @@index([messageId])
   @@index([userId])
+}
+
+model UserSettings {
+  id                 String     @id @default(cuid())
+  activeStatus       Boolean    @default(false)
+  soundNotifications Boolean    @default(false)
+  theme              ThemeType  @default(LIGHT)
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ThemeType {
+  LIGHT
+  DARK
+  SYSTEM
 }

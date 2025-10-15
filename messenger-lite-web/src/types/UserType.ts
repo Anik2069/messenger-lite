@@ -10,6 +10,8 @@ export interface User {
   requestCreatedAt?: Date;
   requestUpdatedAt?: Date;
   lastSeenAt?: Date;
+  isTwoFAEnable?: boolean;
+  lockedUntil?: Date;
 }
 
 export interface UserSettings {

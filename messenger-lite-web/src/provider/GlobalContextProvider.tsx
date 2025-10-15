@@ -20,6 +20,20 @@ interface GlobalContextType {
   addFriendModalClose: () => void;
   isAddFriendModalOpen: boolean;
   setIsAddFriendModalOpen: (isOpen: boolean) => void;
+
+  generalSettingModalOpen: () => void;
+  generalSettingModalClose: () => void;
+  isGeneralSettingModalOpen: boolean;
+  setIsGeneralSettingModalOpen: (isOpen: boolean) => void;
+
+  privacySettingModalOpen: () => void;
+  privacySettingModalClose: () => void;
+  isPrivacySettingModalOpen: boolean;
+  setIsPrivacySettingModalOpen: (isOpen: boolean) => void;
+
+  removeModalOpen: () => void;
+  removeModalClose: () => void;
+  removeModalIsOpen: boolean;
 }
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
@@ -53,6 +67,24 @@ export const GlobalContextProvider = ({
     isOpen: isAddFriendModalOpen,
     setIsOpen: setIsAddFriendModalOpen,
   } = useModal();
+  const {
+    open: generalSettingModalOpen,
+    close: generalSettingModalClose,
+    isOpen: isGeneralSettingModalOpen,
+    setIsOpen: setIsGeneralSettingModalOpen,
+  } = useModal();
+  const {
+    open: privacySettingModalOpen,
+    close: privacySettingModalClose,
+    isOpen: isPrivacySettingModalOpen,
+    setIsOpen: setIsPrivacySettingModalOpen,
+  } = useModal();
+
+  const {
+    open: removeModalOpen,
+    close: removeModalClose,
+    isOpen: removeModalIsOpen,
+  } = useModal();
 
   return (
     <GlobalContext.Provider
@@ -75,6 +107,20 @@ export const GlobalContextProvider = ({
         addFriendModalClose,
         isAddFriendModalOpen,
         setIsAddFriendModalOpen,
+
+        generalSettingModalOpen,
+        generalSettingModalClose,
+        isGeneralSettingModalOpen,
+        setIsGeneralSettingModalOpen,
+
+        privacySettingModalOpen,
+        privacySettingModalClose,
+        isPrivacySettingModalOpen,
+        setIsPrivacySettingModalOpen,
+
+        removeModalOpen,
+        removeModalClose,
+        removeModalIsOpen,
       }}
     >
       {children}

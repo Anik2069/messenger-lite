@@ -21,7 +21,7 @@ type SendMessageBody = {
 };
 
 // helper: sorted conversation list for a user
-async function getUserConversationsSorted(
+export async function getUserConversationsSorted(
   prisma: PrismaClient | Prisma.TransactionClient,
   userId: string
 ) {

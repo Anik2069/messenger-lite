@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { demoGroups } from "../../../data/GroupList";
 import ChatSidebar from "./ChatSidebar/ChatSidebar";
 import Navbar from "./Navbar/Navbar";
 import ChatWindow from "./ChatWindow/ChatWindow";
@@ -19,6 +18,7 @@ import { socket } from "@/lib/socket"; // ✅ socket import
 import axiosInstance from "@/config/axiosInstance";
 import { is } from "zod/v4/locales";
 import AddFriend from "./AddFriend/AddFriend";
+import PrivacySettings from "./UserSettings/PrivacySettings";
 
 declare global {
   interface Window {
@@ -53,6 +53,10 @@ const ChatLayout = () => {
     addFriendModalClose,
     isAddFriendModalOpen,
     setIsAddFriendModalOpen,
+    isGeneralSettingModalOpen,
+    isPrivacySettingModalOpen,
+    generalSettingModalClose,
+    privacySettingModalClose,
   } = useGlobalContext();
 
   // rack socket connection
@@ -143,7 +147,7 @@ const ChatLayout = () => {
       <div className="flex-1 flex overflow-hidden">
         <div className="hidden md:block w-80 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <ChatSidebar
-            groups={demoGroups}
+            groups={[]}
             selectedChat={selectedChat}
             onChatSelect={onChatSelect}
           />
@@ -187,7 +191,7 @@ const ChatLayout = () => {
         direction="left"
       >
         <ChatSidebar
-          groups={demoGroups}
+          groups={[]}
           selectedChat={selectedChat}
           onChatSelect={onChatSelect}
           sidebarMode
@@ -200,6 +204,24 @@ const ChatLayout = () => {
         onClose={settingModalClose}
       >
         <UserSettings />
+      </Modal>
+      <Modal
+        maxWidth="7xl"
+        title="General Settings"
+        open={isGeneralSettingModalOpen}
+        onClose={generalSettingModalClose}
+      >
+        <div className=""></div>
+      </Modal>
+      <Modal
+        // overflowAuto={true}
+        maxWidth="7xl"
+        className="!p-0"
+        title="Privacy Settings"
+        open={isPrivacySettingModalOpen}
+        onClose={privacySettingModalClose}
+      >
+        <PrivacySettings />
       </Modal>
     </div>
   );

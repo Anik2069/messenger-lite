@@ -13,10 +13,15 @@ export interface ConversationState {
 
 export const useConversationStore = create<ConversationState>((set) => {
   socket.off("conversations_updated");
+  // socket.off("friend_request_update");
   socket.on("conversations_updated", (conversations: Conversation[]) => {
-    console.log("📩 conversations_updated", conversations);
+    console.log("conversations_updated", conversations);
     set({ conversations });
   });
+  // socket.on("friend_request_update", (conversations: Conversation[]) => {
+  //   console.log("friend_request_update", conversations);
+  //   set({ conversations });
+  // });
 
   return {
     conversations: null,

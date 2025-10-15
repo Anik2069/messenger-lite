@@ -52,6 +52,7 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
   ) => {
     setSelectedChat({ type, id, name, avatar, isOnline });
     onChatSelect({ type, id, name, avatar, isOnline });
+
     newDrawerClose();
   };
 
