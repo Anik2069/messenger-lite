@@ -45,7 +45,10 @@ const ChangePassword = () => {
     try {
       console.log("Password Update:", data);
       const { confirmPassword, currentPassword } = data;
-      await changePassword(currentPassword, confirmPassword);
+      const response = await changePassword(currentPassword, confirmPassword);
+      if (response?.statusCode === 200) {
+        reset();
+      }
     } catch (error) {
       toast.error("Failed to update password");
     }

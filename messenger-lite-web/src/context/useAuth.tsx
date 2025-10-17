@@ -8,7 +8,12 @@ import { User } from "@/types/UserType";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { set } from "date-fns";
-
+interface ApiResponse<T = unknown> {
+  statusCode: number;
+  message: string;
+  results: T | null;
+  timestamp: string;
+}
 interface AuthContextType {
   user: User | null;
   token: string | null;
@@ -41,7 +46,7 @@ interface AuthContextType {
   changePassword: (
     currentPassword: string,
     newPassword: string
-  ) => Promise<void>;
+  ) => Promise<ApiResponse | null>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -315,17 +320,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const changePassword = async (
     currentPassword: string,
     newPassword: string
-  ) => {
+  ): Promise<ApiResponse | null> => {
     try {
-      const response = await axiosInstance.patch("auth/update/password", {
-        currentPassword,
-        newPassword,
-      });
+      const response = await axiosInstance.patch<ApiResponse>(
+        "auth/update/password",
+        {
+          currentPassword,
+          newPassword,
+        }
+      );
+
       if (response.status === 200) {
-        console.log(response.data?.results);
+        toast.success(response.data.message || "Password updated successfully");
       }
+
+      return response.data;
     } catch (error) {
-      console.log(error);
+      console.error(error);
+
+      const message = error as unknown as {
+        response: { data: { message: string } };
+      };
+      toast.error(message?.response?.data?.message || "Password update failed");
+
+      return null; // returning null on failure
     }
   };
 
