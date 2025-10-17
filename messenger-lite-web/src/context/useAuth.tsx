@@ -38,6 +38,10 @@ interface AuthContextType {
   handleRemove: () => void;
   is2FAEnabled: boolean;
   handleVerifyAtSignIn: (codeFrom2FA: string | number) => void;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string
+  ) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -308,9 +312,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const changePassword = async (
+    currentPassword: string,
+    newPassword: string
+  ) => {
+    try {
+      const response = await axiosInstance.patch("auth/update/password", {
+        currentPassword,
+        newPassword,
+      });
+      if (response.status === 200) {
+        console.log(response.data?.results);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
+        changePassword,
         user,
         token,
         login,
