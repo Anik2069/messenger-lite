@@ -6,6 +6,7 @@ import { signJWT } from "../../utils/jwt";
 import sendResponse from "../../libs/sendResponse";
 import type { Response, Request } from "express";
 import type { IOServerWithHelpers } from "../../socket/initSocket";
+import { DeviceInfo, trackDevice } from "../../utils/deviceTracker";
 
 const userSigninDto = z.object({
   email: z.string().email("Invalid email format"),
@@ -89,7 +90,8 @@ export default function userSignin(io: IOServerWithHelpers) {
           omit: { password: true, twoFASecret: true },
         });
         console.log("User signed in:", userInfo);
-
+        const deviceInfo: DeviceInfo = await trackDevice(req as any);
+        console.log(deviceInfo, "deviceInfo");
         return sendResponse({
           res,
           statusCode: StatusCodes.OK,
