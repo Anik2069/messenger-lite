@@ -11,6 +11,7 @@ import LoggedInDevices from "./@privacy/LoggedInDevices";
 import { useAuth } from "@/context/useAuth";
 import ConfirmationModal from "@/components/reusable/ConfirmationModal";
 import { useGlobalContext } from "@/provider/GlobalContextProvider";
+import { VerifyModal } from "@/components/reusable/VerifyModal";
 
 const menuItems = [
   { id: "password", label: "Change Password", icon: Lock },
@@ -21,16 +22,29 @@ const menuItems = [
 const PrivacySettings = () => {
   const [activeTab, setActiveTab] = useState("password");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { getMyself, setSetupError, handleRemove } = useAuth();
-  const { removeModalClose, removeModalIsOpen } = useGlobalContext();
+  const {
+    getMyself,
+    setSetupError,
+    remove2FA,
+    removeModalClose,
+    removeModalIsOpen,
+  } = useAuth();
+  // const {} = useGlobalContext();
   useEffect(() => {
     getMyself();
     setSetupError(false);
   }, []);
 
-  const remove2FA = async () => {
-    handleRemove();
-    removeModalClose();
+  // const remove2FA = async () => {
+  //   handleRemove();
+  //   removeModalClose();
+  // };
+
+  const handleRemove2FA = async (code: string) => {
+    setSetupError(false);
+    await remove2FA(code);
+
+    // setIsSetupActive(false);
   };
 
   return (
@@ -100,12 +114,21 @@ const PrivacySettings = () => {
           {activeTab === "2fa" && <TwoFactorAuth />}
           {activeTab === "devices" && <LoggedInDevices />}
         </div>
-        <ConfirmationModal
+        {/* <ConfirmationModal
           open={removeModalIsOpen}
           onClose={removeModalClose}
           onConfirm={remove2FA}
           title="Remove 2FA"
           description="Are you sure you want to remove 2FA?"
+        /> */}
+        <VerifyModal
+          open={removeModalIsOpen}
+          onClose={() => {
+            removeModalClose();
+            setSetupError(false);
+          }}
+          onVerify={handleRemove2FA}
+          loading={false}
         />
       </main>
     </div>

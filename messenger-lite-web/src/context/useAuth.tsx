@@ -8,6 +8,7 @@ import { User } from "@/types/UserType";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { set } from "date-fns";
+import { useModal } from "@/hooks/useModal";
 interface ApiResponse<T = unknown> {
   statusCode: number;
   message: string;
@@ -39,14 +40,17 @@ interface AuthContextType {
   currentUserDetails: User | null;
   setupError: boolean;
   setSetupError: (setupError: boolean) => void;
-  remove2FA: () => void;
-  handleRemove: () => void;
+  remove2FA: (code?: string) => void;
+  handleRemove: (code: string) => void;
   is2FAEnabled: boolean;
   handleVerifyAtSignIn: (codeFrom2FA: string | number) => void;
   changePassword: (
     currentPassword: string,
     newPassword: string
   ) => Promise<ApiResponse | null>;
+  removeModalOpen: () => void;
+  removeModalClose: () => void;
+  removeModalIsOpen: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -71,6 +75,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [verified, setVerified] = useState<boolean>(false);
   const router = useRouter();
   const [isLogoutLoading, setIsLogoutLoading] = useState(false);
+  const {
+    open: removeModalOpen,
+    close: removeModalClose,
+    isOpen: removeModalIsOpen,
+  } = useModal();
   useEffect(() => {
     const savedToken = localStorage.getItem("accessToken");
     const savedUser = localStorage.getItem("user");
@@ -259,25 +268,44 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {}
   };
 
-  const remove2FA = async () => {
+  const remove2FA = async (code?: string) => {
     try {
-      const response = await axiosInstance.post("auth/user/2fa/remove");
+      const response = await axiosInstance.post("auth/user/2fa/remove", {
+        token: code,
+      });
+
       if (response.status === 200) {
-        console.log(response.data?.results);
+        const result = response.data?.results;
+        removeModalClose();
+        // clear local states
         setQr(null);
         setSecret(null);
         setVerified(false);
         setCodeFrom2FA(undefined);
+        removeModalClose();
+        toast.success("2FA removed successfully.");
+        // refresh user info
         await getMyself();
+
+        // return success data
+        return result;
       }
+
+      toast.error("2FA removal failed. Please try again.");
+      return null;
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      const message = error as unknown as {
+        response: { data: { message: string } };
+      };
+      toast.error(message?.response?.data?.message || "2FA removal failed.");
+      return null;
     }
   };
 
-  const handleRemove = async () => {
+  const handleRemove = async (code: string) => {
     setSetupError(false);
-    await remove2FA();
+    await remove2FA(code);
   };
 
   const handleVerifyAtSignIn = async (codeFrom2FA: string | number) => {
@@ -378,6 +406,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         handleRemove,
         is2FAEnabled,
         handleVerifyAtSignIn,
+        removeModalClose,
+        removeModalIsOpen,
+        removeModalOpen,
       }}
     >
       {children}
