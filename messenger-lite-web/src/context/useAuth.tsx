@@ -311,37 +311,45 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const handleVerifyAtSignIn = async (codeFrom2FA: string | number) => {
     try {
       const response = await axiosInstance.post(
-        "auth/user/verify-2FA/sign-in",
+        "/auth/user/verify-2FA/sign-in",
         {
           token: codeFrom2FA,
-          userId: userId,
+          userId,
         }
       );
-      console.log(response, "=====");
-      if (response.status === 200) {
-        const data = response.data?.results;
-        const accessToken = data?.accessToken;
-        const u = data?.user;
-        console.log(accessToken, "acc", u, "user");
-        if (accessToken && u) {
-          setUser(u);
-          setToken(accessToken);
-          localStorage.setItem("accessToken", accessToken);
-          localStorage.setItem("user", JSON.stringify(u));
 
-          socket.auth = { token: accessToken };
-          if (!socket.connected) socket.connect();
+      const data = response.data?.results;
+      if (!data) throw new Error("Invalid server response");
 
-          setIs2FAEnabled(false);
-          setCodeFrom2FA(undefined);
-          setVerified(true);
-          router.push("/");
-          toast.success("Login successful ");
-        }
+      const accessToken = data.accessToken;
+      const userInfo = data.user;
+
+      if (!accessToken || !userInfo) {
+        throw new Error("Missing access token or user info");
       }
+
+      // ✅ Update global auth state
+      setUser(userInfo);
+      setToken(accessToken);
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("user", JSON.stringify(userInfo));
+
+      // ✅ Socket setup
+      socket.auth = { token: accessToken };
+      if (!socket.connected) socket.connect();
+
+      // ✅ Reset 2FA flow
+      setIs2FAEnabled(false);
+      setCodeFrom2FA(undefined);
+      setVerified(true);
+
+      toast.success("Login successful!");
+      router.replace("/"); // 🔁 Use replace instead of push to prevent going back to login
     } catch (error) {
-      // console.error("2FA verification during sign-in failed:", error);
-      toast.error("Invalid or expired 2FA code ");
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message || "Invalid or expired 2FA code"
+        : (error as Error).message || "2FA verification failed";
+      toast.error(message);
     }
   };
 
