@@ -1,45 +1,54 @@
-import { Button } from "@/components/ui/button";
-import React from "react";
+"use client";
+
+import React, { useEffect } from "react";
+import { useDevices, Device } from "@/hooks/useDevices";
+import { Laptop, Smartphone, Globe, LogOut } from "lucide-react";
+import { DeviceCardSkeleton } from "./DeviceCardSkeleton";
+import { DeviceCard } from "./DeviceCard";
+import { useAuth } from "@/context/useAuth";
 
 const LoggedInDevices = () => {
-  const devices = [
-    {
-      name: "Windows 11 - Chrome",
-      location: "Dhaka, Bangladesh",
-      active: true,
-    },
-    {
-      name: "Android - Messenger Lite",
-      location: "Dhaka, Bangladesh",
-      active: false,
-    },
-  ];
+  const { devices, logoutDevice } = useDevices();
+  const {
+    user,
+    userTrustedDevices,
+    isLoadingUserTrustedDevices,
+    fetchTrustedDevices,
+  } = useAuth();
 
+  useEffect(() => {
+    if (user) fetchTrustedDevices(user.id);
+  }, [user]);
   return (
-    <div>
-      <h2 className="text-xl font-semibold mb-4">Logged-in Devices</h2>
-      <div className="space-y-3">
-        {devices.map((device, idx) => (
-          <div
-            key={idx}
-            className="flex justify-between items-center border p-3 rounded-lg bg-white/60 dark:bg-gray-800/60"
-          >
-            <div>
-              <p className="font-medium">{device.name}</p>
-              <p className="text-sm text-gray-500">{device.location}</p>
-            </div>
-            {device.active ? (
-              <span className="text-green-600 text-sm font-semibold">
-                Active
-              </span>
-            ) : (
-              <Button variant="outline" size="sm">
-                Logout
-              </Button>
-            )}
+    <div className="w-full">
+      {isLoadingUserTrustedDevices ? (
+        // Show 3 skeleton cards while loading
+        <div className="space-y-4 px-2">
+          {[...Array(2)].map((_, i) => (
+            <DeviceCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : userTrustedDevices && userTrustedDevices?.length > 0 ? (
+        // Show list of trusted devices
+        <div className="space-y-4 px-2">
+          <div className="grid grid-cols-1 gap-4">
+            {userTrustedDevices.map((device) => (
+              <DeviceCard
+                key={device.id}
+                {...device}
+                last_active={device.last_active.toString()}
+                isCurrent={false}
+                // onTerminate={handleDeleteSession} // Uncomment when ready
+              />
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      ) : (
+        // Empty state
+        <p className="text-gray-400 text-sm px-4 py-2 text-center">
+          No trusted devices yet.
+        </p>
+      )}
     </div>
   );
 };

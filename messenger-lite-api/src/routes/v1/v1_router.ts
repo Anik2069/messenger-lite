@@ -7,12 +7,13 @@ import reactionsRouter from "./reactions/reactions.router";
 import readsRouter from "./reads/reads.router";
 import friendRouter from "./friend/friend.router";
 import settingsRouter from "./settings/settings.router";
+import authUpdateRouter from "./auth/authUpdateRouter";
 
 const v1Router = (io: IOServerWithHelpers) => {
   const router = Router();
 
   router.use("/auth/user", authRouter(io));
-
+  router.use("/auth/update", authUpdateRouter(io));
   router.use("/meta", listRouter);
 
   router.use("/messages", messagesRouter(io));

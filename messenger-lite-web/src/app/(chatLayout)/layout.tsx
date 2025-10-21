@@ -8,13 +8,14 @@ import React from "react";
 const layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div>
-      <GlobalContextProvider>
-        <AuthProvider>
-          <SocketContextProvider>
-            <SettingsProvider>{children}</SettingsProvider>
-          </SocketContextProvider>
-        </AuthProvider>
-      </GlobalContextProvider>
+      <AuthProvider>
+        <SocketContextProvider>
+          <SettingsProvider>
+            {" "}
+            <GlobalContextProvider>{children}</GlobalContextProvider>
+          </SettingsProvider>
+        </SocketContextProvider>
+      </AuthProvider>
     </div>
   );
 };

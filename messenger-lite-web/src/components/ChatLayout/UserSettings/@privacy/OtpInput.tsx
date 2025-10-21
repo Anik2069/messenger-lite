@@ -5,10 +5,10 @@ import { useAuth } from "@/context/useAuth";
 type OtpInputProps = {
   name: string;
   length: number;
+  setupError?: boolean;
 };
 
-export function OtpInput({ name, length }: OtpInputProps) {
-  const { setupError } = useAuth();
+export function OtpInput({ name, length, setupError }: OtpInputProps) {
   const { control, setValue, getValues, watch } = useFormContext();
   const { field } = useController({ name, control });
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);

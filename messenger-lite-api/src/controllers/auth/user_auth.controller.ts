@@ -20,9 +20,19 @@ export const generate2FA = async (req: Request, res: Response) => {
       });
     }
 
+    // Check if 2FA is already enabled
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (user?.isTwoFAEnable) {
+      return sendResponse({
+        res,
+        statusCode: StatusCodes.BAD_REQUEST,
+        message: "2FA is already enabled for this account",
+      });
+    }
+
     // Generate a secret
     const secret = speakeasy.generateSecret({
-      name: `Messenger Lite (${userId})`,
+      name: `Messenger Lite (${user?.username})`,
       length: 20,
     });
 
@@ -122,6 +132,8 @@ export const verify2FASetup = async (req: Request, res: Response) => {
 };
 
 export const remove2FA = async (req: Request, res: Response) => {
+  const { token } = req.body;
+
   try {
     const userId = (req as any).auth.userId;
     if (!userId) {
@@ -130,6 +142,33 @@ export const remove2FA = async (req: Request, res: Response) => {
         statusCode: StatusCodes.UNAUTHORIZED,
         message: "User not authenticated",
       });
+    }
+    if (token) {
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user || !user.twoFASecret) {
+        return sendResponse({
+          res,
+          statusCode: StatusCodes.BAD_REQUEST,
+          message: "2FA not initialized",
+        });
+      }
+
+      const decryptedSecret = decrypt(user.twoFASecret);
+
+      const verified = speakeasy.totp.verify({
+        secret: decryptedSecret,
+        encoding: "base32",
+        token,
+        window: 1, // allow ±1 step
+      });
+      console.log(verified);
+      if (!verified) {
+        return sendResponse({
+          res,
+          statusCode: StatusCodes.BAD_REQUEST,
+          message: "Invalid 2FA code",
+        });
+      }
     }
 
     await prisma.user.update({

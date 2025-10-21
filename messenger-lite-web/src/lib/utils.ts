@@ -1,3 +1,4 @@
+"use client";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -46,35 +47,17 @@ export function formatFileSize(bytes: number): string {
   );
 }
 
+// src/lib/uuid.ts
 export function uuidv4(): string {
-  // 1) Prefer modern browsers
-  if (
-    typeof crypto !== "undefined" &&
-    typeof crypto.randomUUID === "function"
-  ) {
-    return crypto.randomUUID();
-  }
-  // 2) Secure fallback
-  if (
-    typeof crypto !== "undefined" &&
-    typeof crypto.getRandomValues === "function"
-  ) {
-    const bytes = new Uint8Array(16);
-    crypto.getRandomValues(bytes);
-    bytes[6] = (bytes[6] & 0x0f) | 0x40; // version
-    bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant
-    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join(
-      ""
-    );
-    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(
-      12,
+  const hex = () => Math.floor(Math.random() * 16).toString(16);
+
+  return (
+    `${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}-` +
+    `${hex()}${hex()}${hex()}${hex()}-` +
+    `4${hex()}${hex()}${hex()}-` +
+    `${(8 + Math.floor(Math.random() * 4)).toString(
       16
-    )}-${hex.slice(16, 20)}-${hex.slice(20)}`;
-  }
-  // 3) Last-ditch (non-crypto) — fine for temp IDs
-  const rand = () => Math.random().toString(16).slice(2).padEnd(8, "0");
-  return `${rand().slice(0, 8)}-${rand().slice(0, 4)}-4${rand().slice(
-    0,
-    3
-  )}-8${rand().slice(0, 3)}-${rand()}${rand().slice(0, 4)}`;
+    )}${hex()}${hex()}${hex()}-` +
+    `${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}`
+  );
 }
