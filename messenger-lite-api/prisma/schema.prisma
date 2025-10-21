@@ -34,7 +34,33 @@ model User {
 
   sentFriendRequests     FriendRequest[] @relation("SentFriendRequests")
   receivedFriendRequests FriendRequest[] @relation("ReceivedFriendRequests")
+  UserDevice      UserDevice[]
 }
+model UserDevice {
+    id String @id @default(cuid())
+    ip_address String
+    os String
+    browser String
+    device_type device_type
+    user_agent String
+    last_active DateTime
+    user_id  String
+    trusted Boolean @default(false)
+    
+    User   User @relation(fields: [user_id], references: [id])
+
+   
+}
+
+enum device_type  {
+    DESKTOP
+    MOBILE
+    TABLET
+    BOT
+    POSTMAN
+    UNKNOWN
+}
+
 
 model FriendRequest {
   id         String       @id @default(uuid())

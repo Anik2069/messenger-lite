@@ -2,12 +2,12 @@ import { Request } from "express";
 import https from "https";
 
 export interface DeviceInfo {
-  ipAddress: string | undefined;
+  ip_address: string;
   os: string;
   browser: string;
-  deviceType: "Desktop" | "Mobile" | "Tablet" | "Bot" | "Postman" | "Unknown";
+  device_type: "DESKTOP" | "MOBILE" | "TABLET" | "BOT" | "POSTMAN" | "UNKNOWN";
 
-  userAgent: string;
+  user_agent: string;
   lastActive: Date;
 }
 function normalizeIp(ip: string): string {
@@ -17,14 +17,15 @@ function normalizeIp(ip: string): string {
 function getClientIp(req: Request): string | undefined {
   const forwarded = req.headers["x-forwarded-for"];
   if (forwarded) return (forwarded as string).split(",")[0];
-  return normalizeIp(req.socket?.remoteAddress as string) || "0.0.0.0";
+  // return normalizeIp(req.socket?.remoteAddress as string) || "0.0.0.0";
+  return (req.socket?.remoteAddress as string) || "0.0.0.0";
 }
 
 export function parseUserAgent(ua: string) {
   const uaLower = ua.toLowerCase();
 
   // --- OS Detection ---
-  let os = "Unknown OS";
+  let os = "UNKNOWN OS";
   const osRegexes: [RegExp, string][] = [
     [/windows nt 10\.0/, "Windows"],
     [/windows nt 6\.3/, "Windows 8.1"],
@@ -46,9 +47,9 @@ export function parseUserAgent(ua: string) {
   }
 
   // --- Browser Detection ---
-  let browser = "Unknown Browser";
+  let browser = "UNKNOWN Browser";
   const browserRegexes: [RegExp, string][] = [
-    [/postmanruntime\/(\d+(\.\d+)?)/, "Postman"],
+    [/postmanruntime\/(\d+(\.\d+)?)/, "POSTMAN"],
     [/edg\/(\d+(\.\d+)?)/, "Edge"],
     [/opr\/(\d+(\.\d+)?)/, "Opera"],
     [/chrome\/(\d+(\.\d+)?)/, "Chrome"],
@@ -65,32 +66,32 @@ export function parseUserAgent(ua: string) {
   }
 
   // --- Device Type Detection ---
-  let deviceType: DeviceInfo["deviceType"] = "Desktop";
-  if (/mobile/.test(uaLower)) deviceType = "Mobile";
-  else if (/tablet|ipad/.test(uaLower)) deviceType = "Tablet";
-  else if (/postmanruntime/.test(uaLower)) deviceType = "Postman";
+  let device_type: DeviceInfo["device_type"] = "DESKTOP";
+  if (/mobile/.test(uaLower)) device_type = "MOBILE";
+  else if (/tablet|ipad/.test(uaLower)) device_type = "TABLET";
+  else if (/postmanruntime/.test(uaLower)) device_type = "POSTMAN";
 
-  // Bot Detection
+  // BOT Detection
   const botRegex =
     /(bot|crawl|spider|slurp|mediapartners|facebookexternalhit|google|bing|yahoo|duckduckbot|baiduspider|yandex)/i;
-  if (botRegex.test(uaLower)) deviceType = "Bot";
+  if (botRegex.test(uaLower)) device_type = "BOT";
 
-  return { os, browser, deviceType };
+  return { os, browser, device_type };
 }
 
 export async function trackDevice(req: Request): Promise<DeviceInfo> {
-  const userAgent = req.headers["user-agent"] || "Unknown";
+  const user_agent = req.headers["user-agent"] || "UNKNOWN";
 
-  const ipAddress = getClientIp(req);
-  const { os, browser, deviceType } = parseUserAgent(userAgent);
+  const ip_address = getClientIp(req) || "0.0.0.0";
+  const { os, browser, device_type } = parseUserAgent(user_agent);
 
   return {
-    ipAddress,
+    ip_address,
     os,
     browser,
-    deviceType,
+    device_type,
 
-    userAgent: userAgent,
+    user_agent,
     lastActive: new Date(),
   };
 }

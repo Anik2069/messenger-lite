@@ -91,6 +91,45 @@ export default function userSignin(io: IOServerWithHelpers) {
         });
         console.log("User signed in:", userInfo);
         const deviceInfo: DeviceInfo = await trackDevice(req as any);
+        let currentDeviceId = null;
+
+        const existingDevice = await prisma.userDevice.findFirst({
+          where: {
+            user_id: user.id,
+            user_agent: deviceInfo.user_agent,
+            os: deviceInfo.os,
+            ip_address: deviceInfo.ip_address,
+            browser: deviceInfo.browser,
+            device_type: deviceInfo.device_type,
+          },
+        });
+        if (existingDevice) {
+          currentDeviceId = existingDevice.id;
+          await prisma.userDevice.update({
+            where: { id: existingDevice.id },
+            data: { last_active: new Date() },
+          });
+        } else {
+          // Device is new but user already passed 2FA, create it as untrusted (or trusted if you want)
+          const isFromPostman =
+            deviceInfo.user_agent.includes("PostmanRuntime");
+          if (!isFromPostman) {
+            const newDevice = await prisma.userDevice.create({
+              data: {
+                user_id: user.id,
+                ip_address: deviceInfo.ip_address,
+                user_agent: deviceInfo.user_agent,
+                os: deviceInfo.os,
+                browser: deviceInfo.browser,
+                device_type: deviceInfo.device_type,
+                trusted: false,
+                last_active: new Date(),
+              },
+            });
+            currentDeviceId = newDevice.id;
+          }
+        }
+
         console.log(deviceInfo, "deviceInfo");
         return sendResponse({
           res,
