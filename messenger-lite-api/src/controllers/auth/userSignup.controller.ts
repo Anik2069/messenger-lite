@@ -110,5 +110,39 @@ const userSignup = (io: IOServerWithHelpers) => {
     }
   };
 };
+const trustedDevices = (io: IOServerWithHelpers) => {
+  return async (req: Request, res: Response) => {
+    try {
+      const id = req.params.id;
+      if (!id) {
+        return sendResponse({
+          res,
+          statusCode: StatusCodes.BAD_REQUEST,
+          message: "User not found",
+          data: null,
+        });
+      }
 
-export { userSignup };
+      const userDevice = await prisma.userDevice.findMany({
+        where: { user_id: id },
+      });
+
+      return sendResponse({
+        res,
+        statusCode: StatusCodes.OK,
+        message: "User devices fetched successfully",
+        data: userDevice,
+      });
+    } catch (error: any) {
+      console.error("trusted ", error);
+      return sendResponse({
+        res,
+        statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+        message: "Internal server error",
+        data: null,
+      });
+    }
+  };
+};
+
+export { userSignup, trustedDevices };
