@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { socket } from "@/lib/socket";
 import axiosInstance from "@/config/axiosInstance";
 import axios from "axios";
@@ -15,6 +21,27 @@ interface ApiResponse<T = unknown> {
   results: T | null;
   timestamp: string;
 }
+
+type DeviceType =
+  | "DESKTOP"
+  | "MOBILE"
+  | "TABLET"
+  | "BOT"
+  | "POSTMAN"
+  | "UNKNOWN";
+
+export interface UserDevice {
+  id: string;
+  ip_address: string;
+  os: string;
+  browser: string;
+  device_type: DeviceType;
+  user_agent: string;
+  last_active: Date;
+  user_id: string;
+  trusted: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
@@ -51,6 +78,9 @@ interface AuthContextType {
   removeModalOpen: () => void;
   removeModalClose: () => void;
   removeModalIsOpen: boolean;
+  userTrustedDevices: UserDevice[] | null;
+  isLoadingUserTrustedDevices: boolean;
+  fetchTrustedDevices: (userId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -80,6 +110,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     close: removeModalClose,
     isOpen: removeModalIsOpen,
   } = useModal();
+
+  const [userTrustedDevices, setUserTrustedDevices] = useState<UserDevice[]>(
+    []
+  );
+  const [isLoadingUserTrustedDevices, setIsLoadingUserTrustedDevices] =
+    useState<boolean>(false);
+
   useEffect(() => {
     const savedToken = localStorage.getItem("accessToken");
     const savedUser = localStorage.getItem("user");
@@ -374,6 +411,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return null; // returning null on failure
     }
   };
+  const fetchTrustedDevices = useCallback(async (id: string) => {
+    setIsLoadingUserTrustedDevices(true);
+    try {
+      const response = await axiosInstance.get(
+        "auth/user/trusted-devices" + "/" + id
+      );
+      if (response.status === 200) {
+        setUserTrustedDevices(response.data?.results);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoadingUserTrustedDevices(false);
+    }
+  }, []);
 
   return (
     <AuthContext.Provider
@@ -409,6 +461,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         removeModalClose,
         removeModalIsOpen,
         removeModalOpen,
+        fetchTrustedDevices,
+        isLoadingUserTrustedDevices,
+        userTrustedDevices,
       }}
     >
       {children}

@@ -1,71 +1,54 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useDevices, Device } from "@/hooks/useDevices";
 import { Laptop, Smartphone, Globe, LogOut } from "lucide-react";
-
-const deviceIcon = (name: string) => {
-  const n = name.toLowerCase();
-  if (n.includes("iphone") || n.includes("mobile") || n.includes("android"))
-    return <Smartphone className="w-5 h-5 mr-2 text-gray-500" />;
-  if (n.includes("mac") || n.includes("windows") || n.includes("linux"))
-    return <Laptop className="w-5 h-5 mr-2 text-gray-500" />;
-  return <Globe className="w-5 h-5 mr-2 text-gray-500" />;
-};
+import { DeviceCardSkeleton } from "./DeviceCardSkeleton";
+import { DeviceCard } from "./DeviceCard";
+import { useAuth } from "@/context/useAuth";
 
 const LoggedInDevices = () => {
   const { devices, logoutDevice } = useDevices();
+  const {
+    user,
+    userTrustedDevices,
+    isLoadingUserTrustedDevices,
+    fetchTrustedDevices,
+  } = useAuth();
 
+  useEffect(() => {
+    if (user) fetchTrustedDevices(user.id);
+  }, [user]);
   return (
-    <div className="max-w-md mx-auto p-4 bg-white dark:bg-gray-900 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
-        Logged-in Devices
-      </h2>
-
-      <div className="divide-y divide-gray-200 dark:divide-gray-700">
-        {devices.map((device: Device) => (
-          <div
-            key={device.id}
-            className={`flex items-center justify-between py-3 px-2 ${
-              device.active
-                ? "bg-green-50 dark:bg-green-900/20"
-                : "bg-gray-50 dark:bg-gray-800/20"
-            } rounded-md transition-colors`}
-          >
-            <div className="flex items-center">
-              {deviceIcon(device.name)}
-              <div>
-                <p className="font-medium text-gray-900 dark:text-gray-100">
-                  {device.name}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {device.location || "Unknown location"}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              {device.active && (
-                <span className="text-xs font-semibold text-green-600 dark:text-green-400">
-                  Active
-                </span>
-              )}
-              <button
-                onClick={() => logoutDevice(device.id)}
-                className="flex items-center text-red-600 dark:text-red-400 text-sm font-medium hover:underline"
-              >
-                <LogOut className="w-4 h-4 mr-1" /> Logout
-              </button>
-            </div>
+    <div className="w-full">
+      {isLoadingUserTrustedDevices ? (
+        // Show 3 skeleton cards while loading
+        <div className="space-y-4 px-2">
+          {[...Array(2)].map((_, i) => (
+            <DeviceCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : userTrustedDevices && userTrustedDevices?.length > 0 ? (
+        // Show list of trusted devices
+        <div className="space-y-4 px-2">
+          <div className="grid grid-cols-1 gap-4">
+            {userTrustedDevices.map((device) => (
+              <DeviceCard
+                key={device.id}
+                {...device}
+                last_active={device.last_active.toString()}
+                isCurrent={false}
+                // onTerminate={handleDeleteSession} // Uncomment when ready
+              />
+            ))}
           </div>
-        ))}
-
-        {devices.length === 0 && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-            No active devices
-          </p>
-        )}
-      </div>
+        </div>
+      ) : (
+        // Empty state
+        <p className="text-gray-400 text-sm px-4 py-2 text-center">
+          No trusted devices yet.
+        </p>
+      )}
     </div>
   );
 };
