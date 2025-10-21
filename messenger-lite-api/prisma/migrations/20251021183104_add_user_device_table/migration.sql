@@ -1,4 +1,10 @@
 -- CreateEnum
+CREATE TYPE "public"."device_type" AS ENUM ('DESKTOP', 'MOBILE', 'TABLET', 'BOT', 'POSTMAN', 'UNKNOWN');
+
+-- CreateEnum
+CREATE TYPE "public"."FriendStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED', 'BLOCKED');
+
+-- CreateEnum
 CREATE TYPE "public"."ConversationType" AS ENUM ('DIRECT', 'GROUP');
 
 -- CreateEnum
@@ -6,6 +12,9 @@ CREATE TYPE "public"."ParticipantRole" AS ENUM ('MEMBER', 'ADMIN');
 
 -- CreateEnum
 CREATE TYPE "public"."MessageType" AS ENUM ('TEXT', 'FILE', 'FORWARDED');
+
+-- CreateEnum
+CREATE TYPE "public"."ThemeType" AS ENUM ('LIGHT', 'DARK', 'SYSTEM');
 
 -- CreateTable
 CREATE TABLE "public"."User" (
@@ -18,8 +27,39 @@ CREATE TABLE "public"."User" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "lastSeenAt" TIMESTAMP(3),
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "twoFASecret" TEXT,
+    "isTwoFAEnable" BOOLEAN NOT NULL DEFAULT false,
+    "failed2FAAttempts" INTEGER NOT NULL DEFAULT 0,
+    "lockedUntil" TIMESTAMP(3),
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."UserDevice" (
+    "id" TEXT NOT NULL,
+    "ip_address" TEXT NOT NULL,
+    "os" TEXT NOT NULL,
+    "browser" TEXT NOT NULL,
+    "device_type" "public"."device_type" NOT NULL,
+    "user_agent" TEXT NOT NULL,
+    "last_active" TIMESTAMP(3) NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "trusted" BOOLEAN NOT NULL DEFAULT false,
+
+    CONSTRAINT "UserDevice_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."FriendRequest" (
+    "id" TEXT NOT NULL,
+    "senderId" TEXT NOT NULL,
+    "receiverId" TEXT NOT NULL,
+    "status" "public"."FriendStatus" NOT NULL DEFAULT 'PENDING',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "FriendRequest_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -83,11 +123,36 @@ CREATE TABLE "public"."MessageRead" (
     CONSTRAINT "MessageRead_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "public"."UserSettings" (
+    "id" TEXT NOT NULL,
+    "activeStatus" BOOLEAN NOT NULL DEFAULT false,
+    "soundNotifications" BOOLEAN NOT NULL DEFAULT false,
+    "theme" "public"."ThemeType" NOT NULL DEFAULT 'LIGHT',
+    "userId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "UserSettings_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_username_key" ON "public"."User"("username");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "public"."User"("email");
+
+-- CreateIndex
+CREATE INDEX "UserDevice_user_id_idx" ON "public"."UserDevice"("user_id");
+
+-- CreateIndex
+CREATE INDEX "FriendRequest_receiverId_idx" ON "public"."FriendRequest"("receiverId");
+
+-- CreateIndex
+CREATE INDEX "FriendRequest_senderId_idx" ON "public"."FriendRequest"("senderId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "FriendRequest_senderId_receiverId_key" ON "public"."FriendRequest"("senderId", "receiverId");
 
 -- CreateIndex
 CREATE INDEX "Conversation_type_idx" ON "public"."Conversation"("type");
@@ -128,6 +193,18 @@ CREATE INDEX "MessageRead_userId_idx" ON "public"."MessageRead"("userId");
 -- CreateIndex
 CREATE UNIQUE INDEX "MessageRead_messageId_userId_key" ON "public"."MessageRead"("messageId", "userId");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "UserSettings_userId_key" ON "public"."UserSettings"("userId");
+
+-- AddForeignKey
+ALTER TABLE "public"."UserDevice" ADD CONSTRAINT "UserDevice_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."FriendRequest" ADD CONSTRAINT "FriendRequest_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."FriendRequest" ADD CONSTRAINT "FriendRequest_receiverId_fkey" FOREIGN KEY ("receiverId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
 -- AddForeignKey
 ALTER TABLE "public"."ConversationParticipant" ADD CONSTRAINT "ConversationParticipant_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -151,3 +228,6 @@ ALTER TABLE "public"."MessageRead" ADD CONSTRAINT "MessageRead_messageId_fkey" F
 
 -- AddForeignKey
 ALTER TABLE "public"."MessageRead" ADD CONSTRAINT "MessageRead_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."UserSettings" ADD CONSTRAINT "UserSettings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
