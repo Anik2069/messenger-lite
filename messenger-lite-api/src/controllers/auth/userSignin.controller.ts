@@ -111,8 +111,8 @@ export default function userSignin(io: IOServerWithHelpers) {
           });
         } else {
           // Device is new but user already passed 2FA, create it as untrusted (or trusted if you want)
-          const isFromPostman =
-            deviceInfo.user_agent.includes("PostmanRuntime");
+          const isFromPostman = false;
+          // deviceInfo.user_agent.includes("PostmanRuntime");
           if (!isFromPostman) {
             const newDevice = await prisma.userDevice.create({
               data: {

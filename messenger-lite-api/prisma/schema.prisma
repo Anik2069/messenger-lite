@@ -34,7 +34,7 @@ model User {
 
   sentFriendRequests     FriendRequest[] @relation("SentFriendRequests")
   receivedFriendRequests FriendRequest[] @relation("ReceivedFriendRequests")
-  UserDevice      UserDevice[]
+  UserDevice      UserDevice[] 
 }
 model UserDevice {
     id String @id @default(cuid())
@@ -46,10 +46,10 @@ model UserDevice {
     last_active DateTime
     user_id  String
     trusted Boolean @default(false)
-    
+
     User   User @relation(fields: [user_id], references: [id])
 
-   
+    @@index([user_id])
 }
 
 enum device_type  {
