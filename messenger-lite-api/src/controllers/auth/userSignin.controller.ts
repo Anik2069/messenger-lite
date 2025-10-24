@@ -88,6 +88,9 @@ export default function userSignin(io: IOServerWithHelpers) {
         const userInfo = await prisma.user.findUnique({
           where: { id },
           omit: { password: true, twoFASecret: true },
+          include: {
+            settings: true,
+          },
         });
         console.log("User signed in:", userInfo);
         const deviceInfo: DeviceInfo = await trackDevice(req as any);

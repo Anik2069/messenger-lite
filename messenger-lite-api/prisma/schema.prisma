@@ -1,7 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  // Remove if you don't actually use DB views:
-  // previewFeatures = ["views"]
 }
 
 datasource db {
@@ -10,57 +8,43 @@ datasource db {
 }
 
 model User {
-  id         String    @id @default(uuid())
-  username   String    @unique
-  email      String    @unique
-  password   String
-  avatar     String?
-  isOnline   Boolean   @default(false)
-  createdAt  DateTime  @default(now())
-  lastSeenAt DateTime?
-  updatedAt  DateTime  @updatedAt
-
-  //  2FA / Google Authentication
-  twoFASecret       String?
-  isTwoFAEnable     Boolean   @default(false)
-  failed2FAAttempts Int       @default(0)
-  lockedUntil       DateTime?
-
-  participants ConversationParticipant[]
-  messages     Message[]                 @relation("MessageAuthor")
-  reactions    MessageReaction[]
-  reads        MessageRead[]
-  setting UserSettings?
-
-  sentFriendRequests     FriendRequest[] @relation("SentFriendRequests")
-  receivedFriendRequests FriendRequest[] @relation("ReceivedFriendRequests")
-  UserDevice      UserDevice[] 
+  id                     String                    @id @default(uuid())
+  username               String                    @unique
+  email                  String                    @unique
+  password               String
+  avatar                 String?
+  isOnline               Boolean                   @default(false)
+  createdAt              DateTime                  @default(now())
+  lastSeenAt             DateTime?
+  updatedAt              DateTime                  @updatedAt
+  failed2FAAttempts      Int                       @default(0)
+  isTwoFAEnable          Boolean                   @default(false)
+  lockedUntil            DateTime?
+  twoFASecret            String?
+  participants           ConversationParticipant[]
+  receivedFriendRequests FriendRequest[]           @relation("ReceivedFriendRequests")
+  sentFriendRequests     FriendRequest[]           @relation("SentFriendRequests")
+  messages               Message[]                 @relation("MessageAuthor")
+  reactions              MessageReaction[]
+  reads                  MessageRead[]
+  UserDevice             UserDevice[]
+  settings               UserSettings?
 }
+
 model UserDevice {
-    id String @id @default(cuid())
-    ip_address String
-    os String
-    browser String
-    device_type device_type
-    user_agent String
-    last_active DateTime
-    user_id  String
-    trusted Boolean @default(false)
+  id          String      @id @default(cuid())
+  ip_address  String
+  os          String
+  browser     String
+  device_type device_type
+  user_agent  String
+  last_active DateTime
+  user_id     String
+  trusted     Boolean     @default(false)
+  User        User        @relation(fields: [user_id], references: [id])
 
-    User   User @relation(fields: [user_id], references: [id])
-
-    @@index([user_id])
+  @@index([user_id])
 }
-
-enum device_type  {
-    DESKTOP
-    MOBILE
-    TABLET
-    BOT
-    POSTMAN
-    UNKNOWN
-}
-
 
 model FriendRequest {
   id         String       @id @default(uuid())
@@ -69,39 +53,26 @@ model FriendRequest {
   status     FriendStatus @default(PENDING)
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
+  receiver   User         @relation("ReceivedFriendRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender     User         @relation("SentFriendRequests", fields: [senderId], references: [id], onDelete: Cascade)
 
-  sender   User @relation("SentFriendRequests", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver User @relation("ReceivedFriendRequests", fields: [receiverId], references: [id], onDelete: Cascade)
   @@unique([senderId, receiverId])
   @@index([receiverId])
   @@index([senderId])
 }
 
-enum FriendStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
-  BLOCKED
-}
-
 model Conversation {
-  id        String           @id @default(uuid())
-  type      ConversationType
-  name      String?
-  avatar    String?
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-
+  id           String                    @id @default(uuid())
+  type         ConversationType
+  name         String?
+  avatar       String?
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
   participants ConversationParticipant[]
   messages     Message[]
 
   @@index([type])
   @@index([updatedAt])
-}
-
-enum ConversationType {
-  DIRECT
-  GROUP
 }
 
 model ConversationParticipant {
@@ -110,46 +81,33 @@ model ConversationParticipant {
   conversationId String
   role           ParticipantRole @default(MEMBER)
   joinedAt       DateTime        @default(now())
-
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversation   Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, conversationId])
   @@index([conversationId])
   @@index([userId])
 }
 
-enum ParticipantRole {
-  MEMBER
-  ADMIN
-}
-
 model Message {
-  id             String      @id @default(uuid())
+  id             String            @id @default(uuid())
   conversationId String
   authorId       String
   message        String
-  messageType    MessageType @default(TEXT)
+  messageType    MessageType       @default(TEXT)
   fileUrl        String?
   fileName       String?
   fileMime       String?
   fileSize       Int?
   forwardedFrom  String?
-  createdAt      DateTime    @default(now())
-
-  conversation Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  author       User              @relation("MessageAuthor", fields: [authorId], references: [id], onDelete: Cascade)
-  reactions    MessageReaction[]
-  receipts     MessageRead[]
+  createdAt      DateTime          @default(now())
+  author         User              @relation("MessageAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  conversation   Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  reactions      MessageReaction[]
+  receipts       MessageRead[]
 
   @@index([conversationId, createdAt])
   @@index([authorId])
-}
-
-enum MessageType {
-  TEXT
-  FILE
-  FORWARDED
 }
 
 model MessageReaction {
@@ -158,9 +116,8 @@ model MessageReaction {
   userId    String
   emoji     String
   createdAt DateTime @default(now())
-
-  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([messageId, userId, emoji])
   @@index([messageId])
@@ -172,9 +129,8 @@ model MessageRead {
   messageId String
   userId    String
   readAt    DateTime @default(now())
-
-  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([messageId, userId])
   @@index([messageId])
@@ -182,16 +138,46 @@ model MessageRead {
 }
 
 model UserSettings {
-  id                 String     @id @default(cuid())
-  activeStatus       Boolean    @default(false)
-  soundNotifications Boolean    @default(false)
-  theme              ThemeType  @default(LIGHT)
+  id                 String    @id @default(cuid())
+  activeStatus       Boolean   @default(false)
+  soundNotifications Boolean   @default(false)
+  theme              ThemeType @default(LIGHT)
+  userId             String    @unique
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  user               User      @relation(fields: [userId], references: [id])
+}
 
-  user   User   @relation(fields: [userId], references: [id])
-  userId String @unique
+enum device_type {
+  DESKTOP
+  MOBILE
+  TABLET
+  BOT
+  POSTMAN
+  UNKNOWN
+}
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
+enum ParticipantRole {
+  MEMBER
+  ADMIN
+}
+
+enum MessageType {
+  TEXT
+  FILE
+  FORWARDED
 }
 
 enum ThemeType {
