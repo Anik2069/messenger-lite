@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { set } from "date-fns";
 import { useModal } from "@/hooks/useModal";
+import { useSettings } from "./SettingsContext";
 interface ApiResponse<T = unknown> {
   statusCode: number;
   message: string;

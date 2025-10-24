@@ -23,6 +23,7 @@ type SettingsContextType = {
   toggleActiveStatus: () => void;
   activeStatus: Status | null;
   otherStatuses: Record<string, Status>; // 👈 map of userId -> Status
+  setSettings: (settings: Settings) => void;
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(
@@ -41,41 +42,52 @@ export const SettingsProvider = ({
   );
   const { user } = useAuth();
   const userId = user?.id || "";
+  useEffect(() => {
+    if (!user) return;
+
+    const settings = {
+      theme: user?.settings?.theme?.toLowerCase(),
+      soundNotifications: user?.settings?.soundNotifications,
+      activeStatus: user?.settings?.activeStatus,
+    };
+    setSettings(settings as Settings);
+    console.log(user?.settings);
+  }, [user]);
 
   // --- Hydrate from localStorage
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  // useEffect(() => {
+  //   if (typeof window === "undefined") return;
 
-    try {
-      const rawSettings = localStorage.getItem("settings");
-      if (rawSettings) {
-        const parsed = JSON.parse(rawSettings);
-        setSettings(parsed);
-        document.documentElement.classList.toggle(
-          "dark",
-          parsed.theme === "dark"
-        );
-      } else {
-        const prefersDark = window.matchMedia(
-          "(prefers-color-scheme: dark)"
-        ).matches;
-        document.documentElement.classList.toggle("dark", prefersDark);
-      }
+  //   try {
+  //     const rawSettings = localStorage.getItem("settings");
+  //     if (rawSettings) {
+  //       const parsed = JSON.parse(rawSettings);
+  //       setSettings(parsed);
+  //       document.documentElement.classList.toggle(
+  //         "dark",
+  //         parsed.theme === "dark"
+  //       );
+  //     } else {
+  //       const prefersDark = window.matchMedia(
+  //         "(prefers-color-scheme: dark)"
+  //       ).matches;
+  //       document.documentElement.classList.toggle("dark", prefersDark);
+  //     }
 
-      const rawPresence = localStorage.getItem("activeStatus");
-      if (rawPresence) setActiveStatus(JSON.parse(rawPresence));
-    } catch {
-      setSettings({});
-      setActiveStatus(null);
-    }
-  }, []);
+  //     const rawPresence = localStorage.getItem("activeStatus");
+  //     if (rawPresence) setActiveStatus(JSON.parse(rawPresence));
+  //   } catch {
+  //     setSettings({});
+  //     setActiveStatus(null);
+  //   }
+  // }, []);
 
   // --- Persist activeStatus
-  useEffect(() => {
-    if (activeStatus) {
-      localStorage.setItem("activeStatus", JSON.stringify(activeStatus));
-    }
-  }, [activeStatus]);
+  // useEffect(() => {
+  //   if (activeStatus) {
+  //     localStorage.setItem("activeStatus", JSON.stringify(activeStatus));
+  //   }
+  // }, [activeStatus]);
 
   // --- Socket listeners
   useEffect(() => {
@@ -158,6 +170,7 @@ export const SettingsProvider = ({
         toggleActiveStatus,
         activeStatus,
         otherStatuses,
+        setSettings,
       }}
     >
       {children}
