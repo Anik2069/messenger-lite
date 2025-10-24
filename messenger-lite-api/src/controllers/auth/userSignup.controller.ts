@@ -54,6 +54,13 @@ const userSignup = (io: IOServerWithHelpers) => {
           email,
           password: hashed,
           isOnline: true,
+          settings: {
+            create: {
+              theme: "LIGHT",
+              activeStatus: true,
+              soundNotifications: true,
+            },
+          },
         },
         select: {
           id: true,
@@ -62,6 +69,7 @@ const userSignup = (io: IOServerWithHelpers) => {
           isOnline: true,
           createdAt: true,
           updatedAt: true,
+          settings: true,
         },
       });
 
