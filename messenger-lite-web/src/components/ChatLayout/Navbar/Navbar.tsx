@@ -1,10 +1,8 @@
 import React from "react";
-import { User } from "../../../types/UserType";
 import {
   LogOut,
   MailPlus,
   MessageSquare,
-  Plus,
   Search,
   Settings,
   UserRoundPlus,
@@ -17,6 +15,7 @@ import { useGlobalContext } from "@/provider/GlobalContextProvider";
 import { useAuth } from "@/context/useAuth";
 import { useSettings } from "@/context/SettingsContext";
 import { APP_NAME } from "@/constant";
+import { User } from "@/types/UserType";
 
 interface NavbarProps {
   user: User | null;
@@ -33,15 +32,14 @@ const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
     addFriendModalOpen,
   } = useGlobalContext();
   const { logout } = useAuth();
-  const { activeStatus } = useSettings();
+  const { settings, activeStatus } = useSettings();
 
   const handleLogout = async () => await logout();
   const handleClickNew = () => newDrawerOpen();
   const handleClickAddFriend = () => addFriendModalOpen();
 
-  // presence logic
-  const isSelf = activeStatus?.userId === user?.id;
-  const isOnline = isConnected && isSelf ? !!activeStatus?.isOnline : false;
+  // Use activeStatus from context (real-time) or fallback to settings
+  const isOnline = activeStatus?.isOnline ?? settings?.activeStatus ?? false;
 
   const presenceClasses = isOnline
     ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
@@ -60,7 +58,7 @@ const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
         <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
           <MessageSquare
             onClick={onIconClick}
-            className="w-5 h-5 text-white  lg:hidden cursor-pointer"
+            className="w-5 h-5 text-white lg:hidden cursor-pointer"
           />
           <MessageSquare className="w-5 h-5 text-white hidden lg:block" />
         </div>

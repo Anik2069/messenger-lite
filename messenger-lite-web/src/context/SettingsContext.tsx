@@ -18,6 +18,7 @@ export type Settings = {
 export type Status = {
   userId: string;
   isOnline: boolean;
+  lastSeenAt?: string | null;
 };
 
 type SettingsContextType = {
@@ -28,6 +29,10 @@ type SettingsContextType = {
   activeStatus: Status | null;
   otherStatuses: Record<string, Status>;
   setSettings: (settings: Settings) => void;
+  setActiveStatus: (status: Status | null) => void;
+  setOtherStatuses: React.Dispatch<
+    React.SetStateAction<Record<string, Status>>
+  >;
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(
@@ -53,27 +58,43 @@ export const SettingsProvider = ({
   }, [user]);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !socket) return;
 
-    const onSelfPresence = ({ userId: uid, isOnline }: Status) => {
-      setActiveStatus({ userId: uid, isOnline });
+    // Handle self presence updates
+    const handleSelfPresence = (status: Status) => {
+      if (status.userId === userId) {
+        setActiveStatus(status);
+      }
     };
 
-    const onPresenceUpdate = ({ userId, isOnline }: Status) => {
-      setOtherStatuses((prev) => ({
-        ...prev,
-        [userId]: { userId, isOnline },
-      }));
+    // Handle presence updates of other users
+    const handlePresenceUpdate = (status: Status) => {
+      console.log("update other presence");
+      if (status.userId !== userId) {
+        setOtherStatuses((prev) => ({
+          ...prev,
+          [status.userId]: status,
+        }));
+      }
     };
 
-    socket.on("presence_self", onSelfPresence);
-    socket.on("presence_update", onPresenceUpdate);
+    // Register listeners
+    socket.on("presence_self", handleSelfPresence);
+    socket.on("presence_update", handlePresenceUpdate);
 
+    // Set initial status from settings
+    if (settings) {
+      const initialStatus = { userId, isOnline: settings.activeStatus };
+      setActiveStatus(initialStatus);
+      socket.emit("set_status", { isOnline: settings.activeStatus });
+    }
+
+    // Cleanup
     return () => {
-      socket.off("presence_self", onSelfPresence);
-      socket.off("presence_update", onPresenceUpdate);
+      socket.off("presence_self", handleSelfPresence);
+      socket.off("presence_update", handlePresenceUpdate);
     };
-  }, [userId]);
+  }, [userId, settings]);
 
   const applyTheme = (theme: "DARK" | "LIGHT") => {
     if (typeof window !== "undefined") {
@@ -97,6 +118,7 @@ export const SettingsProvider = ({
       const newSettings = response.data?.results as Settings | undefined;
       if (newSettings) {
         persistSettings(newSettings);
+        return newSettings;
       } else {
         console.warn("updateSettings: Missing results in response");
       }
@@ -108,14 +130,20 @@ export const SettingsProvider = ({
   const fetchSettings = async () => {
     try {
       const response = await axiosInstance.get("settings/my-settings");
-
       const s = response.data?.results as Settings | undefined;
+
       if (s) {
         const normalized: Settings = {
           ...s,
           theme: s.theme?.toUpperCase() as "DARK" | "LIGHT",
         };
         persistSettings(normalized);
+
+        // Set initial active status
+        setActiveStatus({
+          userId,
+          isOnline: normalized.activeStatus,
+        });
       } else {
         console.warn("fetchSettings: No results found");
       }
@@ -135,11 +163,20 @@ export const SettingsProvider = ({
     updateSettings({ soundNotifications: !settings.soundNotifications });
   };
 
-  const toggleActiveStatus = () => {
+  const toggleActiveStatus = async () => {
     if (!settings) return;
-    const active = !settings.activeStatus;
-    updateSettings({ activeStatus: active });
-    saveActiveStatus(active);
+    const newActiveStatus = !settings.activeStatus;
+
+    // Update settings first
+    const updatedSettings = await updateSettings({
+      activeStatus: newActiveStatus,
+    });
+
+    if (updatedSettings) {
+      // Then update presence via socket and API
+      await saveActiveStatus(newActiveStatus);
+      setActiveStatus({ userId, isOnline: newActiveStatus });
+    }
   };
 
   const saveActiveStatus = async (active: boolean) => {
@@ -147,8 +184,7 @@ export const SettingsProvider = ({
       await axiosInstance.post("auth/user/activeStatus", {
         activeStatus: active,
       });
-      socket.emit("set_status", { isOnline: active });
-      setActiveStatus({ userId, isOnline: active });
+      socket.emit("set_status", { isOnline: active, updateMode: true });
     } catch (error) {
       console.error("Failed to save activeStatus:", error);
     }
@@ -164,6 +200,8 @@ export const SettingsProvider = ({
         activeStatus,
         otherStatuses,
         setSettings,
+        setOtherStatuses,
+        setActiveStatus,
       }}
     >
       {children}
