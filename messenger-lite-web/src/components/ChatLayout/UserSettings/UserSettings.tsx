@@ -33,14 +33,14 @@ const UserSettings = () => {
             {user?.username}
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            {settings.activeStatus ? "Online" : "Offline"}
+            {settings?.activeStatus ? "Online" : "Offline"}
           </p>
         </div>
 
         {/* Theme Toggle */}
         <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700">
           <div className="flex items-center space-x-3">
-            {settings.theme === "dark" ? (
+            {settings?.theme === "DARK" ? (
               <Moon className="w-5 h-5 text-blue-500" />
             ) : (
               <Sun className="w-5 h-5 text-yellow-500" />
@@ -57,12 +57,12 @@ const UserSettings = () => {
           <button
             onClick={toggleTheme}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              settings.theme === "dark" ? "bg-blue-500" : "bg-gray-300"
+              settings?.theme === "DARK" ? "bg-blue-500" : "bg-gray-300"
             }`}
           >
             <span
               className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                settings.theme === "dark" ? "translate-x-6" : "translate-x-1"
+                settings?.theme === "DARK" ? "translate-x-6" : "translate-x-1"
               }`}
             />
           </button>
@@ -71,7 +71,7 @@ const UserSettings = () => {
         {/* Sound Notifications */}
         <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700">
           <div className="flex items-center space-x-3">
-            {settings.soundNotifications ? (
+            {settings?.soundNotifications ? (
               <Volume2 className="w-5 h-5 text-blue-500" />
             ) : (
               <VolumeX className="w-5 h-5 text-gray-400" />
@@ -88,12 +88,12 @@ const UserSettings = () => {
           <button
             onClick={toggleSound}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              settings.soundNotifications ? "bg-blue-500" : "bg-gray-300"
+              settings?.soundNotifications ? "bg-blue-500" : "bg-gray-300"
             }`}
           >
             <span
               className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                settings.soundNotifications ? "translate-x-6" : "translate-x-1"
+                settings?.soundNotifications ? "translate-x-6" : "translate-x-1"
               }`}
             />
           </button>
@@ -102,7 +102,7 @@ const UserSettings = () => {
         {/* Active Status */}
         <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700">
           <div className="flex items-center space-x-3">
-            {settings.activeStatus ? (
+            {settings?.activeStatus ? (
               <UserStar className="w-5 h-5 text-blue-500" />
             ) : (
               <UserRoundX className="w-5 h-5 text-gray-400" />
@@ -119,12 +119,12 @@ const UserSettings = () => {
           <button
             onClick={toggleActiveStatus}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              settings.activeStatus ? "bg-blue-500" : "bg-gray-300"
+              settings?.activeStatus ? "bg-blue-500" : "bg-gray-300"
             }`}
           >
             <span
               className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                settings.activeStatus ? "translate-x-6" : "translate-x-1"
+                settings?.activeStatus ? "translate-x-6" : "translate-x-1"
               }`}
             />
           </button>

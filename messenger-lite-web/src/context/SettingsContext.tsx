@@ -5,24 +5,28 @@ import { socket } from "@/lib/socket";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useAuth } from "./useAuth";
 
-type Settings = {
-  theme?: "dark" | "light";
-  soundNotifications?: boolean;
-  activeStatus?: boolean;
+export type Settings = {
+  id: string;
+  userId: string;
+  theme: "DARK" | "LIGHT";
+  soundNotifications: boolean;
+  activeStatus: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
-type Status = {
+export type Status = {
   userId: string;
   isOnline: boolean;
 };
 
 type SettingsContextType = {
-  settings: Settings;
+  settings: Settings | null;
   toggleTheme: () => void;
   toggleSound: () => void;
   toggleActiveStatus: () => void;
   activeStatus: Status | null;
-  otherStatuses: Record<string, Status>; // 👈 map of userId -> Status
+  otherStatuses: Record<string, Status>;
   setSettings: (settings: Settings) => void;
 };
 
@@ -35,73 +39,29 @@ export const SettingsProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [settings, setSettings] = useState<Settings>({});
+  const [settings, setSettings] = useState<Settings | null>(null);
   const [activeStatus, setActiveStatus] = useState<Status | null>(null);
   const [otherStatuses, setOtherStatuses] = useState<Record<string, Status>>(
     {}
   );
   const { user } = useAuth();
   const userId = user?.id || "";
+
+  // ---------------- Fetch Settings on Login ----------------
   useEffect(() => {
     if (!user) return;
-
-    const settings = {
-      theme: user?.settings?.theme?.toLowerCase(),
-      soundNotifications: user?.settings?.soundNotifications,
-      activeStatus: user?.settings?.activeStatus,
-    };
-    setSettings(settings as Settings);
-    console.log(user?.settings);
+    fetchSettings();
   }, [user]);
 
-  // --- Hydrate from localStorage
-  // useEffect(() => {
-  //   if (typeof window === "undefined") return;
-
-  //   try {
-  //     const rawSettings = localStorage.getItem("settings");
-  //     if (rawSettings) {
-  //       const parsed = JSON.parse(rawSettings);
-  //       setSettings(parsed);
-  //       document.documentElement.classList.toggle(
-  //         "dark",
-  //         parsed.theme === "dark"
-  //       );
-  //     } else {
-  //       const prefersDark = window.matchMedia(
-  //         "(prefers-color-scheme: dark)"
-  //       ).matches;
-  //       document.documentElement.classList.toggle("dark", prefersDark);
-  //     }
-
-  //     const rawPresence = localStorage.getItem("activeStatus");
-  //     if (rawPresence) setActiveStatus(JSON.parse(rawPresence));
-  //   } catch {
-  //     setSettings({});
-  //     setActiveStatus(null);
-  //   }
-  // }, []);
-
-  // --- Persist activeStatus
-  // useEffect(() => {
-  //   if (activeStatus) {
-  //     localStorage.setItem("activeStatus", JSON.stringify(activeStatus));
-  //   }
-  // }, [activeStatus]);
-
-  // --- Socket listeners
+  // ---------------- Socket Presence Handling ----------------
   useEffect(() => {
     if (!userId) return;
 
-    // Self
     const onSelfPresence = ({ userId: uid, isOnline }: Status) => {
-      console.log("[socket] presence_self →", { userId: uid, isOnline });
       setActiveStatus({ userId: uid, isOnline });
     };
 
-    // Others
     const onPresenceUpdate = ({ userId, isOnline }: Status) => {
-      console.log("[socket] presence_update/global →", { userId, isOnline });
       setOtherStatuses((prev) => ({
         ...prev,
         [userId]: { userId, isOnline },
@@ -109,20 +69,83 @@ export const SettingsProvider = ({
     };
 
     socket.on("presence_self", onSelfPresence);
-    socket.on("presence_global", onPresenceUpdate);
     socket.on("presence_update", onPresenceUpdate);
 
     return () => {
       socket.off("presence_self", onSelfPresence);
-      socket.off("presence_global", onPresenceUpdate);
       socket.off("presence_update", onPresenceUpdate);
     };
   }, [userId]);
 
-  // --- Helpers
+  // ---------------- Helpers ----------------
+  const applyTheme = (theme: "DARK" | "LIGHT") => {
+    if (typeof window !== "undefined") {
+      document.documentElement.classList.toggle("dark", theme === "DARK");
+    }
+  };
+
   const persistSettings = (updated: Settings) => {
     setSettings(updated);
     localStorage.setItem("settings", JSON.stringify(updated));
+    applyTheme(updated.theme);
+  };
+
+  const updateSettings = async (updated: Partial<Settings>) => {
+    try {
+      const response = await axiosInstance.patch(
+        "settings/update-my-settings",
+        updated
+      );
+
+      // ✅ backend sends { results: updatedSettings }
+      const newSettings = response.data?.results as Settings | undefined;
+      if (newSettings) {
+        persistSettings(newSettings);
+      } else {
+        console.warn("updateSettings: Missing results in response");
+      }
+    } catch (error) {
+      console.error("Failed to update settings:", error);
+    }
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const response = await axiosInstance.get("settings/my-settings");
+
+      // ✅ backend sends { results: settings }
+      const s = response.data?.results as Settings | undefined;
+      if (s) {
+        const normalized: Settings = {
+          ...s,
+          theme: s.theme?.toUpperCase() as "DARK" | "LIGHT",
+        };
+        persistSettings(normalized);
+      } else {
+        console.warn("fetchSettings: No results found");
+      }
+    } catch (error) {
+      console.error("Failed to fetch settings:", error);
+    }
+  };
+
+  // ---------------- Toggles ----------------
+  const toggleTheme = () => {
+    if (!settings) return;
+    const newTheme = settings.theme === "DARK" ? "LIGHT" : "DARK";
+    updateSettings({ theme: newTheme });
+  };
+
+  const toggleSound = () => {
+    if (!settings) return;
+    updateSettings({ soundNotifications: !settings.soundNotifications });
+  };
+
+  const toggleActiveStatus = () => {
+    if (!settings) return;
+    const active = !settings.activeStatus;
+    updateSettings({ activeStatus: active });
+    saveActiveStatus(active);
   };
 
   const saveActiveStatus = async (active: boolean) => {
@@ -135,30 +158,6 @@ export const SettingsProvider = ({
     } catch (error) {
       console.error("Failed to save activeStatus:", error);
     }
-  };
-
-  // --- Toggles
-  const toggleTheme = () => {
-    const newTheme = settings.theme === "dark" ? "light" : "dark";
-    const updated = { ...settings, theme: newTheme };
-    persistSettings(updated as Settings);
-    if (typeof window !== "undefined") {
-      document.documentElement.classList.toggle("dark", newTheme === "dark");
-    }
-  };
-
-  const toggleSound = () => {
-    const updated = {
-      ...settings,
-      soundNotifications: !settings.soundNotifications,
-    };
-    persistSettings(updated);
-  };
-
-  const toggleActiveStatus = () => {
-    const updated = { ...settings, activeStatus: !settings.activeStatus };
-    persistSettings(updated);
-    saveActiveStatus(!!updated.activeStatus);
   };
 
   return (
