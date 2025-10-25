@@ -7,17 +7,17 @@ import AcceptOrRejectRequest from "../../../controllers/friend/AcceptOrRejectReq
 import { FriendsList } from "../../../controllers/friend/FriendsList.controller";
 import { GetSuggestedFriends } from "../../../controllers/friend/GetSuggestedFriends.controller";
 import GetRequestedUsers from "../../../controllers/friend/GetRequestedUsers.controller";
+import {
+  getSettings,
+  updateSettings,
+} from "../../../controllers/auth/settings/settings.controller";
 
 const settingsRouter = (io: IOServerWithHelpers) => {
   const prisma = new PrismaClient();
   const router = Router();
-
-  //   router.patch(
-  //     "/update-settings/:id",
-  //     requireAuth,
-  //     AcceptOrRejectRequest(io, prisma)
-  //   );
-  //   router.get("/my-settings", requireAuth, FriendsList);
+  router.get("/my-settings", requireAuth, getSettings);
+  router.patch("/update-my-settings", requireAuth, updateSettings(io, prisma));
+  // router.get("/my-settings", requireAuth, FriendsList);
   return router;
 };
 
