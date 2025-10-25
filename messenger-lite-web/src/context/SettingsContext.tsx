@@ -47,13 +47,11 @@ export const SettingsProvider = ({
   const { user } = useAuth();
   const userId = user?.id || "";
 
-  // ---------------- Fetch Settings on Login ----------------
   useEffect(() => {
     if (!user) return;
     fetchSettings();
   }, [user]);
 
-  // ---------------- Socket Presence Handling ----------------
   useEffect(() => {
     if (!userId) return;
 
@@ -77,7 +75,6 @@ export const SettingsProvider = ({
     };
   }, [userId]);
 
-  // ---------------- Helpers ----------------
   const applyTheme = (theme: "DARK" | "LIGHT") => {
     if (typeof window !== "undefined") {
       document.documentElement.classList.toggle("dark", theme === "DARK");
@@ -97,7 +94,6 @@ export const SettingsProvider = ({
         updated
       );
 
-      // ✅ backend sends { results: updatedSettings }
       const newSettings = response.data?.results as Settings | undefined;
       if (newSettings) {
         persistSettings(newSettings);
@@ -113,7 +109,6 @@ export const SettingsProvider = ({
     try {
       const response = await axiosInstance.get("settings/my-settings");
 
-      // ✅ backend sends { results: settings }
       const s = response.data?.results as Settings | undefined;
       if (s) {
         const normalized: Settings = {
@@ -129,7 +124,6 @@ export const SettingsProvider = ({
     }
   };
 
-  // ---------------- Toggles ----------------
   const toggleTheme = () => {
     if (!settings) return;
     const newTheme = settings.theme === "DARK" ? "LIGHT" : "DARK";
