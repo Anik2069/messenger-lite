@@ -12,6 +12,7 @@ import { useAuth } from "@/context/useAuth";
 import { Status, useSettings } from "@/context/SettingsContext";
 import { formatLocalTime } from "@/types/MessageType";
 import { format, isToday, parseISO } from "date-fns";
+import { useChatStore } from "@/store/useChatStore";
 
 interface ChatSidebarProps {
   groups: Group[];
@@ -38,6 +39,10 @@ const ChatSidebar = ({
   //   console.log(activeStatus, "activeStatus");
   //   console.log(otherStatuses, "otherStatuses");
   // }, [activeStatus, otherStatuses]);
+
+  useEffect(() => {
+    console.log(selectedChat, "selectedChat");
+  }, [selectedChat]);
 
   useEffect(() => {
     fetchConversations();
@@ -76,8 +81,8 @@ const ChatSidebar = ({
             const otherParticipant = !isGroup
               ? conv.participants.find((p) => p.user.id !== user?.id)?.user
               : null;
-            console.log(otherParticipant, "otherParticipant");
-            console.log(conv, "participants");
+            // console.log(otherParticipant, "otherParticipant");
+            // console.log(conv, "participants");
 
             const displayName = isGroup
               ? conv.name

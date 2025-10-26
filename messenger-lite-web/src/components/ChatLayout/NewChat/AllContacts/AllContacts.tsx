@@ -29,7 +29,7 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
 
   useEffect(() => {
     const newUserCreate = (datid: string, newUser: boolean) => {
-      console.log("User created event received:", datid, "New User:", newUser);
+      // console.log("User created event received:", datid, "New User:", newUser);
       // setActiveStatus({ userId: uid, isOnline });
       fetchFriends(searchText);
     };
@@ -73,15 +73,15 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
         return (
           <div
             key={userInfo?.id}
-            onClick={() =>
+            onClick={() => {
               handleChatSelect(
                 "user",
                 userInfo?.id,
                 userInfo?.username,
                 userInfo?.avatar,
                 isOnline
-              )
-            }
+              );
+            }}
             className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
               selectedChat?.type === "user" && selectedChat?.id === userInfo?.id
                 ? "bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500"
