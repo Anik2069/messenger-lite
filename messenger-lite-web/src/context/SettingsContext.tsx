@@ -33,6 +33,7 @@ type SettingsContextType = {
   setOtherStatuses: React.Dispatch<
     React.SetStateAction<Record<string, Status>>
   >;
+  fetchSettings: () => void;
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(
@@ -202,6 +203,7 @@ export const SettingsProvider = ({
         setSettings,
         setOtherStatuses,
         setActiveStatus,
+        fetchSettings,
       }}
     >
       {children}
