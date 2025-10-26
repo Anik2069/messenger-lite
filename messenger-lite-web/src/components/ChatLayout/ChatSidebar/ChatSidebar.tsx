@@ -34,10 +34,10 @@ const ChatSidebar = ({
     group.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  useEffect(() => {
-    console.log(activeStatus, "activeStatus");
-    console.log(otherStatuses, "otherStatuses");
-  }, [activeStatus, otherStatuses]);
+  // useEffect(() => {
+  //   console.log(activeStatus, "activeStatus");
+  //   console.log(otherStatuses, "otherStatuses");
+  // }, [activeStatus, otherStatuses]);
 
   useEffect(() => {
     fetchConversations();
@@ -76,6 +76,8 @@ const ChatSidebar = ({
             const otherParticipant = !isGroup
               ? conv.participants.find((p) => p.user.id !== user?.id)?.user
               : null;
+            console.log(otherParticipant, "otherParticipant");
+            console.log(conv, "participants");
 
             const displayName = isGroup
               ? conv.name
