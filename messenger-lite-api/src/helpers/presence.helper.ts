@@ -48,25 +48,19 @@ export async function updateUserPresence(
       lastSeenAt: isOnline ? null : new Date(),
     });
 
-    // 4) Update presence in all conversations
-    // const convs = await prisma.conversationParticipant.findMany({
-    //   where: { userId },
-    //   select: { conversationId: true },
-    // });
-
-    // convs.forEach((c) => {
-    //   io.to(io.convRoom(c.conversationId)).emit("presence_update", {
-    //     userId,
-    //     isOnline,
-    //     lastSeenAt: isOnline ? null : new Date(),
-    //   });
-    // });
-
+    // 4) Emit to ALL other connected users
     io.except(userId).emit("presence_update", {
       userId,
       isOnline,
       lastSeenAt: isOnline ? null : new Date(),
     });
+
+    console.log(
+      `📢 Presence update: User ${userId} is now ${
+        isOnline ? "online" : "offline"
+      }`
+    );
+    console.log(`   → Sent to: self (${userId}) and all other connected users`);
 
     // 5) Return updated user info
     const updatedUser = await prisma.user.findUnique({
