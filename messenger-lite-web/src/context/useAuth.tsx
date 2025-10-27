@@ -82,6 +82,7 @@ interface AuthContextType {
   userTrustedDevices: UserDevice[] | null;
   isLoadingUserTrustedDevices: boolean;
   fetchTrustedDevices: (userId: string) => void;
+  initialLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -95,6 +96,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [is2FAEnabled, setIs2FAEnabled] = useState<boolean>(false);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [initialLoading, setInitialLoading] = useState<boolean>(true);
+
   const [qr, setQr] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
   const [setupLoading, setSetupLoading] = useState<boolean>(false);
@@ -119,16 +122,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     useState<boolean>(false);
 
   useEffect(() => {
-    const savedToken = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("accessToken");
     const savedUser = localStorage.getItem("user");
-
-    if (savedToken && savedUser) {
-      setToken(savedToken);
+    if (token && savedUser) {
       setUser(JSON.parse(savedUser));
-
-      socket.auth = { token: savedToken };
+      socket.auth = { token };
       if (!socket.connected) socket.connect();
     }
+    setInitialLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -473,6 +474,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         fetchTrustedDevices,
         isLoadingUserTrustedDevices,
         userTrustedDevices,
+        initialLoading,
       }}
     >
       {children}

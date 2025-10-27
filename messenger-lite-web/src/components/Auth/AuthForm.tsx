@@ -49,7 +49,7 @@ function AuthFormInner() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-hidden flex items-center justify-center">
       <div className="w-full max-w-md space-y-6">
         {/* Brand */}
         <div className="text-center">
