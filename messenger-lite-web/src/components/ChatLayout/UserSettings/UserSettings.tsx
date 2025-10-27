@@ -10,7 +10,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import { useGlobalContext } from "@/provider/GlobalContextProvider";
-import React from "react";
+import React, { use, useEffect } from "react";
 import { useSettings } from "@/context/SettingsContext";
 import { useAuth } from "@/context/useAuth";
 
@@ -21,8 +21,17 @@ const UserSettings = () => {
     privacySettingModalOpen,
     generalSettingModalOpen,
   } = useGlobalContext();
-  const { settings, toggleTheme, toggleSound, toggleActiveStatus } =
-    useSettings();
+  const {
+    settings,
+    toggleTheme,
+    toggleSound,
+    toggleActiveStatus,
+    fetchSettings,
+  } = useSettings();
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
 
   return (
     <div>
