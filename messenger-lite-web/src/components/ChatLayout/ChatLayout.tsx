@@ -19,6 +19,7 @@ import axiosInstance from "@/config/axiosInstance";
 import { is } from "zod/v4/locales";
 import AddFriend from "./AddFriend/AddFriend";
 import PrivacySettings from "./UserSettings/PrivacySettings";
+import GeneralSettings from "./UserSettings/GeneralSettings";
 
 declare global {
   interface Window {
@@ -207,11 +208,12 @@ const ChatLayout = () => {
       </Modal>
       <Modal
         maxWidth="7xl"
+        className="!p-0"
         title="General Settings"
         open={isGeneralSettingModalOpen}
         onClose={generalSettingModalClose}
       >
-        <div className=""></div>
+        <GeneralSettings />
       </Modal>
       <Modal
         // overflowAuto={true}
