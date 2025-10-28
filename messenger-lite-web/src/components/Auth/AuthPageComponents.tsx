@@ -15,12 +15,12 @@ export const AuthPageComponents = () => {
         <Spinner />
       </div>
     );
-  if (user)
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white text-center pt-20">
-        Welcome, {user.username}!
-      </div>
-    );
+  // if (user)
+  //   return (
+  //     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white text-center pt-20">
+  //       Welcome, {user.username}!
+  //     </div>
+  //   );
   // return <MessengerLiteCover />;
   // return null;
 

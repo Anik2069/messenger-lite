@@ -124,11 +124,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     const savedUser = localStorage.getItem("user");
+
     if (token && savedUser) {
       setUser(JSON.parse(savedUser));
       socket.auth = { token };
       if (!socket.connected) socket.connect();
+    } else {
+      setUser(null);
     }
+
     setInitialLoading(false);
   }, []);
 
@@ -234,21 +238,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     setIsLogoutLoading(true);
     try {
-      const response = await axiosInstance.post("auth/user/logout");
-      if (response.status === 200) {
-        console.log("Logout successful");
-        setUser(null);
-        setToken(null);
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("user");
-        localStorage.removeItem("friend-storage");
+      await axiosInstance.post("auth/user/logout").catch(() => {});
 
-        if (socket.connected) socket.disconnect();
-        socket.auth = { token: "" };
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("user");
+      localStorage.removeItem("friend-storage");
 
-        // toast.success("Logout successful");
-        router.push("/auth?type=login");
-      }
+      if (socket.connected) socket.disconnect();
+      socket.auth = { token: "" };
+
+      router.replace("/auth?type=login");
     } catch (error) {
       console.error("Logout failed", error);
       toast.error("Logout failed, please try again.");
