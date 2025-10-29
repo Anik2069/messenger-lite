@@ -12,12 +12,14 @@ interface ProfileImageProps {
   loading?: boolean;
   currentImage: string | null;
   onImageChange: (file: File, preview: string) => void;
+  className?: string;
 }
 
 export function ProfileImage({
   loading,
   currentImage,
   onImageChange,
+  className,
 }: ProfileImageProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isHovering, setIsHovering] = useState(false);
@@ -49,7 +51,7 @@ export function ProfileImage({
 
   return (
     <div
-      className="relative rounded-full overflow-hidden cursor-pointer border-4 border-white bg-muted"
+      className={`${className} relative rounded-full overflow-hidden cursor-pointer border-4 border-white bg-muted `}
       onClick={handleImageClick}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}

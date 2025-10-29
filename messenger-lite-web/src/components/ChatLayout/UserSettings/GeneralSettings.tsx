@@ -33,7 +33,7 @@ const menuItems = [
 const GeneralSettings = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, updateProfilePicture } = useAuth();
   const { settings, toggleTheme, toggleSound, toggleActiveStatus } =
     useSettings();
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
@@ -91,16 +91,15 @@ const GeneralSettings = () => {
     try {
       const formData = new FormData();
       formData.append("profile_pic", profileImageFile);
-      //   await updateUserInfo(
-      //     userInfo.id,
-      //     formData,
-      //     "Profile Picture updated successfully!"
-      //   );
+      await updateProfilePicture(formData);
+    } catch (error) {
+      console.log(error);
     } finally {
       setProfileImageFile(null);
       setLoading(false);
     }
   };
+
   return (
     <div className="h-[70dvh]  bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex">
       {/* ===== Sidebar ===== */}
@@ -185,6 +184,7 @@ const GeneralSettings = () => {
                     {user ? (
                       <div className="mx-auto relative">
                         <ProfileImage
+                          className="w-32 h-32"
                           loading={loading}
                           currentImage={profileImagePreview}
                           onImageChange={(file, preview) => {
@@ -262,7 +262,7 @@ const GeneralSettings = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {/* <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Email Address
                     </label>
                     <input
@@ -275,7 +275,7 @@ const GeneralSettings = () => {
                         })
                       }
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    /> */}
                   </div>
 
                   <Button

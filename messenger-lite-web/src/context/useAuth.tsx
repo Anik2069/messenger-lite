@@ -83,6 +83,7 @@ interface AuthContextType {
   isLoadingUserTrustedDevices: boolean;
   fetchTrustedDevices: (userId: string) => void;
   initialLoading: boolean;
+  updateProfilePicture: (formData: FormData) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -393,6 +394,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const updateProfilePicture = async (formData: FormData) => {
+    try {
+      const response = await axiosInstance.patch(
+        `auth/update/profile-picture`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        toast.success("Profile picture updated successfully");
+      }
+    } catch (error) {
+      console.error(error);
+      const message = error as unknown as {
+        response: { data: { message: string } };
+      };
+      toast.error(
+        message?.response?.data?.message || "Profile picture update failed"
+      );
+    }
+  };
+
   const changePassword = async (
     currentPassword: string,
     newPassword: string
@@ -476,6 +503,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         isLoadingUserTrustedDevices,
         userTrustedDevices,
         initialLoading,
+        updateProfilePicture,
       }}
     >
       {children}
