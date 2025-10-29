@@ -13,10 +13,18 @@ import {
 } from "../../../controllers/auth/user_auth.controller";
 import { confirm2FA } from "../../../controllers/auth/confirm2FA.controller";
 import { updatePassword } from "../../../controllers/auth/update/updatePassword.controller";
+import { upload } from "../../../middlewares/upload.middleware";
+import { updateProfilePicture } from "../../../controllers/auth/update/updateProfilePicture.controller";
 
 const authUpdateRouter = (io: IOServerWithHelpers) => {
   const router = Router();
   router.patch("/password", requireAuth, updatePassword);
+  router.patch(
+    "/profile-picture",
+    requireAuth,
+    upload.single("profile_pic"),
+    updateProfilePicture
+  );
 
   return router;
 };
