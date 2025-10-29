@@ -7,11 +7,7 @@ import { Mic, Paperclip, Send, X } from "lucide-react";
 import { FileData } from "@/types/MessageType";
 
 interface ChatInputProps {
-  onSendMessage: (
-    text: string,
-    type?: "text" | "file",
-    files?: FileData[]
-  ) => void;
+  onSendMessage: (text: string, type?: "text" | "FILE", files?: File[]) => void;
   onTypingStart: () => void;
   onTypingStop: () => void;
 }
@@ -25,28 +21,32 @@ export default function ChatInput({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Handle file selection
   const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length) setSelectedFiles(files);
+    const filtered = files.filter(
+      (f) =>
+        !selectedFiles.some((sf) => sf.name === f.name && sf.size === f.size)
+    );
+    if (filtered.length) setSelectedFiles([...selectedFiles, ...filtered]);
   };
 
+  // Remove a file from selection
+  const removeFile = (index: number) => {
+    setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
+  };
+
+  // Send message handler
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() && selectedFiles.length === 0) return;
 
-    const fileData: FileData[] = selectedFiles.map((f) => ({
-      url: URL.createObjectURL(f),
-      filename: f.name,
-      originalName: f.name,
-      mimetype: f.type,
-      size: f.size,
-    }));
-
     onSendMessage(
       message.trim(),
-      selectedFiles.length ? "file" : "text",
-      fileData
+      selectedFiles.length ? "FILE" : "text",
+      selectedFiles
     );
+
     setMessage("");
     setSelectedFiles([]);
     onTypingStop();
@@ -54,6 +54,7 @@ export default function ChatInput({
 
   return (
     <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
+      {/* File preview */}
       {selectedFiles.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-2">
           {selectedFiles.map((f, i) => (
@@ -64,14 +65,14 @@ export default function ChatInput({
               <span className="truncate max-w-[100px]">{f.name}</span>
               <X
                 className="h-3 w-3 cursor-pointer"
-                onClick={() =>
-                  setSelectedFiles(selectedFiles.filter((_, idx) => idx !== i))
-                }
+                onClick={() => removeFile(i)}
               />
             </div>
           ))}
         </div>
       )}
+
+      {/* Input and actions */}
       <form onSubmit={handleSend} className="flex items-center gap-3">
         <input
           ref={fileRef}
@@ -90,6 +91,7 @@ export default function ChatInput({
         >
           <Paperclip className="w-5 h-5" />
         </Button>
+
         <Input
           value={message}
           onChange={(e) => {
@@ -99,6 +101,7 @@ export default function ChatInput({
           placeholder="Type a message..."
           className="flex-1 border-gray-300 dark:border-gray-600"
         />
+
         {message.trim() || selectedFiles.length ? (
           <Button
             type="submit"

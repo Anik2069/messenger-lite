@@ -276,7 +276,7 @@ async function ensureDirectConversation(
 //             conversationId,
 //             authorId: userId,
 //             message,
-//             messageType: messageType || "TEXT",
+//             messageType: messageType || "text",
 //           },
 //           include: { author: true, conversation: true },
 //         });
@@ -314,6 +314,7 @@ export default function createSendMessageController(
       console.log(req.body, "req.body in send message");
       // Files uploaded via multer
       const files = req.files as Express.Multer.File[] | undefined;
+      console.log(files, "llllllllllllllllllllllllllll");
 
       let conversationId: string | undefined =
         conversationIdRaw?.trim() || undefined;
@@ -376,6 +377,7 @@ export default function createSendMessageController(
         if (files?.length) {
           for (const file of files) {
             console.log(file);
+
             messagesToCreate.push(
               tx.message.create({
                 data: {

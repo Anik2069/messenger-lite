@@ -11,7 +11,7 @@ const messagesRouter = (io: IOServerWithHelpers) => {
   const prisma = new PrismaClient();
   const router = Router();
 
-  // Send message (TEXT, FILE, FORWARDED) with duplicate-free handling
+  // Send message (TEXT, FILE, "forwarded") with duplicate-free handling
   router.post(
     "/",
     requireAuth,

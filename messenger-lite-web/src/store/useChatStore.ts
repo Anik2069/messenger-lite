@@ -41,7 +41,7 @@ interface ServerMessage {
 }
 
 function mapServerMessage(m: ServerMessage): Message {
-  const messageType = (m.messageType ?? "TEXT").toLowerCase() as MessageKind;
+  const messageType = (m.messageType ?? "text").toLowerCase() as MessageKind;
 
   return {
     id: m.id,
@@ -58,7 +58,7 @@ function mapServerMessage(m: ServerMessage): Message {
     },
 
     message: m.message ?? "",
-    messageType, // always "text" | "file" | "forwarded"
+    messageType, // always "text" | "FILE" | "forwarded"
 
     fileData: m.fileUrl
       ? {
@@ -110,7 +110,7 @@ export type ChatState = {
   emitTyping: ({ user }: { user: { username: string } }) => void;
   onSendMessage: (
     text: string,
-    type?: "text" | "file" | "forwarded",
+    type?: "text" | "FILE" | "forwarded",
     fileData?: FileData,
     forwardedFrom?: ForwardedData,
     currentUser?: { username: string; id: string } | null
@@ -336,7 +336,7 @@ export const useChatStore = create<ChatState>((set, get) => {
             from: { username: currentUser.username, id: currentUser.id },
             to: { username: selectedChat.name, id: selectedChat.id },
             message: text || file.filename,
-            messageType: "file",
+            messageType: "FILE",
             fileData: file,
             forwardedFrom,
             isGroupMessage: selectedChat.type !== "user",
@@ -366,28 +366,28 @@ export const useChatStore = create<ChatState>((set, get) => {
       set((state) => ({ messages: [...state.messages, ...optimistic] }));
 
       // API request
-      const payload: SendMessagePayload = {
-        conversationId: selectedChat.id,
-        ...(selectedChat.type === "user"
-          ? { recipientId: selectedChat.id }
-          : {}),
-        message: text,
-        messageType: toServerType(type),
-        ...(fileData
-          ? Array.isArray(fileData)
-            ? { files: fileData } // you can adapt your backend to accept array
-            : {
-                fileUrl: fileData.url,
-                fileName: fileData.filename,
-                fileMime: fileData.mimetype,
-                fileSize: fileData.size,
-              }
-          : {}),
-        ...(forwardedFrom
-          ? { forwardedFrom: forwardedFrom.originalSender }
-          : {}),
-        clientTempId,
-      };
+      // const payload: SendMessagePayload = {
+      //   conversationId: selectedChat.id,
+      //   ...(selectedChat.type === "user"
+      //     ? { recipientId: selectedChat.id }
+      //     : {}),
+      //   message: text,
+      //   messageType: toServerType(type),
+      //   ...(fileData
+      //     ? Array.isArray(fileData)
+      //       ? { files: fileData } // you can adapt your backend to accept array
+      //       : {
+      //           fileUrl: fileData.url,
+      //           fileName: fileData.filename,
+      //           fileMime: fileData.mimetype,
+      //           fileSize: fileData.size,
+      //         }
+      //     : {}),
+      //   ...(forwardedFrom
+      //     ? { forwardedFrom: forwardedFrom.originalSender }
+      //     : {}),
+      //   clientTempId,
+      // };
 
       const formData = new FormData();
 

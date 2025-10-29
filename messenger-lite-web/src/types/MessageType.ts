@@ -1,7 +1,7 @@
 import { format, isValid } from "date-fns";
 import { User } from "./UserType";
 
-export type MessageKind = "text" | "file" | "forwarded";
+export type MessageKind = "text" | "FILE" | "forwarded";
 
 export interface MiniUserRef {
   id: string;
@@ -63,6 +63,12 @@ export interface Message {
   message: string;
   messageType: MessageKind;
   fileData?: FileData;
+  // Add backend raw fields (optional)
+  fileUrl?: string;
+  fileName?: string;
+  fileMime?: string;
+  fileSize?: number;
+
   forwardedFrom?: ForwardedData;
   isGroupMessage: boolean;
   timestamp: Date;

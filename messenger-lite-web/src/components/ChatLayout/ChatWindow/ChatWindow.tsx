@@ -13,7 +13,7 @@ interface ChatWindowProps {
   otherUserTyping: string | null;
   onSendMessage: (
     text: string,
-    type?: "text" | "file" | "forwarded",
+    type?: "text" | "FILE" | "forwarded",
     fileData?: FileData,
     forwardedFrom?: ForwardedData
   ) => void;
