@@ -31,7 +31,7 @@ const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
     setIsSidebarOpen,
     addFriendModalOpen,
   } = useGlobalContext();
-  const { logout } = useAuth();
+  const { logout, currentUserDetails } = useAuth();
   const { settings, activeStatus } = useSettings();
 
   const handleLogout = async () => await logout();
@@ -108,9 +108,7 @@ const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
 
         {/* Avatar with presence dot */}
         <div className="relative">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-500 text-white text-sm font-medium">
-            {getInitials(user?.username || "")}
-          </div>
+          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-500 text-white text-sm font-medium"></div>
           <span
             className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-gray-800 ${
               isOnline ? "bg-green-500" : "bg-red-500"

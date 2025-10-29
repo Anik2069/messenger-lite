@@ -408,6 +408,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (response.status === 200) {
         toast.success("Profile picture updated successfully");
+        await getMyself();
       }
     } catch (error) {
       console.error(error);
@@ -463,6 +464,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } finally {
       setIsLoadingUserTrustedDevices(false);
     }
+  }, []);
+
+  useEffect(() => {
+    getMyself();
   }, []);
 
   return (

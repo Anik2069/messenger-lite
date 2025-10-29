@@ -29,8 +29,12 @@ const UserSettings = () => {
     fetchSettings,
   } = useSettings();
 
+  const { getMyself, setSetupError } = useAuth();
+
   useEffect(() => {
     fetchSettings();
+
+    setSetupError(false);
   }, []);
 
   return (
