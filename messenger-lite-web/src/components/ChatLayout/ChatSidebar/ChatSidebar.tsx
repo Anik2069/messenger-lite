@@ -13,6 +13,7 @@ import { Status, useSettings } from "@/context/SettingsContext";
 import { formatLocalTime } from "@/types/MessageType";
 import { format, isToday, parseISO } from "date-fns";
 import { useChatStore } from "@/store/useChatStore";
+import { SOCKET_HOST } from "@/constant";
 
 interface ChatSidebarProps {
   groups: Group[];
@@ -90,7 +91,9 @@ const ChatSidebar = ({
 
             const displayAvatar = isGroup
               ? conv.avatar
-              : otherParticipant?.avatar;
+              : otherParticipant?.avatar
+              ? `${SOCKET_HOST}/${otherParticipant.avatar}`
+              : DummyAvatar.src;
 
             const participantUserId = otherParticipant?.id;
             const status = getStatusForUser(participantUserId || "");

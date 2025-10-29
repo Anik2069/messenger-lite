@@ -467,7 +467,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    getMyself();
+    if (user) getMyself();
   }, []);
 
   return (

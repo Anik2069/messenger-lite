@@ -14,8 +14,10 @@ import { getInitials } from "@/lib/utils";
 import { useGlobalContext } from "@/provider/GlobalContextProvider";
 import { useAuth } from "@/context/useAuth";
 import { useSettings } from "@/context/SettingsContext";
-import { APP_NAME } from "@/constant";
+import { APP_NAME, MEDIA_HOST } from "@/constant";
 import { User } from "@/types/UserType";
+import Image from "next/image";
+import { DummyAvatar } from "@/assets/image";
 
 interface NavbarProps {
   user: User | null;
@@ -50,6 +52,10 @@ const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
   const onIconClick = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+
+  const image = currentUserDetails?.avatar
+    ? `${MEDIA_HOST}/${currentUserDetails.avatar}`
+    : DummyAvatar.src;
 
   return (
     <div className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 flex items-center justify-between">
@@ -108,7 +114,19 @@ const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
 
         {/* Avatar with presence dot */}
         <div className="relative">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-500 text-white text-sm font-medium"></div>
+          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-500 text-white text-sm font-medium">
+            <Image
+              width={32}
+              height={32}
+              src={image}
+              alt="Profile"
+              className="rounded-full border-2 border-white object-cover w-full h-full"
+              onError={(e) => {
+                e.currentTarget.src = DummyAvatar.src;
+                e.currentTarget.onerror = null;
+              }}
+            />
+          </div>
           <span
             className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-gray-800 ${
               isOnline ? "bg-green-500" : "bg-red-500"
