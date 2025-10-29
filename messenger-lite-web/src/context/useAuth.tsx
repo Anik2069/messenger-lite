@@ -468,7 +468,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (user) getMyself();
-  }, []);
+  }, [user]);
 
   return (
     <AuthContext.Provider
