@@ -198,7 +198,7 @@ export const useChatStore = create<ChatState>((set, get) => {
         if (alreadyExists) return state;
 
         // ✅ Append new message normally
-        console.log(state);
+        console.log(state, "state");
         return { messages: [...state.messages, msg] };
       });
     });
