@@ -12,6 +12,7 @@ import {
 } from "@/types/MessageType";
 import { SendMessagePayload, toServerType } from "@/types/sendMessage";
 import { toast } from "react-toastify";
+import { MEDIA_HOST } from "@/constant";
 
 interface ServerMessage {
   id: string;
@@ -176,14 +177,15 @@ export const useChatStore = create<ChatState>((set, get) => {
             (m) =>
               m.clientTempId === msg.clientTempId &&
               m.messageType === msg.messageType &&
-              m.fileData?.url === msg.fileData?.url
+              (m.fileData as FileData)?.url === (msg.fileData as FileData)?.url
           );
 
           if (hasExactTemp) {
             return {
               messages: state.messages.map((m) =>
                 m.clientTempId === msg.clientTempId &&
-                m.fileData?.url === msg.fileData?.url
+                (m.fileData as FileData)?.url ===
+                  (msg.fileData as FileData)?.url
                   ? msg
                   : m
               ),
@@ -363,45 +365,94 @@ export const useChatStore = create<ChatState>((set, get) => {
       // Optimistic UI
       const optimistic: Message[] = [];
 
-      if (fileData) {
-        // if multiple files, fileData can be an array
-        const files = Array.isArray(fileData) ? fileData : [fileData];
-        for (const file of files) {
-          optimistic.push({
-            id: `temp-${Date.now()}-${uuidv4()}`,
-            clientTempId,
-            conversationId: selectedChat.id,
-            from: { username: currentUser.username, id: currentUser.id },
-            to: { username: selectedChat.name, id: selectedChat.id },
-            message: text || file.filename,
-            messageType: "FILE",
-            fileData: file,
-            forwardedFrom,
-            isGroupMessage: selectedChat.type !== "user",
-            timestamp: new Date(),
-            reactions: [],
-            readBy: [],
-          });
-        }
-      } else {
-        optimistic.push({
-          id: tempId,
-          clientTempId,
-          conversationId: selectedChat.id,
-          from: { username: currentUser.username, id: currentUser.id },
-          to: { username: selectedChat.name, id: selectedChat.id },
-          message: text,
-          messageType: type,
-          fileData,
-          forwardedFrom,
-          isGroupMessage: selectedChat.type !== "user",
-          timestamp: new Date(),
-          reactions: [],
-          readBy: [],
-        });
-      }
+      // if (fileData) {
+      //   // if multiple files, fileData can be an array
+      //   const files = Array.isArray(fileData) ? fileData : [fileData];
+      //   for (const file of files) {
+      //     optimistic.push({
+      //       id: `temp-${Date.now()}-${uuidv4()}`,
+      //       clientTempId,
+      //       conversationId: selectedChat.id,
+      //       from: { username: currentUser.username, id: currentUser.id },
+      //       to: { username: selectedChat.name, id: selectedChat.id },
+      //       message: text || file.filename,
+      //       messageType: "FILE",
+      //       fileData: file,
+      //       forwardedFrom,
+      //       isGroupMessage: selectedChat.type !== "user",
+      //       timestamp: new Date(),
+      //       reactions: [],
+      //       readBy: [],
+      //     });
+      //   }
+      // } else {
+      //   optimistic.push({
+      //     id: tempId,
+      //     clientTempId,
+      //     conversationId: selectedChat.id,
+      //     from: { username: currentUser.username, id: currentUser.id },
+      //     to: { username: selectedChat.name, id: selectedChat.id },
+      //     message: text,
+      //     messageType: type,
+      //     fileData,
+      //     forwardedFrom,
+      //     isGroupMessage: selectedChat.type !== "user",
+      //     timestamp: new Date(),
+      //     reactions: [],
+      //     readBy: [],
+      //   });
+      // }
 
-      set((state) => ({ messages: [...state.messages, ...optimistic] }));
+      // if (fileData) {
+      //   const files = Array.isArray(fileData) ? fileData : [fileData];
+      //   for (const file of files) {
+      //     const url = file.url
+      //       ? file.url.startsWith("blob:")
+      //         ? file.url // local blob URL, use as-is
+      //         : `${MEDIA_HOST}${file.url}` // backend URL
+      //       : file.fileUrl
+      //       ? `${MEDIA_HOST}${file.fileUrl}`
+      //       : "";
+      //     optimistic.push({
+      //       id: `temp-${Date.now()}-${uuidv4()}`,
+      //       clientTempId,
+      //       conversationId: selectedChat.id,
+      //       from: { username: currentUser.username, id: currentUser.id },
+      //       to: { username: selectedChat.name, id: selectedChat.id },
+      //       message: text || file.name,
+      //       messageType: "FILE",
+      //       fileData: {
+      //         url: url,
+      //         filename: file.name,
+      //         mimetype: file.type,
+      //         size: file.size,
+      //       },
+      //       forwardedFrom,
+      //       isGroupMessage: selectedChat.type !== "user",
+      //       timestamp: new Date(),
+      //       reactions: [],
+      //       readBy: [],
+      //     });
+      //   }
+      // } else {
+      //   optimistic.push({
+      //     id: tempId,
+      //     clientTempId,
+      //     conversationId: selectedChat.id,
+      //     from: { username: currentUser.username, id: currentUser.id },
+      //     to: { username: selectedChat.name, id: selectedChat.id },
+      //     message: text,
+      //     messageType: type,
+      //     fileData,
+      //     forwardedFrom,
+      //     isGroupMessage: selectedChat.type !== "user",
+      //     timestamp: new Date(),
+      //     reactions: [],
+      //     readBy: [],
+      //   });
+      // }
+
+      // set((state) => ({ messages: [...state.messages, ...optimistic] }));
 
       // API request
       // const payload: SendMessagePayload = {
@@ -473,7 +524,18 @@ export const useChatStore = create<ChatState>((set, get) => {
         set((state) => ({
           messages: state.messages.filter((m) => !optimistic.includes(m)),
         }));
-        console.error("send failed", err);
+        // console.error("send failed", err);
+        const response = err as unknown as {
+          response: { data: { message: string } };
+        };
+        if (response?.response?.data?.message) {
+          toast.error(
+            response.response.data.message || "Failed to send message"
+          );
+          // console.log();
+          // TODO : add error message to set state
+          return;
+        }
         toast.error("Failed to send message");
       }
     },
