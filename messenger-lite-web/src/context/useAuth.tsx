@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { set } from "date-fns";
 import { useModal } from "@/hooks/useModal";
+import { useSettings } from "./SettingsContext";
 interface ApiResponse<T = unknown> {
   statusCode: number;
   message: string;
@@ -81,6 +82,8 @@ interface AuthContextType {
   userTrustedDevices: UserDevice[] | null;
   isLoadingUserTrustedDevices: boolean;
   fetchTrustedDevices: (userId: string) => void;
+  initialLoading: boolean;
+  updateProfilePicture: (formData: FormData) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -94,6 +97,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [is2FAEnabled, setIs2FAEnabled] = useState<boolean>(false);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [initialLoading, setInitialLoading] = useState<boolean>(true);
+
   const [qr, setQr] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
   const [setupLoading, setSetupLoading] = useState<boolean>(false);
@@ -118,16 +123,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     useState<boolean>(false);
 
   useEffect(() => {
-    const savedToken = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("accessToken");
     const savedUser = localStorage.getItem("user");
 
-    if (savedToken && savedUser) {
-      setToken(savedToken);
+    if (token && savedUser) {
       setUser(JSON.parse(savedUser));
-
-      socket.auth = { token: savedToken };
+      socket.auth = { token };
       if (!socket.connected) socket.connect();
+    } else {
+      setUser(null);
     }
+
+    setInitialLoading(false);
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -232,21 +239,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     setIsLogoutLoading(true);
     try {
-      const response = await axiosInstance.post("auth/user/logout");
-      if (response.status === 200) {
-        console.log("Logout successful");
-        setUser(null);
-        setToken(null);
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("user");
-        localStorage.removeItem("friend-storage");
+      await axiosInstance.post("auth/user/logout").catch(() => {});
 
-        if (socket.connected) socket.disconnect();
-        socket.auth = { token: "" };
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("user");
+      localStorage.removeItem("friend-storage");
 
-        // toast.success("Logout successful");
-        router.push("/auth?type=login");
-      }
+      if (socket.connected) socket.disconnect();
+      socket.auth = { token: "" };
+
+      router.replace("/auth?type=login");
     } catch (error) {
       console.error("Logout failed", error);
       toast.error("Logout failed, please try again.");
@@ -390,6 +394,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const updateProfilePicture = async (formData: FormData) => {
+    try {
+      const response = await axiosInstance.patch(
+        `auth/update/profile-picture`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        toast.success("Profile picture updated successfully");
+        await getMyself();
+      }
+    } catch (error) {
+      console.error(error);
+      const message = error as unknown as {
+        response: { data: { message: string } };
+      };
+      toast.error(
+        message?.response?.data?.message || "Profile picture update failed"
+      );
+    }
+  };
+
   const changePassword = async (
     currentPassword: string,
     newPassword: string
@@ -472,6 +503,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         fetchTrustedDevices,
         isLoadingUserTrustedDevices,
         userTrustedDevices,
+        initialLoading,
+        updateProfilePicture,
       }}
     >
       {children}

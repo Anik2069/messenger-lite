@@ -17,7 +17,7 @@ export const initSocket = (server: any) => {
   });
 
   // Auth middleware
-  io.use((socket, next) => {
+  io.use(async (socket, next) => {
     try {
       const token =
         socket.handshake.auth?.token ||
@@ -27,7 +27,17 @@ export const initSocket = (server: any) => {
       if (!token) return next(new Error("Missing token"));
 
       const { id } = verifyJWT(token);
+
+      // Verify user exists and get settings
+      const user = await prisma.user.findUnique({
+        where: { id },
+        include: { settings: true },
+      });
+
+      if (!user) return next(new Error("User not found"));
+
       socket.data.userId = id;
+      socket.data.userSettings = user.settings;
       next();
     } catch {
       next(new Error("Invalid token"));
@@ -36,6 +46,8 @@ export const initSocket = (server: any) => {
 
   io.on("connection", (socket: Socket) => {
     const userId = socket.data.userId as string;
+    const userSettings = socket.data.userSettings;
+
     console.log("Socket connected:", userId, "Socket ID:", socket.id);
 
     // --- Device socket integration ---
@@ -44,11 +56,35 @@ export const initSocket = (server: any) => {
     // Join user's personal room (for presence, notifications)
     socket.join(userId);
 
+    // Set initial online status based on user settings
+    const initialOnlineStatus = userSettings?.activeStatus ?? true;
+
     // Manual status update
-    socket.on("set_status", async ({ isOnline }: { isOnline: boolean }) => {
-      await updateUserPresence(io as IOServerWithHelpers, userId, isOnline);
-      console.log(`${userId} is now ${isOnline ? "online" : "offline"}`);
-    });
+    socket.on(
+      "set_status",
+      async ({
+        isOnline,
+        updateMode = false,
+      }: {
+        isOnline: boolean;
+        updateMode?: boolean;
+      }) => {
+        await updateUserPresence(
+          io as IOServerWithHelpers,
+          userId,
+          isOnline,
+          updateMode
+        );
+      }
+    );
+
+    // Send initial presence update
+    updateUserPresence(
+      io as IOServerWithHelpers,
+      userId,
+      initialOnlineStatus,
+      false
+    );
 
     // Conversation join
     socket.on("join_conversation", async (conversationId: string) => {
@@ -91,7 +127,11 @@ export const initSocket = (server: any) => {
       });
     });
 
-    // Disconnect handled inside device.socket.ts for multi-tab device tracking
+    // Handle disconnect
+    socket.on("disconnect", async () => {
+      console.log("Socket disconnected:", userId, "Socket ID:", socket.id);
+      // Note: Device socket will handle the actual presence update for multi-tab
+    });
   });
 
   return Object.assign(io, { convRoom, joinedDevices });

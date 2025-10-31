@@ -30,10 +30,6 @@ const PrivacySettings = () => {
     removeModalIsOpen,
   } = useAuth();
   // const {} = useGlobalContext();
-  useEffect(() => {
-    getMyself();
-    setSetupError(false);
-  }, []);
 
   // const remove2FA = async () => {
   //   handleRemove();

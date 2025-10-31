@@ -1,70 +1,94 @@
-import { useRef } from "react";
+"use client";
+
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mic, Paperclip, Send } from "lucide-react";
-import { FileData } from "../../../types/MessageType";
+import { Mic, Paperclip, Send, X } from "lucide-react";
+import { FileData } from "@/types/MessageType";
 
 interface ChatInputProps {
-  message: string;
-  setMessage: (val: string) => void;
-  onSendMessage: (
-    text: string,
-    type?: "text" | "file",
-    fileData?: FileData
-  ) => void;
+  onSendMessage: (text: string, type?: "TEXT" | "FILE", files?: object) => void;
   onTypingStart: () => void;
   onTypingStop: () => void;
 }
 
-const ChatInput = ({
-  message,
-  setMessage,
+export default function ChatInput({
   onSendMessage,
   onTypingStart,
   onTypingStop,
-}: ChatInputProps) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+}: ChatInputProps) {
+  const [message, setMessage] = useState<string>("");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const fileRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Handle file selection
+  const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
 
-    const fileData: FileData = {
-      url: URL.createObjectURL(file),
-      originalName: file.name,
-      filename: file.name,
-      size: file.size,
-      mimetype: file.type,
-    };
-
-    onSendMessage(`Shared a file: ${file.name}`, "file", fileData);
-    e.target.value = "";
+    const filtered = files.filter(
+      (f) =>
+        !selectedFiles.some((sf) => sf.name === f.name && sf.size === f.size)
+    );
+    if (filtered.length) setSelectedFiles([...selectedFiles, ...filtered]);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Remove a file from selection
+  const removeFile = (index: number) => {
+    setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
+  };
+
+  // Send message handler
+  const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) return;
-    onTypingStop();
-    onSendMessage(message.trim(), "text");
+    // console.log(selectedFiles.length ? "FILE" : "TEXT", "files");
+    if (!message.trim() && selectedFiles.length === 0) return;
+
+    onSendMessage(
+      message.trim(),
+      selectedFiles.length ? "FILE" : "TEXT",
+      selectedFiles
+    );
+
     setMessage("");
+    setSelectedFiles([]);
+    onTypingStop();
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
-      <form onSubmit={handleSubmit} className="flex items-center space-x-3">
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileUpload}
-          className="hidden"
-          accept="image/*,.pdf,.doc,.docx,.txt,.zip,.mp3,.mp4"
-        />
+    <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
+      {/* File preview */}
+      {selectedFiles.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-2">
+          {selectedFiles.map((f, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded px-2 py-1 text-xs"
+            >
+              <span className="truncate max-w-[100px]">{f.name}</span>
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => removeFile(i)}
+              />
+            </div>
+          ))}
+        </div>
+      )}
 
+      {/* Input and actions */}
+      <form onSubmit={handleSend} className="flex items-center gap-3">
+        <input
+          ref={fileRef}
+          type="file"
+          multiple
+          className="hidden"
+          accept="image/*,video/*,.pdf,.doc,.docx"
+          onChange={handleFiles}
+        />
         <Button
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => fileRef.current?.click()}
           className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
         >
           <Paperclip className="w-5 h-5" />
@@ -74,36 +98,25 @@ const ChatInput = ({
           value={message}
           onChange={(e) => {
             setMessage(e.target.value);
-
-            if (e.target.value.trim()) {
-              onTypingStart();
-            } else {
-              onTypingStop();
-            }
+            e.target.value.trim() ? onTypingStart() : onTypingStop();
           }}
           placeholder="Type a message..."
-          className="flex-1 border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500"
+          className="flex-1 border-gray-300 dark:border-gray-600"
         />
 
-        {message.trim() ? (
+        {message.trim() || selectedFiles.length ? (
           <Button
             type="submit"
-            disabled={!message.trim()}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4"
+            className="bg-blue-500 hover:bg-blue-600 text-white"
           >
             <Send className="w-4 h-4" />
           </Button>
         ) : (
-          <Button
-            type="button"
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4"
-          >
+          <Button type="button" className="bg-blue-500 text-white">
             <Mic className="w-4 h-4" />
           </Button>
         )}
       </form>
     </div>
   );
-};
-
-export default ChatInput;
+}

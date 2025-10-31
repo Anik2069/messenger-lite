@@ -1,12 +1,28 @@
 "use client";
+
 import React from "react";
-import { AuthForm } from "./AuthForm";
 import { useAuth } from "@/context/useAuth";
-import { SubmitOtpForm } from "./SubmitOtpForm";
+import { AuthForm } from "./AuthForm";
+import { Spinner } from "../ui/Spinner";
+import MessengerLiteCover from "./MessengerLiteCover";
 
-const AuthPageComponents = () => {
-  const { user } = useAuth();
-  return <div>{!user && <AuthForm />}</div>;
+export const AuthPageComponents = () => {
+  const { user, initialLoading } = useAuth();
+
+  if (initialLoading)
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+        <Spinner />
+      </div>
+    );
+  // if (user)
+  //   return (
+  //     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white text-center pt-20">
+  //       Welcome, {user.username}!
+  //     </div>
+  //   );
+  // return <MessengerLiteCover />;
+  // return null;
+
+  return <AuthForm />;
 };
-
-export default AuthPageComponents;

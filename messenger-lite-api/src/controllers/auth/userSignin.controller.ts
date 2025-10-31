@@ -85,11 +85,14 @@ export default function userSignin(io: IOServerWithHelpers) {
           data: { accessToken, twoFA: user?.isTwoFAEnable, userId: user.id },
         });
       } else {
-        const userInfo = await prisma.user.findUnique({
+        const userInfoPrime = await prisma.user.findUnique({
           where: { id },
-          omit: { password: true, twoFASecret: true },
+          include: {
+            settings: true,
+          },
         });
-        console.log("User signed in:", userInfo);
+
+        console.log("User signed in:", userInfoPrime);
         const deviceInfo: DeviceInfo = await trackDevice(req as any);
         let currentDeviceId = null;
 
@@ -135,7 +138,15 @@ export default function userSignin(io: IOServerWithHelpers) {
           res,
           statusCode: StatusCodes.OK,
           message: "User signed in successfully",
-          data: { userInfo, accessToken, twoFA: user?.isTwoFAEnable },
+          data: {
+            userInfo: {
+              ...userInfoPrime,
+              password: undefined,
+              twoFASecret: undefined,
+            },
+            accessToken,
+            twoFA: user?.isTwoFAEnable,
+          },
         });
       }
     } catch (error: any) {

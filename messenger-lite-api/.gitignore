@@ -6,8 +6,7 @@ node_modules
 /dist
 .vercel
 
-
-/uploads/*      
+/uploads/*
 # ignore all files inside
-!/uploads/.gitkeep  
+!/uploads/.gitkeep
 # track the empty folder

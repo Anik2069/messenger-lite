@@ -17,4 +17,5 @@ export interface User {
 export interface UserSettings {
   soundNotifications: boolean;
   theme: "light" | "dark";
+  activeStatus: boolean;
 }

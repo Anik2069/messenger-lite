@@ -14,6 +14,7 @@ import {
 } from "date-fns";
 import { socket } from "@/lib/socket";
 import { useAuth } from "@/context/useAuth";
+import { MEDIA_HOST } from "@/constant";
 
 const RequestedFriendsList = () => {
   const { user } = useAuth();
@@ -80,7 +81,11 @@ const RequestedFriendsList = () => {
           {/* Avatar + Info */}
           <div className="flex items-center gap-3 min-w-0">
             <Image
-              src={userInfo?.avatar || DummyAvatar}
+              src={
+                userInfo?.avatar
+                  ? MEDIA_HOST + "/" + userInfo?.avatar
+                  : DummyAvatar
+              }
               alt={userInfo?.username}
               width={40}
               height={40}
