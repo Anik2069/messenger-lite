@@ -11,6 +11,7 @@ import {
   MessageKind,
 } from "@/types/MessageType";
 import { SendMessagePayload, toServerType } from "@/types/sendMessage";
+import { toast } from "react-toastify";
 
 interface ServerMessage {
   id: string;
@@ -41,7 +42,7 @@ interface ServerMessage {
 }
 
 function mapServerMessage(m: ServerMessage): Message {
-  const messageType = (m.messageType ?? "text").toLowerCase() as MessageKind;
+  const messageType = (m.messageType ?? "TEXT") as MessageKind;
 
   return {
     id: m.id,
@@ -110,7 +111,7 @@ export type ChatState = {
   emitTyping: ({ user }: { user: { username: string } }) => void;
   onSendMessage: (
     text: string,
-    type?: "text" | "FILE" | "forwarded",
+    type?: "TEXT" | "FILE" | "forwarded",
     fileData?: FileData,
     forwardedFrom?: ForwardedData,
     currentUser?: { username: string; id: string } | null
@@ -158,7 +159,7 @@ export const useChatStore = create<ChatState>((set, get) => {
 
         // skip duplicate messages
         if (state.messages.some((m) => m.id === msg.id)) return state;
-
+        console.log(state, "state");
         return { messages: [...state.messages, msg] };
       });
     });
@@ -311,7 +312,7 @@ export const useChatStore = create<ChatState>((set, get) => {
 
     onSendMessage: async (
       text,
-      type = "text",
+      type = "TEXT",
       fileData,
       forwardedFrom,
       currentUser
@@ -418,24 +419,25 @@ export const useChatStore = create<ChatState>((set, get) => {
             "Content-Type": "multipart/form-data",
           },
         });
-        const saved = res.data?.results ?? res.data;
+        // const saved = res.data?.results ?? res.data;
 
-        const normalized = Array.isArray(saved)
-          ? saved.map((s) => mapServerMessage(s))
-          : [mapServerMessage(saved)];
+        // const normalized = Array.isArray(saved)
+        //   ? saved.map((s) => mapServerMessage(s))
+        //   : [mapServerMessage(saved)];
 
-        set((state) => ({
-          messages: state.messages.map(
-            (m) =>
-              normalized.find((n) => n.clientTempId === m.clientTempId) || m
-          ),
-        }));
+        // set((state) => ({
+        //   messages: state.messages.map(
+        //     (m) =>
+        //       normalized.find((n) => n.clientTempId === m.clientTempId) || m
+        //   ),
+        // }));
       } catch (err) {
         // rollback optimistic
         set((state) => ({
           messages: state.messages.filter((m) => !optimistic.includes(m)),
         }));
         console.error("send failed", err);
+        toast.error("Failed to send message");
       }
     },
 

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import ChatSidebar from "./ChatSidebar/ChatSidebar";
 import Navbar from "./Navbar/Navbar";
 import ChatWindow from "./ChatWindow/ChatWindow";
@@ -28,7 +28,7 @@ declare global {
 }
 
 const ChatLayout = () => {
-  const { user } = useAuth();
+  const { user, getMyself } = useAuth();
   const {
     selectedChat,
     messages,
@@ -72,7 +72,9 @@ const ChatLayout = () => {
   useEffect(() => {
     return () => cleanupTyping();
   }, []);
-
+  useEffect(() => {
+    if (user) getMyself();
+  }, [user]);
   // Join/Leave conversation room on selection
   useEffect(() => {
     if (selectedChat) {
@@ -108,7 +110,7 @@ const ChatLayout = () => {
 
   const handleSendMessage = (
     message: string,
-    type: "text" | "FILE" | "forwarded" = "text",
+    type: "TEXT" | "FILE" | "forwarded" = "TEXT",
     fileData?: FileData,
     forwardedFrom?: ForwardedData
   ) => {

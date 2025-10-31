@@ -40,7 +40,7 @@ const MessageItem = ({
   /** Message content including file messages */
   const renderMessageContent = () => {
     let file: FileData | undefined;
-    console.log(msg, "msg");
+    // console.log(msg, "msg");
     if (msg.messageType === "FILE") {
       // Prefer frontend optimistic fileData, fallback to backend fields
       if (msg.fileData) {

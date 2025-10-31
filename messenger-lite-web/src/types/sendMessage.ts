@@ -1,5 +1,5 @@
-export type UIMessageKind = "text" | "FILE" | "forwarded";
-export type ServerMessageType = "text" | "FILE" | "forwarded";
+export type UIMessageKind = "TEXT" | "FILE" | "forwarded";
+export type ServerMessageType = "TEXT" | "FILE" | "forwarded";
 
 export interface SendMessagePayload {
   // DM হলে recipientId, group/known conv হলে conversationId
@@ -20,4 +20,4 @@ export interface SendMessagePayload {
 
 // helper: UI → server enum
 export const toServerType = (t: UIMessageKind): ServerMessageType =>
-  t === "FILE" ? "FILE" : t === "forwarded" ? "forwarded" : "text";
+  t === "FILE" ? "FILE" : t === "forwarded" ? "forwarded" : "TEXT";
