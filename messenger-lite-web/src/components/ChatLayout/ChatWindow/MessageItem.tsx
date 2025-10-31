@@ -60,7 +60,16 @@ const MessageItem = ({
     return (
       <>
         {file ? (
-          <FileMessage file={file} />
+          <div className="flex flex-col gap-1">
+            <FileMessage file={file} />
+            {msg?.message &&
+              (msg.fileData as FileData)?.filename !== msg?.message && (
+                <div className="flex flex-wrap">
+                  <div className="text-sm leading-relaxed">{msg.message}</div>
+                  <div className="w-14 h-2.5 invisible"></div>
+                </div>
+              )}
+          </div>
         ) : (
           <div className="flex flex-wrap">
             <div className="text-sm leading-relaxed">{msg.message}</div>
