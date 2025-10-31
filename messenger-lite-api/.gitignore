@@ -5,3 +5,9 @@ node_modules
 /src/generated/prisma
 /dist
 .vercel
+
+
+/uploads/*      
+# ignore all files inside
+!/uploads/.gitkeep  
+# track the empty folder
