@@ -4,7 +4,11 @@ import path from "path";
 import { Request } from "express";
 
 // Main uploads folder
+// const uploadDir = path.join(process.cwd(), "uploads");
 const uploadDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // Create folder if it doesn’t exist
 if (!fs.existsSync(uploadDir)) {
