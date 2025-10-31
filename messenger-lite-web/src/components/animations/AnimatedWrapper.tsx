@@ -120,14 +120,14 @@ const animationVariants: Record<string, Variants> = {
       transition: { delay: custom, duration: 0.3, ease: "backOut" },
     }),
   },
-  bounce: {
-    hidden: { y: -30, opacity: 0 },
-    visible: (custom: number) => ({
-      y: 0,
-      opacity: 1,
-      transition: { delay: custom, duration: 0.5, ease: "bounceOut" },
-    }),
-  },
+  // bounce: {
+  //   hidden: { y: -30, opacity: 0 },
+  //   visible: () => ({
+  //     y: 0,
+  //     opacity: 1,
+  //     transition: { delay: custom, duration: 0.5, ease: "bounceOut" },
+  //   }),
+  // },
   drop: {
     hidden: { y: -40, opacity: 0 },
     visible: (custom: number) => ({

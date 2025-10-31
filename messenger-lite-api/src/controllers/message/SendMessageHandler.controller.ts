@@ -376,7 +376,7 @@ export default function createSendMessageController(
         // If files exist, create one message per file
         if (files?.length) {
           for (const file of files) {
-            console.log(file);
+            // console.log(file);
 
             messagesToCreate.push(
               tx.message.create({

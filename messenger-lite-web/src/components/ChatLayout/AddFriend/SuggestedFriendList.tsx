@@ -1,5 +1,6 @@
 import { DummyAvatar } from "@/assets/image";
 import { Button } from "@/components/ui/button";
+import { MEDIA_HOST } from "@/constant";
 import { useFriendsStore } from "@/store/useFriendsStrore";
 import Image from "next/image";
 import React, { useEffect } from "react";
@@ -28,7 +29,11 @@ const SuggestedFriendList = () => {
           >
             <div className="relative mr-3">
               <Image
-                src={userInfo?.avatar || DummyAvatar}
+                src={
+                  userInfo?.avatar
+                    ? MEDIA_HOST + "/" + userInfo?.avatar
+                    : DummyAvatar
+                }
                 alt={userInfo?.username}
                 width={40}
                 height={40}

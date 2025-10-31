@@ -9,6 +9,7 @@ import { useAuth } from "@/context/useAuth";
 import { useSettings } from "@/context/SettingsContext";
 import { Chat } from "@/types/ChatType";
 import { useGlobalContext } from "@/provider/GlobalContextProvider";
+import { MEDIA_HOST } from "@/constant";
 
 interface AllContactsProps {
   searchText: string;
@@ -90,7 +91,11 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
           >
             <div className="relative mr-3">
               <Image
-                src={userInfo?.avatar || DummyAvatar}
+                src={
+                  userInfo?.avatar
+                    ? MEDIA_HOST + "/" + userInfo?.avatar
+                    : DummyAvatar
+                }
                 alt={userInfo?.username}
                 width={40}
                 height={40}

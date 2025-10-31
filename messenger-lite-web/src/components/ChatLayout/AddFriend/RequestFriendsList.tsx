@@ -1,5 +1,6 @@
 import { DummyAvatar } from "@/assets/image";
 import { Button } from "@/components/ui/button";
+import { MEDIA_HOST } from "@/constant";
 import { useAuth } from "@/context/useAuth";
 import { socket } from "@/lib/socket";
 import { useFriendsStore } from "@/store/useFriendsStrore";
@@ -34,7 +35,11 @@ const RequestFriendsList = () => {
           >
             <div className="relative mr-3">
               <Image
-                src={userInfo?.avatar || DummyAvatar}
+                src={
+                  userInfo?.avatar
+                    ? MEDIA_HOST + "/" + userInfo?.avatar
+                    : DummyAvatar
+                }
                 alt={userInfo?.username}
                 width={40}
                 height={40}

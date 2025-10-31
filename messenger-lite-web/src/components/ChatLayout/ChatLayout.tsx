@@ -111,7 +111,7 @@ const ChatLayout = () => {
   const handleSendMessage = (
     message: string,
     type: "TEXT" | "FILE" | "forwarded" = "TEXT",
-    fileData?: FileData,
+    fileData?: object,
     forwardedFrom?: ForwardedData
   ) => {
     onSendMessage(message, type, fileData, forwardedFrom, user);

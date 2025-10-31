@@ -7,7 +7,7 @@ import { Mic, Paperclip, Send, X } from "lucide-react";
 import { FileData } from "@/types/MessageType";
 
 interface ChatInputProps {
-  onSendMessage: (text: string, type?: "text" | "FILE", files?: File[]) => void;
+  onSendMessage: (text: string, type?: "TEXT" | "FILE", files?: object) => void;
   onTypingStart: () => void;
   onTypingStop: () => void;
 }
@@ -24,6 +24,7 @@ export default function ChatInput({
   // Handle file selection
   const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+
     const filtered = files.filter(
       (f) =>
         !selectedFiles.some((sf) => sf.name === f.name && sf.size === f.size)
@@ -39,11 +40,12 @@ export default function ChatInput({
   // Send message handler
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
+    // console.log(selectedFiles.length ? "FILE" : "TEXT", "files");
     if (!message.trim() && selectedFiles.length === 0) return;
 
     onSendMessage(
       message.trim(),
-      selectedFiles.length ? "FILE" : "text",
+      selectedFiles.length ? "FILE" : "TEXT",
       selectedFiles
     );
 

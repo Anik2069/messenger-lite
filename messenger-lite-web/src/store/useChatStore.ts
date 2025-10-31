@@ -26,6 +26,7 @@ interface ServerMessage {
   fileName?: string;
   fileMime?: string;
   fileSize?: number;
+  fileData?: object;
   forwardedFrom?: string;
   createdAt?: string | number | Date;
   reactions?: Array<{
@@ -112,7 +113,7 @@ export type ChatState = {
   onSendMessage: (
     text: string,
     type?: "TEXT" | "FILE" | "forwarded",
-    fileData?: FileData,
+    fileData?: object,
     forwardedFrom?: ForwardedData,
     currentUser?: { username: string; id: string } | null
   ) => Promise<void>;
@@ -139,27 +140,63 @@ export const useChatStore = create<ChatState>((set, get) => {
     // socket.on("connect", () => set({ isConnected: true }));
     // socket.on("disconnect", () => set({ isConnected: false }));
 
+    // socket.on("receive_message", (raw: unknown) => {
+    //   const msg = mapServerMessage(raw as ServerMessage);
+    //   console.log(msg, "receive msg");
+    //   set((state) => {
+    //     // replace optimistic message if clientTempId matched
+    //     if (msg.clientTempId) {
+    //       const hasTemp = state.messages.some(
+    //         (m) => m.clientTempId === msg.clientTempId
+    //       );
+    //       if (hasTemp) {
+    //         return {
+    //           messages: state.messages.map((m) =>
+    //             m.clientTempId === msg.clientTempId ? msg : m
+    //           ),
+    //         };
+    //       }
+    //     }
+
+    //     // skip duplicate messages
+    //     if (state.messages.some((m) => m.id === msg.id)) return state;
+    //     console.log(state, "state");
+    //     return { messages: [...state.messages, msg] };
+    //   });
+    // });
+
     socket.on("receive_message", (raw: unknown) => {
       const msg = mapServerMessage(raw as ServerMessage);
+      console.log(msg, "receive msg");
 
       set((state) => {
-        // replace optimistic message if clientTempId matched
+        // ✅ Replace logic: allow multiple messages with same clientTempId (for multiple file sends)
         if (msg.clientTempId) {
-          const hasTemp = state.messages.some(
-            (m) => m.clientTempId === msg.clientTempId
+          const hasExactTemp = state.messages.some(
+            (m) =>
+              m.clientTempId === msg.clientTempId &&
+              m.messageType === msg.messageType &&
+              m.fileData?.url === msg.fileData?.url
           );
-          if (hasTemp) {
+
+          if (hasExactTemp) {
             return {
               messages: state.messages.map((m) =>
-                m.clientTempId === msg.clientTempId ? msg : m
+                m.clientTempId === msg.clientTempId &&
+                m.fileData?.url === msg.fileData?.url
+                  ? msg
+                  : m
               ),
             };
           }
         }
 
-        // skip duplicate messages
-        if (state.messages.some((m) => m.id === msg.id)) return state;
-        console.log(state, "state");
+        // ✅ Still skip exact duplicates from backend
+        const alreadyExists = state.messages.some((m) => m.id === msg.id);
+        if (alreadyExists) return state;
+
+        // ✅ Append new message normally
+
         return { messages: [...state.messages, msg] };
       });
     });

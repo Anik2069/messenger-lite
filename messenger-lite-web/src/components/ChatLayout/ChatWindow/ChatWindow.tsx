@@ -13,8 +13,8 @@ interface ChatWindowProps {
   otherUserTyping: string | null;
   onSendMessage: (
     text: string,
-    type?: "text" | "FILE" | "forwarded",
-    fileData?: FileData,
+    type?: "TEXT" | "FILE" | "forwarded",
+    fileData?: object,
     forwardedFrom?: ForwardedData
   ) => void;
   onAddReaction: (id: string, emoji: string) => void;
@@ -62,8 +62,8 @@ const ChatWindow = ({
         onAddReaction={onAddReaction}
       />
       <ChatInput
-        message={message}
-        setMessage={setMessage}
+        // message={message}
+        // setMessage={setMessage}
         onSendMessage={onSendMessage}
         onTypingStart={onTypingStart}
         onTypingStop={onTypingStop}
