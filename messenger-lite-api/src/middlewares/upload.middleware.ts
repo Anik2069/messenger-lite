@@ -27,9 +27,14 @@ const storage = multer.diskStorage({
 
 // Allowed file types
 const allowedTypes = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
+  // "image/jpeg",
+  // "image/png",
+  // "image/webp",
+  // "image/jpg",
+  // "video/mp4",
+  // "video/mov",
+  // "video/webm",
+  // "video/ogg",
   "application/pdf",
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -39,12 +44,28 @@ const allowedTypes = [
 ];
 
 // File filter
+// const fileFilter = (
+//   _req: Request,
+//   file: Express.Multer.File,
+//   cb: FileFilterCallback
+// ) => {
+//   if (allowedTypes.includes(file.mimetype)) {
+//     cb(null, true);
+//   } else {
+//     cb(new Error("Unsupported file type"));
+//   }
+// };
+
 const fileFilter = (
   _req: Request,
   file: Express.Multer.File,
   cb: FileFilterCallback
 ) => {
-  if (allowedTypes.includes(file.mimetype)) {
+  if (
+    file.mimetype.startsWith("image/") || // allow all images
+    file.mimetype.startsWith("video/") || // allow all videos
+    allowedTypes.includes(file.mimetype) // allow PDFs, Word, Excel, CSV
+  ) {
     cb(null, true);
   } else {
     cb(new Error("Unsupported file type"));
@@ -55,5 +76,5 @@ const fileFilter = (
 export const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 20 * 1024 * 1024 }, // 5MB   now 2- for  video
 });
