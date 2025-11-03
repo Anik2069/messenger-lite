@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mic, Paperclip, Send, X } from "lucide-react";
 import { FileData } from "@/types/MessageType";
+import Modal from "@/components/reusable/Modal";
+import { useModal } from "@/hooks/useModal";
+import VoiceMessageTest from "./Audio/VoiceMessageTest";
 
 interface ChatInputProps {
   onSendMessage: (text: string, type?: "TEXT" | "FILE", files?: object) => void;
@@ -20,7 +23,12 @@ export default function ChatInput({
   const [message, setMessage] = useState<string>("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
-
+  const {
+    open: openMicModal,
+    close: closeMicModal,
+    isOpen: isOpenMicModal,
+    setIsOpen: setIsOpenMicModal,
+  } = useModal();
   // Handle file selection
   const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -118,11 +126,23 @@ export default function ChatInput({
             <Send className="w-4 h-4" />
           </Button>
         ) : (
-          <Button type="button" className="bg-blue-500 text-white">
+          <Button
+            onClick={openMicModal}
+            type="button"
+            className="bg-blue-500 text-white"
+          >
             <Mic className="w-4 h-4" />
           </Button>
         )}
       </form>
+      <Modal
+        maxWidth="2xl"
+        title="Voice Message"
+        open={isOpenMicModal}
+        onClose={closeMicModal}
+      >
+        <VoiceMessageTest />
+      </Modal>
     </div>
   );
 }
