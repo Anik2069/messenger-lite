@@ -71,41 +71,43 @@ const MessageList = ({
   return (
     <div
       ref={containerRef}
-      className="flex-1 overflow-y-auto scrollbar-none p-4 space-y-4"
+      className="flex-1 overflow-y-auto scrollbar-none p-4 "
     >
-      {messages.map((msg) => {
-        const dateLabel = getDateLabel(
-          (msg?.createdAt as string) ?? msg?.timestamp
-        );
-        const isOwnMessage =
-          msg?.from?.id === currentUserId || msg?.author?.id === currentUserId;
+      <div className="flex flex-col min-h-full justify-end space-y-2">
+        {messages.map((msg) => {
+          const dateLabel = getDateLabel(
+            (msg?.createdAt as string) ?? msg?.timestamp
+          );
+          const isOwnMessage =
+            msg?.from?.id === currentUserId ||
+            msg?.author?.id === currentUserId;
 
-        const showDateHeader = dateLabel !== lastDateLabel;
-        lastDateLabel = dateLabel;
+          const showDateHeader = dateLabel !== lastDateLabel;
+          lastDateLabel = dateLabel;
 
-        return (
-          <div key={msg.id}>
-            {showDateHeader && (
-              <div className="text-center text-gray-400 text-xs my-2 border bg-muted font-normal w-fit mx-auto rounded-md px-2 py-1">
-                {dateLabel}
-              </div>
-            )}
+          return (
+            <div key={msg.id}>
+              {showDateHeader && (
+                <div className="text-center text-gray-400 text-xs my-2 border bg-muted font-normal w-fit mx-auto rounded-md px-2 py-1">
+                  {dateLabel}
+                </div>
+              )}
 
-            <MessageItem
-              msg={msg}
-              isOwnMessage={isOwnMessage}
-              isGroupChat={isGroupChat}
-              showReactions={showReactions}
-              setShowReactions={setShowReactions}
-              onForward={onForward}
-              onAddReaction={onAddReaction}
-            />
-          </div>
-        );
-      })}
+              <MessageItem
+                msg={msg}
+                isOwnMessage={isOwnMessage}
+                isGroupChat={isGroupChat}
+                showReactions={showReactions}
+                setShowReactions={setShowReactions}
+                onForward={onForward}
+                onAddReaction={onAddReaction}
+              />
+            </div>
+          );
+        })}
 
-      {/* Typing indicator */}
-      {/* {otherUserTyping && (
+        {/* Typing indicator */}
+        {/* {otherUserTyping && (
         <div className="flex justify-start">
           <div className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-2xl rounded-bl-md px-4 py-2 max-w-xs">
             <div className="flex items-center space-x-2">
@@ -126,7 +128,8 @@ const MessageList = ({
         </div>
       )} */}
 
-      <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} />
+      </div>
     </div>
   );
 };
