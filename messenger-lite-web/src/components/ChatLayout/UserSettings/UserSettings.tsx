@@ -39,16 +39,8 @@ const UserSettings = () => {
 
   return (
     <div>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-2">
         {/* User Profile */}
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {user?.username}
-          </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {settings?.activeStatus ? "Online" : "Offline"}
-          </p>
-        </div>
 
         {/* Theme Toggle */}
         <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700">
