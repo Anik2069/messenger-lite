@@ -9,9 +9,15 @@ import Modal from "@/components/reusable/Modal";
 import { useModal } from "@/hooks/useModal";
 import VoiceMessageTest from "./Audio/VoiceMessageTest";
 import { useChatInputContext } from "@/context/useChatInputContext";
+import SendVoiceMessageComponents from "./SendVoiceMessageComponents";
 
 interface ChatInputProps {
-  onSendMessage: (text: string, type?: "TEXT" | "FILE", files?: object) => void;
+  onSendMessage: (
+    text: string,
+    type?: "TEXT" | "FILE" | "VOICE",
+    files?: object,
+    voiceUrl?: string
+  ) => void;
   onTypingStart: () => void;
   onTypingStop: () => void;
 }
@@ -21,16 +27,19 @@ export default function ChatInput({
   onTypingStart,
   onTypingStop,
 }: ChatInputProps) {
-  const { isRecording, setIsRecording } = useChatInputContext();
+  const {
+    isRecording,
+    recordedURL,
+    startRecording,
+    stopRecording,
+    deleteRecording,
+    setRecordedURL,
+  } = useChatInputContext();
+
   const [message, setMessage] = useState<string>("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
-  const {
-    open: openMicModal,
-    close: closeMicModal,
-    isOpen: isOpenMicModal,
-    setIsOpen: setIsOpenMicModal,
-  } = useModal();
+
   // Handle file selection
   const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -56,24 +65,59 @@ export default function ChatInput({
   // Send message handler
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
-    // console.log(selectedFiles.length ? "FILE" : "TEXT", "files");
-    if (!message.trim() && selectedFiles.length === 0) return;
 
-    onSendMessage(
-      message.trim(),
-      selectedFiles.length ? "FILE" : "TEXT",
-      selectedFiles
-    );
+    if (!message.trim() && selectedFiles.length === 0 && !recordedURL) return;
+
+    // If we have a voice recording, send it
+    if (recordedURL) {
+      onSendMessage(
+        "Voice message", // or you can keep this empty
+        "VOICE",
+        undefined,
+        recordedURL
+      );
+      setRecordedURL(null);
+    }
+    // If we have text or files, send them
+    else if (message.trim() || selectedFiles.length > 0) {
+      onSendMessage(
+        message.trim(),
+        selectedFiles.length ? "FILE" : "TEXT",
+        selectedFiles
+      );
+    }
 
     setMessage("");
     setSelectedFiles([]);
     onTypingStop();
   };
 
+  // Handle mic button click
+  const handleMicClick = () => {
+    if (isRecording) {
+      stopRecording();
+    } else if (recordedURL) {
+      // If we have a recorded URL, delete it and start fresh
+      deleteRecording();
+      startRecording();
+    } else {
+      // Start fresh recording
+      startRecording();
+    }
+  };
+
+  // Handle delete recording
+  const handleDeleteRecording = () => {
+    deleteRecording();
+  };
+
+  // Show voice components when recording OR when we have a recorded URL
+  const showVoiceComponents = isRecording || recordedURL;
+
   return (
     <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
-      {/* File preview */}
-      {selectedFiles.length > 0 && (
+      {/* File preview - only show when not in voice mode */}
+      {!showVoiceComponents && selectedFiles.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-2">
           {selectedFiles.map((f, i) => (
             <div
@@ -92,7 +136,8 @@ export default function ChatInput({
 
       {/* Input and actions */}
       <form onSubmit={handleSend} className="flex items-center gap-3">
-        {!isRecording && (
+        {/* File input - only show when not in voice mode */}
+        {!showVoiceComponents && (
           <input
             ref={fileRef}
             type="file"
@@ -102,7 +147,9 @@ export default function ChatInput({
             onChange={handleFiles}
           />
         )}
-        {!isRecording && (
+
+        {/* Paperclip button - only show when not in voice mode */}
+        {!showVoiceComponents && (
           <Button
             type="button"
             variant="ghost"
@@ -114,7 +161,17 @@ export default function ChatInput({
           </Button>
         )}
 
-        {!isRecording && (
+        {/* Voice recording components */}
+        {showVoiceComponents && (
+          <div className="flex-1">
+            <SendVoiceMessageComponents
+              onDeleteRecording={handleDeleteRecording}
+            />
+          </div>
+        )}
+
+        {/* Text input - only show when not in voice mode */}
+        {!showVoiceComponents && (
           <Input
             value={message}
             onChange={(e) => {
@@ -125,43 +182,29 @@ export default function ChatInput({
             className="flex-1 border-gray-300 dark:border-gray-600"
           />
         )}
-        {isRecording && (
-          <div className="flex-1 h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs"></div>
-        )}
 
-        {message.trim() || selectedFiles.length ? (
+        {/* Send/Mic Button */}
+        {message.trim() || selectedFiles.length > 0 || recordedURL ? (
           <Button
             type="submit"
             className="bg-blue-500 hover:bg-blue-600 text-white"
           >
             <Send className="w-4 h-4" />
           </Button>
-        ) : !isRecording ? (
+        ) : (
           <Button
-            onClick={() => setIsRecording(!isRecording)}
+            onClick={handleMicClick}
             type="button"
-            className="bg-blue-500 text-white"
+            className={`${
+              isRecording
+                ? "bg-red-500 hover:bg-red-600"
+                : "bg-blue-500 hover:bg-blue-600"
+            } text-white`}
           >
             <Mic className="w-4 h-4" />
           </Button>
-        ) : (
-          <Button
-            onClick={() => setIsRecording(!isRecording)}
-            type="button"
-            className="bg-green-500 text-white hover:bg-green-600 transition"
-          >
-            <Send className="w-4 h-4" />
-          </Button>
         )}
       </form>
-      {/* <Modal
-        maxWidth="2xl"
-        title="Voice Message"
-        open={isOpenMicModal}
-        onClose={closeMicModal}
-      >
-        <VoiceMessageTest />
-      </Modal> */}
     </div>
   );
 }
