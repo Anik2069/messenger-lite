@@ -8,6 +8,7 @@ import { FileData } from "@/types/MessageType";
 import Modal from "@/components/reusable/Modal";
 import { useModal } from "@/hooks/useModal";
 import VoiceMessageTest from "./Audio/VoiceMessageTest";
+import { useChatInputContext } from "@/context/useChatInputContext";
 
 interface ChatInputProps {
   onSendMessage: (text: string, type?: "TEXT" | "FILE", files?: object) => void;
@@ -20,6 +21,7 @@ export default function ChatInput({
   onTypingStart,
   onTypingStop,
 }: ChatInputProps) {
+  const { isRecording, setIsRecording } = useChatInputContext();
   const [message, setMessage] = useState<string>("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -90,33 +92,42 @@ export default function ChatInput({
 
       {/* Input and actions */}
       <form onSubmit={handleSend} className="flex items-center gap-3">
-        <input
-          ref={fileRef}
-          type="file"
-          multiple
-          className="hidden"
-          accept="image/*,video/*,.pdf,.doc,.docx"
-          onChange={handleFiles}
-        />
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => fileRef.current?.click()}
-          className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-        >
-          <Paperclip className="w-5 h-5" />
-        </Button>
+        {!isRecording && (
+          <input
+            ref={fileRef}
+            type="file"
+            multiple
+            className="hidden"
+            accept="image/*,video/*,.pdf,.doc,.docx"
+            onChange={handleFiles}
+          />
+        )}
+        {!isRecording && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => fileRef.current?.click()}
+            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+          >
+            <Paperclip className="w-5 h-5" />
+          </Button>
+        )}
 
-        <Input
-          value={message}
-          onChange={(e) => {
-            setMessage(e.target.value);
-            e.target.value.trim() ? onTypingStart() : onTypingStop();
-          }}
-          placeholder="Type a message..."
-          className="flex-1 border-gray-300 dark:border-gray-600"
-        />
+        {!isRecording && (
+          <Input
+            value={message}
+            onChange={(e) => {
+              setMessage(e.target.value);
+              e.target.value.trim() ? onTypingStart() : onTypingStop();
+            }}
+            placeholder="Type a message..."
+            className="flex-1 border-gray-300 dark:border-gray-600"
+          />
+        )}
+        {isRecording && (
+          <div className="flex-1 h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs"></div>
+        )}
 
         {message.trim() || selectedFiles.length ? (
           <Button
@@ -125,24 +136,32 @@ export default function ChatInput({
           >
             <Send className="w-4 h-4" />
           </Button>
-        ) : (
+        ) : !isRecording ? (
           <Button
-            onClick={openMicModal}
+            onClick={() => setIsRecording(!isRecording)}
             type="button"
             className="bg-blue-500 text-white"
           >
             <Mic className="w-4 h-4" />
           </Button>
+        ) : (
+          <Button
+            onClick={() => setIsRecording(!isRecording)}
+            type="button"
+            className="bg-green-500 text-white hover:bg-green-600 transition"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
         )}
       </form>
-      <Modal
+      {/* <Modal
         maxWidth="2xl"
         title="Voice Message"
         open={isOpenMicModal}
         onClose={closeMicModal}
       >
         <VoiceMessageTest />
-      </Modal>
+      </Modal> */}
     </div>
   );
 }
