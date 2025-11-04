@@ -10,6 +10,8 @@ import {
 interface ChatInputContextType {
   isRecording: boolean;
   setIsRecording: React.Dispatch<React.SetStateAction<boolean>>;
+  isPaused: boolean;
+  setIsPaused: React.Dispatch<React.SetStateAction<boolean>>;
   recordedURL: string | null;
   setRecordedURL: React.Dispatch<React.SetStateAction<string | null>>;
   seconds: number;
@@ -26,6 +28,8 @@ interface ChatInputContextType {
   maxDataPoints: number;
   startRecording: () => Promise<void>;
   stopRecording: () => Promise<void>;
+  pauseRecording: () => void;
+  resumeRecording: () => void;
   deleteRecording: () => void;
   sendRecording: () => void;
   formatTime: (totalSeconds: number) => string;
@@ -39,6 +43,7 @@ export const ChatInputContextProvider = ({
   children: ReactNode;
 }) => {
   const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [recordedURL, setRecordedURL] = useState<string | null>(null);
   const [seconds, setSeconds] = useState(0);
 
@@ -46,18 +51,18 @@ export const ChatInputContextProvider = ({
   const mediaStream = useRef<MediaStream | null>(null);
   const audioContext = useRef<AudioContext | null>(null);
   const analyser = useRef<AnalyserNode | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null); // Fixed: removed undefined
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const chunks = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
   const animationRef = useRef<number | null>(null);
 
   // Store waveform data for scrolling effect
   const waveformData = useRef<number[]>([]);
-  const maxDataPoints = 100; // Number of data points to show
+  const maxDataPoints = 100;
 
   // Timer effect
   useEffect(() => {
-    if (isRecording) {
+    if (isRecording && !isPaused) {
       timerRef.current = window.setInterval(() => {
         setSeconds((prev) => prev + 1);
       }, 1000);
@@ -73,11 +78,11 @@ export const ChatInputContextProvider = ({
         timerRef.current = null;
       }
     };
-  }, [isRecording]);
+  }, [isRecording, isPaused]);
 
   // Canvas visualization effect
   useEffect(() => {
-    if (!canvasRef.current || !isRecording) return;
+    if (!canvasRef.current || !isRecording || isPaused) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -90,7 +95,7 @@ export const ChatInputContextProvider = ({
     canvas.height = height;
 
     const drawWaveform = () => {
-      if (!analyser.current || !isRecording) return;
+      if (!analyser.current || !isRecording || isPaused) return;
 
       const bufferLength = analyser.current.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
@@ -121,9 +126,9 @@ export const ChatInputContextProvider = ({
 
       // Draw waveform from right to left
       const barWidth = width / maxDataPoints;
-      const maxBarHeight = height * 1.5;
+      const maxBarHeight = height * 2;
 
-      ctx.fillStyle = "#1877F2"; // Facebook blue
+      ctx.fillStyle = "#1877F2";
 
       for (let i = 0; i < waveformData.current.length; i++) {
         const data = waveformData.current[i];
@@ -154,7 +159,9 @@ export const ChatInputContextProvider = ({
     };
 
     // Reset waveform data when starting recording
-    waveformData.current = [];
+    if (!isPaused) {
+      waveformData.current = [];
+    }
     drawWaveform();
 
     return () => {
@@ -162,7 +169,7 @@ export const ChatInputContextProvider = ({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isRecording]);
+  }, [isRecording, isPaused]);
 
   const startRecording = async () => {
     if (
@@ -209,10 +216,35 @@ export const ChatInputContextProvider = ({
 
       recorder.start();
       setIsRecording(true);
+      setIsPaused(false);
       setSeconds(0);
     } catch (error) {
       console.error("Error accessing microphone:", error);
       alert("Cannot access microphone. Please check your permissions.");
+    }
+  };
+
+  const pauseRecording = () => {
+    if (mediaRecorder.current && mediaRecorder.current.state === "recording") {
+      mediaRecorder.current.pause();
+      setIsPaused(true);
+
+      // Pause audio context for visualization
+      if (audioContext.current) {
+        audioContext.current.suspend();
+      }
+    }
+  };
+
+  const resumeRecording = () => {
+    if (mediaRecorder.current && mediaRecorder.current.state === "paused") {
+      mediaRecorder.current.resume();
+      setIsPaused(false);
+
+      // Resume audio context for visualization
+      if (audioContext.current) {
+        audioContext.current.resume();
+      }
     }
   };
 
@@ -227,6 +259,7 @@ export const ChatInputContextProvider = ({
       audioContext.current.close();
     }
     setIsRecording(false);
+    setIsPaused(false);
   };
 
   const deleteRecording = () => {
@@ -236,6 +269,7 @@ export const ChatInputContextProvider = ({
     setRecordedURL(null);
     setSeconds(0);
     setIsRecording(false);
+    setIsPaused(false);
   };
 
   const sendRecording = () => {
@@ -244,6 +278,8 @@ export const ChatInputContextProvider = ({
       // You can implement the actual sending logic here
       setRecordedURL(null);
       setSeconds(0);
+      setIsRecording(false);
+      setIsPaused(false);
     }
   };
 
@@ -261,6 +297,8 @@ export const ChatInputContextProvider = ({
       value={{
         isRecording,
         setIsRecording,
+        isPaused,
+        setIsPaused,
         recordedURL,
         setRecordedURL,
         seconds,
@@ -277,6 +315,8 @@ export const ChatInputContextProvider = ({
         maxDataPoints,
         startRecording,
         stopRecording,
+        pauseRecording,
+        resumeRecording,
         deleteRecording,
         sendRecording,
         formatTime,
