@@ -9,9 +9,11 @@ import { DummyAvatar, dummyGroupAvatar } from "@/assets/image";
 import ReusableSearchInput from "@/components/reusable/ReusableSearchInput";
 import { useConversationStore } from "@/store/useConversationStore";
 import { useAuth } from "@/context/useAuth";
-import { useSettings } from "@/context/SettingsContext";
+import { Status, useSettings } from "@/context/SettingsContext";
 import { formatLocalTime } from "@/types/MessageType";
 import { format, isToday, parseISO } from "date-fns";
+import { useChatStore } from "@/store/useChatStore";
+import { SOCKET_HOST } from "@/constant";
 
 interface ChatSidebarProps {
   groups: Group[];
@@ -34,9 +36,25 @@ const ChatSidebar = ({
     group.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // useEffect(() => {
+  //   console.log(activeStatus, "activeStatus");
+  //   console.log(otherStatuses, "otherStatuses");
+  // }, [activeStatus, otherStatuses]);
+
+  useEffect(() => {
+    console.log(selectedChat, "selectedChat");
+  }, [selectedChat]);
+
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
+
+  const getStatusForUser = (userId: string): Status => {
+    if (userId === user?.id) {
+      return activeStatus || { userId, isOnline: false };
+    }
+    return otherStatuses[userId] || { userId, isOnline: false };
+  };
 
   return (
     <div className="h-full flex flex-col max-h-[100vh]">
@@ -62,23 +80,24 @@ const ChatSidebar = ({
             const isGroup = conv.type === "GROUP";
 
             const otherParticipant = !isGroup
-              ? conv.participants[0]?.user
+              ? conv.participants.find((p) => p.user.id !== user?.id)?.user
               : null;
+            // console.log(otherParticipant, "otherParticipant");
+            // console.log(conv, "participants");
 
-            const displayName =
-              otherParticipant?.username || conv.name || "Unknown";
+            const displayName = isGroup
+              ? conv.name
+              : otherParticipant?.username || "Unknown";
+
             const displayAvatar = isGroup
               ? conv.avatar
-              : otherParticipant?.avatar;
+              : otherParticipant?.avatar
+              ? `${SOCKET_HOST}/${otherParticipant.avatar}`
+              : DummyAvatar.src;
 
-            const isSelf = conv?.participants[0]?.user.id === user?.id;
-            const status = isSelf
-              ? activeStatus
-              : otherStatuses[otherParticipant?.id as string] || {
-                  isOnline: otherParticipant?.isOnline,
-                };
-
-            const isOnline = !!status?.isOnline;
+            const participantUserId = otherParticipant?.id;
+            const status = getStatusForUser(participantUserId || "");
+            const isOnline = status?.isOnline || false;
 
             return (
               <div
@@ -87,14 +106,13 @@ const ChatSidebar = ({
                   onChatSelect({
                     type: isGroup ? "group" : "user",
                     id: conv.id,
-                    name: displayName,
+                    name: displayName || "Unknown",
                     avatar: displayAvatar || undefined,
-                    isOnline: otherParticipant?.isOnline || false,
+                    isOnline,
                   })
                 }
                 className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
-                  selectedChat?.id === conv.id ||
-                  selectedChat?.id === conv.participants[0]?.user.id
+                  selectedChat?.id === conv.id
                     ? "bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500"
                     : ""
                 }`}
@@ -103,57 +121,55 @@ const ChatSidebar = ({
                 <div className="relative">
                   <Image
                     src={displayAvatar || DummyAvatar}
-                    alt={displayName}
+                    alt={displayName || "Avatar"}
                     width={40}
                     height={40}
                     className="w-10 h-10 rounded-full object-cover"
                   />
-                  <div
-                    className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${
-                      isOnline ? "bg-green-400" : "bg-gray-400"
-                    }`}
-                  />
+                  {!isGroup && (
+                    <div
+                      className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${
+                        isOnline ? "bg-green-400" : "bg-gray-400"
+                      }`}
+                    />
+                  )}
                 </div>
 
                 {/* Info */}
                 <div className="flex-1 min-w-0 ml-3">
-                  <h3 className="font-medium text-gray-900 dark:text-white truncate">
-                    {displayName}
-                  </h3>
-                  {conv?.messages?.length > 0 ? (
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate w-24">
-                        {isGroup
-                          ? `${conv.participants.length} members`
-                          : `${
-                              conv.messages?.[0]?.author?.username ===
-                              user?.username
-                                ? "You"
-                                : conv.messages?.[0]?.author?.username
-                            } : ${conv.messages?.[0]?.message}` ||
-                            "No messages yet"}
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium text-gray-900 dark:text-white truncate">
+                      {displayName}
+                    </h3>
+                    {conv.messages?.[0]?.createdAt && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                        {(() => {
+                          const localDate = parseISO(
+                            conv.messages[0].createdAt as string
+                          );
+                          return isToday(localDate)
+                            ? formatLocalTime(localDate)
+                            : format(localDate, "dd-MM-yyyy");
+                        })()}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        <span>
-                          {conv.messages?.[0]?.createdAt
-                            ? (() => {
-                                const localDate = parseISO(
-                                  conv.messages[0].createdAt as string
-                                ); // converts Z string to Date in local timezone
-                                return isToday(localDate)
-                                  ? formatLocalTime(localDate) // show time if today
-                                  : format(localDate, "dd-MM-yyyy"); // show date if not today
-                              })()
-                            : ""}
-                        </span>
-                      </p>
-                    </div>
+                    )}
+                  </div>
+
+                  {conv.messages?.length > 0 ? (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                      {isGroup
+                        ? `${conv.participants.length} members`
+                        : `${
+                            conv.messages[0]?.author?.username ===
+                            user?.username
+                              ? "You"
+                              : conv.messages[0]?.author?.username
+                          }: ${conv.messages[0]?.message}`}
+                    </p>
                   ) : (
-                    <div className="">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        No messages yet
-                      </p>
-                    </div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      No messages yet
+                    </p>
                   )}
                 </div>
               </div>

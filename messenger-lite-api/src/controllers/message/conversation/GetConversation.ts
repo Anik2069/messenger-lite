@@ -27,11 +27,7 @@ export function getConversations(
         },
         include: {
           participants: {
-            where: {
-              userId: { not: userId },
-            },
-
-            select: {
+            include: {
               user: true,
             },
           },

@@ -1,12 +1,12 @@
-import AuthPageComponents from '@/components/Auth/AuthPageComponents'
-import React from 'react'
+import { AuthPageComponents } from "@/components/Auth/AuthPageComponents";
+import React from "react";
 
 const page = () => {
-    return (
-        <div>
-            <AuthPageComponents />
-        </div>
-    )
-}
+  return (
+    <div>
+      <AuthPageComponents />
+    </div>
+  );
+};
 
-export default page
+export default page;

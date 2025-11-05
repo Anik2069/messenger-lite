@@ -2,19 +2,9 @@ import { Server as SocketIOServer, Socket } from "socket.io";
 import { verifyJWT } from "../utils/jwt";
 import { updateUserPresence } from "../helpers/presence.helper";
 import { prisma } from "../configs/prisma.config";
+import { initDeviceSocket, joinedDevices, Device } from "./device.socket";
 
 const convRoom = (id: string) => `conv:${id}`;
-
-// Array to keep track of connected users
-const joinedUsers: { userId: string; socket: Socket }[] = [];
-
-function getTokenFromHeaders(headers: any) {
-  const authHeader = headers.authorization;
-  if (authHeader && authHeader.startsWith("Bearer ")) {
-    return authHeader.substring(7);
-  }
-  return null;
-}
 
 export const initSocket = (server: any) => {
   const origins = (process.env.SOCKET_CORS_ORIGINS ?? "")
@@ -23,24 +13,31 @@ export const initSocket = (server: any) => {
     .filter(Boolean);
 
   const io = new SocketIOServer(server, {
-    cors: {
-      origin: origins,
-      credentials: true,
-    },
+    cors: { origin: origins, credentials: true },
   });
 
   // Auth middleware
-  io.use((socket, next) => {
+  io.use(async (socket, next) => {
     try {
       const token =
         socket.handshake.auth?.token ||
         socket.handshake.query?.token ||
-        getTokenFromHeaders(socket.handshake.headers);
+        socket.handshake.headers?.authorization?.split(" ")[1];
 
       if (!token) return next(new Error("Missing token"));
 
       const { id } = verifyJWT(token);
+
+      // Verify user exists and get settings
+      const user = await prisma.user.findUnique({
+        where: { id },
+        include: { settings: true },
+      });
+
+      if (!user) return next(new Error("User not found"));
+
       socket.data.userId = id;
+      socket.data.userSettings = user.settings;
       next();
     } catch {
       next(new Error("Invalid token"));
@@ -49,32 +46,48 @@ export const initSocket = (server: any) => {
 
   io.on("connection", (socket: Socket) => {
     const userId = socket.data.userId as string;
+    const userSettings = socket.data.userSettings;
+
     console.log("Socket connected:", userId, "Socket ID:", socket.id);
 
-    // Add to joinedUsers
-    joinedUsers.push({ userId, socket });
+    // --- Device socket integration ---
+    initDeviceSocket(io as IOServerWithHelpers, socket);
 
-    console.log(
-      "Current joinedUsers:",
-      joinedUsers.map((u) => u.userId)
-    );
-
+    // Join user's personal room (for presence, notifications)
     socket.join(userId);
-    console.log(
-      `${userId} joined their personal room ${socket.id}` +
-        "Room size:" +
-        socket.rooms.size
+
+    // Set initial online status based on user settings
+    const initialOnlineStatus = userSettings?.activeStatus ?? true;
+
+    // Manual status update
+    socket.on(
+      "set_status",
+      async ({
+        isOnline,
+        updateMode = false,
+      }: {
+        isOnline: boolean;
+        updateMode?: boolean;
+      }) => {
+        await updateUserPresence(
+          io as IOServerWithHelpers,
+          userId,
+          isOnline,
+          updateMode
+        );
+      }
     );
 
-    // manual status update
-    socket.on("set_status", async ({ isOnline }: { isOnline: boolean }) => {
-      await updateUserPresence(io as IOServerWithHelpers, userId, isOnline);
-      console.log(`${userId} is now ${isOnline ? "online" : "offline"}`);
-    });
+    // Send initial presence update
+    updateUserPresence(
+      io as IOServerWithHelpers,
+      userId,
+      initialOnlineStatus,
+      false
+    );
 
-    // conversation join
+    // Conversation join
     socket.on("join_conversation", async (conversationId: string) => {
-      const userId = socket.data.userId as string;
       const member = await prisma.conversationParticipant.findFirst({
         where: { conversationId, userId },
         select: { id: true },
@@ -85,16 +98,11 @@ export const initSocket = (server: any) => {
         const conversation = await prisma.conversation.findFirst({
           where: {
             type: "DIRECT",
-            participants: {
-              some: { userId },
-            },
-            AND: {
-              participants: { some: { userId: peerUserId } },
-            },
+            participants: { some: { userId } },
+            AND: { participants: { some: { userId: peerUserId } } },
           },
           include: { participants: true },
         });
-
         if (!conversation) return;
         socket.join(convRoom(conversation.id));
         console.log(`${userId} joined conv:${conversation.id}`);
@@ -102,18 +110,15 @@ export const initSocket = (server: any) => {
         socket.join(convRoom(conversationId));
         console.log(`${userId} joined conv:${conversationId}`);
       }
-
-      // socket.join(convRoom(conversationId));
     });
 
-    // conversation leave
+    // Leave conversation
     socket.on("leave_conversation", (conversationId: string) => {
-      const userId = socket.data.userId as string;
       socket.leave(convRoom(conversationId));
       console.log(`${userId} left conv:${conversationId}`);
     });
 
-    // typing
+    // Typing
     socket.on("typing", ({ conversationId, userId }) => {
       if (!conversationId) return;
       io.to(convRoom(conversationId)).emit("user_typing", {
@@ -122,23 +127,14 @@ export const initSocket = (server: any) => {
       });
     });
 
-    socket.on("disconnect", () => {
-      console.log("Socket disconnected:", userId, socket.id);
-      // Remove from joinedUsers
-      const index = joinedUsers.findIndex(
-        (u) => u.userId === userId && u.socket.id === socket.id
-      );
-      if (index !== -1) {
-        joinedUsers.splice(index, 1);
-      }
-      console.log(
-        "Current joinedUsers:",
-        joinedUsers.map((u) => u.userId)
-      );
+    // Handle disconnect
+    socket.on("disconnect", async () => {
+      console.log("Socket disconnected:", userId, "Socket ID:", socket.id);
+      // Note: Device socket will handle the actual presence update for multi-tab
     });
   });
 
-  return Object.assign(io, { convRoom, joinedUsers });
+  return Object.assign(io, { convRoom, joinedDevices });
 };
 
 export type IOServerWithHelpers = ReturnType<typeof initSocket>;

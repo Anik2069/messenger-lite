@@ -11,7 +11,7 @@ declare global {
 export const prisma =
   global.prisma ||
   new PrismaClient({
-    log: ["query", "warn", "error"],
+    // log: ["query", "warn", "error"],
   });
 
 // Only set global in development

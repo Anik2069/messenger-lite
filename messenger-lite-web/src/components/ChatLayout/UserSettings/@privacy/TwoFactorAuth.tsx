@@ -20,8 +20,8 @@ const TwoFactorAuth = () => {
     currentUserDetails,
     setSetupError,
     remove2FA,
+    removeModalOpen,
   } = useAuth();
-  const { removeModalOpen } = useGlobalContext();
 
   const methods = useForm<{ otp: string }>({ defaultValues: { otp: "" } });
   const { watch, reset } = methods;

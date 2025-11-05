@@ -9,6 +9,7 @@ import { useAuth } from "@/context/useAuth";
 import { useSettings } from "@/context/SettingsContext";
 import { Chat } from "@/types/ChatType";
 import { useGlobalContext } from "@/provider/GlobalContextProvider";
+import { MEDIA_HOST } from "@/constant";
 
 interface AllContactsProps {
   searchText: string;
@@ -29,7 +30,7 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
 
   useEffect(() => {
     const newUserCreate = (datid: string, newUser: boolean) => {
-      console.log("User created event received:", datid, "New User:", newUser);
+      // console.log("User created event received:", datid, "New User:", newUser);
       // setActiveStatus({ userId: uid, isOnline });
       fetchFriends(searchText);
     };
@@ -73,15 +74,15 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
         return (
           <div
             key={userInfo?.id}
-            onClick={() =>
+            onClick={() => {
               handleChatSelect(
                 "user",
                 userInfo?.id,
                 userInfo?.username,
                 userInfo?.avatar,
                 isOnline
-              )
-            }
+              );
+            }}
             className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
               selectedChat?.type === "user" && selectedChat?.id === userInfo?.id
                 ? "bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500"
@@ -90,7 +91,11 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
           >
             <div className="relative mr-3">
               <Image
-                src={userInfo?.avatar || DummyAvatar}
+                src={
+                  userInfo?.avatar
+                    ? MEDIA_HOST + "/" + userInfo?.avatar
+                    : DummyAvatar
+                }
                 alt={userInfo?.username}
                 width={40}
                 height={40}

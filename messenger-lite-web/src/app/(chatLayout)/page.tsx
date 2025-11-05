@@ -9,18 +9,16 @@ import { useFriendsStore } from "@/store/useFriendsStrore";
 import { socket } from "@/lib/socket";
 
 const ChatLayoutPage = () => {
-  const { user, loading, isLogoutLoading } = useAuth();
+  const { user, loading, isLogoutLoading, initialLoading } = useAuth();
   const router = useRouter();
   const userId = user?.id;
   const { setupSocketListeners } = useFriendsStore();
   useEffect(() => {
-    console.log(user, "from useEffect");
-    if (user === null || (user === undefined && !isLogoutLoading)) {
+    if (initialLoading) return;
+    if (!user && !isLogoutLoading && !initialLoading) {
       router.push("/auth?type=login");
-    } else {
-      router.push("/");
     }
-  }, [user, router, loading, isLogoutLoading]);
+  }, [user, router, initialLoading, isLogoutLoading]);
 
   useEffect(() => {
     if (!userId) return;

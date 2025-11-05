@@ -5,13 +5,17 @@ import userLogout from "../../../controllers/auth/userLogout.controller";
 import requireAuth from "../../../middlewares/requireAuth";
 import { prisma } from "../../../configs/prisma.config";
 import userActiveStatus from "../../../controllers/auth/userActiveStatus";
-import { userSignup } from "../../../controllers/auth/userSignup.controller";
+import {
+  trustedDevices,
+  userSignup,
+} from "../../../controllers/auth/userSignup.controller";
 import {
   generate2FA,
   remove2FA,
   verify2FASetup,
 } from "../../../controllers/auth/user_auth.controller";
 import { confirm2FA } from "../../../controllers/auth/confirm2FA.controller";
+import tr from "zod/v4/locales/tr.cjs";
 
 const authRouter = (io: IOServerWithHelpers) => {
   const router = Router();
@@ -23,6 +27,7 @@ const authRouter = (io: IOServerWithHelpers) => {
   router.post("/sign-in", userSignin(io));
   router.post("/verify-2FA/sign-in", confirm2FA);
   router.post("/sign-up", userSignup(io));
+  router.get("/trusted-devices/:id", trustedDevices(io));
 
   router.get("/me", requireAuth, async (req, res) => {
     const id = (req as any).auth.userId as string;

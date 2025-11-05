@@ -6,6 +6,7 @@ import { signJWT } from "../../utils/jwt";
 import sendResponse from "../../libs/sendResponse";
 import type { Response, Request } from "express";
 import type { IOServerWithHelpers } from "../../socket/initSocket";
+import { DeviceInfo, trackDevice } from "../../utils/deviceTracker";
 
 const userSigninDto = z.object({
   email: z.string().email("Invalid email format"),
@@ -84,17 +85,68 @@ export default function userSignin(io: IOServerWithHelpers) {
           data: { accessToken, twoFA: user?.isTwoFAEnable, userId: user.id },
         });
       } else {
-        const userInfo = await prisma.user.findUnique({
+        const userInfoPrime = await prisma.user.findUnique({
           where: { id },
-          omit: { password: true, twoFASecret: true },
+          include: {
+            settings: true,
+          },
         });
-        console.log("User signed in:", userInfo);
 
+        console.log("User signed in:", userInfoPrime);
+        const deviceInfo: DeviceInfo = await trackDevice(req as any);
+        let currentDeviceId = null;
+
+        const existingDevice = await prisma.userDevice.findFirst({
+          where: {
+            user_id: user.id,
+            user_agent: deviceInfo.user_agent,
+            os: deviceInfo.os,
+            ip_address: deviceInfo.ip_address,
+            browser: deviceInfo.browser,
+            device_type: deviceInfo.device_type,
+          },
+        });
+        if (existingDevice) {
+          currentDeviceId = existingDevice.id;
+          await prisma.userDevice.update({
+            where: { id: existingDevice.id },
+            data: { last_active: new Date() },
+          });
+        } else {
+          // Device is new but user already passed 2FA, create it as untrusted (or trusted if you want)
+          const isFromPostman = false;
+          // deviceInfo.user_agent.includes("PostmanRuntime");
+          if (!isFromPostman) {
+            const newDevice = await prisma.userDevice.create({
+              data: {
+                user_id: user.id,
+                ip_address: deviceInfo.ip_address,
+                user_agent: deviceInfo.user_agent,
+                os: deviceInfo.os,
+                browser: deviceInfo.browser,
+                device_type: deviceInfo.device_type,
+                trusted: false,
+                last_active: new Date(),
+              },
+            });
+            currentDeviceId = newDevice.id;
+          }
+        }
+
+        console.log(deviceInfo, "deviceInfo");
         return sendResponse({
           res,
           statusCode: StatusCodes.OK,
           message: "User signed in successfully",
-          data: { userInfo, accessToken, twoFA: user?.isTwoFAEnable },
+          data: {
+            userInfo: {
+              ...userInfoPrime,
+              password: undefined,
+              twoFASecret: undefined,
+            },
+            accessToken,
+            twoFA: user?.isTwoFAEnable,
+          },
         });
       }
     } catch (error: any) {

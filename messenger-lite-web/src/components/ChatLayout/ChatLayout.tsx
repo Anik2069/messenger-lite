@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import ChatSidebar from "./ChatSidebar/ChatSidebar";
 import Navbar from "./Navbar/Navbar";
 import ChatWindow from "./ChatWindow/ChatWindow";
@@ -19,6 +19,7 @@ import axiosInstance from "@/config/axiosInstance";
 import { is } from "zod/v4/locales";
 import AddFriend from "./AddFriend/AddFriend";
 import PrivacySettings from "./UserSettings/PrivacySettings";
+import GeneralSettings from "./UserSettings/GeneralSettings";
 
 declare global {
   interface Window {
@@ -27,7 +28,7 @@ declare global {
 }
 
 const ChatLayout = () => {
-  const { user } = useAuth();
+  const { user, getMyself } = useAuth();
   const {
     selectedChat,
     messages,
@@ -71,7 +72,9 @@ const ChatLayout = () => {
   useEffect(() => {
     return () => cleanupTyping();
   }, []);
-
+  useEffect(() => {
+    if (user) getMyself();
+  }, [user]);
   // Join/Leave conversation room on selection
   useEffect(() => {
     if (selectedChat) {
@@ -107,8 +110,8 @@ const ChatLayout = () => {
 
   const handleSendMessage = (
     message: string,
-    type: "text" | "file" | "forwarded" = "text",
-    fileData?: FileData,
+    type: "TEXT" | "FILE" | "forwarded" = "TEXT",
+    fileData?: object,
     forwardedFrom?: ForwardedData
   ) => {
     onSendMessage(message, type, fileData, forwardedFrom, user);
@@ -207,11 +210,12 @@ const ChatLayout = () => {
       </Modal>
       <Modal
         maxWidth="7xl"
+        className="!p-0"
         title="General Settings"
         open={isGeneralSettingModalOpen}
         onClose={generalSettingModalClose}
       >
-        <div className=""></div>
+        <GeneralSettings />
       </Modal>
       <Modal
         // overflowAuto={true}
