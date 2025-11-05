@@ -16,7 +16,6 @@ const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
     cb(null, uploadDir);
   },
-
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname);
     const base = path.basename(file.originalname, ext);
@@ -27,14 +26,6 @@ const storage = multer.diskStorage({
 
 // Allowed file types
 const allowedTypes = [
-  // "image/jpeg",
-  // "image/png",
-  // "image/webp",
-  // "image/jpg",
-  // "video/mp4",
-  // "video/mov",
-  // "video/webm",
-  // "video/ogg",
   "application/pdf",
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -43,19 +34,15 @@ const allowedTypes = [
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ];
 
-// File filter
-// const fileFilter = (
-//   _req: Request,
-//   file: Express.Multer.File,
-//   cb: FileFilterCallback
-// ) => {
-//   if (allowedTypes.includes(file.mimetype)) {
-//     cb(null, true);
-//   } else {
-//     cb(new Error("Unsupported file type"));
-//   }
-// };
+// Allowed audio (voice message) types
+const allowedAudioTypes = [
+  "audio/mpeg", // mp3
+  "audio/wav",
+  "audio/ogg",
+  "audio/webm",
+];
 
+// File filter
 const fileFilter = (
   _req: Request,
   file: Express.Multer.File,
@@ -64,7 +51,8 @@ const fileFilter = (
   if (
     file.mimetype.startsWith("image/") || // allow all images
     file.mimetype.startsWith("video/") || // allow all videos
-    allowedTypes.includes(file.mimetype) // allow PDFs, Word, Excel, CSV
+    allowedTypes.includes(file.mimetype) || // PDFs, Word, Excel, CSV
+    allowedAudioTypes.includes(file.mimetype) // voice messages
   ) {
     cb(null, true);
   } else {
@@ -76,5 +64,7 @@ const fileFilter = (
 export const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 20 * 1024 * 1024 }, // 5MB   now 2- for  video
+  limits: {
+    fileSize: 50 * 1024 * 1024,
+  },
 });

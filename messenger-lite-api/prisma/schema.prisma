@@ -182,6 +182,7 @@ enum MessageType {
   TEXT
   FILE
   FORWARDED
+  VOICE
 }
 
 enum ThemeType {

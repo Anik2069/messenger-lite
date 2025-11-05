@@ -2,6 +2,7 @@ import { Forward, Smile } from "lucide-react";
 import { formatLocalTime, Message, FileData } from "../../../types/MessageType";
 import FileMessage from "./FileMessage";
 import ReactionPicker from "./ReactionPicker";
+import { is } from "zod/v4/locales";
 
 interface MessageItemProps {
   msg: Message;
@@ -39,12 +40,12 @@ const MessageItem = ({
 
   /** Message content including file messages */
   const renderMessageContent = () => {
-    let file: object | null = null;
-    // console.log(msg, "msg");
+    let file: FileData | null = null;
+
     if (msg.messageType === "FILE") {
       // Prefer frontend optimistic fileData, fallback to backend fields
       if (msg.fileData) {
-        file = msg.fileData;
+        file = msg.fileData as FileData;
       } else if (msg.fileUrl && msg.fileName && msg.fileMime && msg.fileSize) {
         file = {
           url: msg.fileUrl,
@@ -55,20 +56,26 @@ const MessageItem = ({
         };
       }
     }
-    // console.log(file, "outer___________________________");
+
+    const isAudio = file?.mimetype?.startsWith("audio/");
 
     return (
       <>
         {file ? (
           <div className="flex flex-col gap-1">
             <FileMessage file={file} />
-            {(msg?.message && (msg.fileData as FileData)?.filename
-              ? (msg.fileData as FileData)?.filename !== msg?.message
-              : msg?.fileName !== msg?.message) && (
-              <div className="flex flex-wrap">
-                <div className="text-sm leading-relaxed">{msg.message}</div>
-                <div className="w-14 h-2.5 invisible"></div>
-              </div>
+            {/* Show text only if file is NOT audio and message is different from filename */}
+            {isAudio ? (
+              <div className="w-14 h-2.5 invisible"></div>
+            ) : (
+              !isAudio &&
+              msg.message &&
+              msg.message !== file.filename && (
+                <div className="flex flex-wrap">
+                  <div className="text-sm leading-relaxed">{msg.message}</div>
+                  <div className="w-14 h-2.5 invisible"></div>
+                </div>
+              )
             )}
           </div>
         ) : (

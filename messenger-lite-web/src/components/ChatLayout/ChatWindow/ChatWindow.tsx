@@ -13,9 +13,11 @@ interface ChatWindowProps {
   otherUserTyping: string | null;
   onSendMessage: (
     text: string,
-    type?: "TEXT" | "FILE" | "forwarded",
+    type?: "TEXT" | "FILE" | "forwarded" | "VOICE",
     fileData?: object,
-    forwardedFrom?: ForwardedData
+    voiceUrl?: string | undefined,
+    forwardedFrom?: ForwardedData,
+    currentUser?: { username: string; id: string }
   ) => void;
   onAddReaction: (id: string, emoji: string) => void;
   onTypingStart: () => void;
@@ -54,10 +56,17 @@ const ChatWindow = ({
         showReactions={showReactions}
         setShowReactions={setShowReactions}
         onForward={(msg) =>
-          onSendMessage(msg.message, "forwarded", undefined, {
-            originalSender: msg?.from?.username || "Unknown",
-            originalTimestamp: new Date(msg.timestamp || msg.timestamp),
-          })
+          onSendMessage(
+            msg.message,
+            "forwarded",
+            undefined,
+            undefined,
+            {
+              originalSender: msg?.from?.username || "Unknown",
+              originalTimestamp: new Date(msg.timestamp || msg.timestamp),
+            },
+            { username: msg?.from?.username || "Unknown", id: msg?.from?.id }
+          )
         }
         onAddReaction={onAddReaction}
       />

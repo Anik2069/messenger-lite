@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mic, Paperclip, Send, X } from "lucide-react";
-import { FileData } from "@/types/MessageType";
+import { FileData, ForwardedData } from "@/types/MessageType";
 import Modal from "@/components/reusable/Modal";
 import { useModal } from "@/hooks/useModal";
 import VoiceMessageTest from "./Audio/VoiceMessageTest";
@@ -17,9 +17,10 @@ import { toast } from "react-toastify";
 interface ChatInputProps {
   onSendMessage: (
     text: string,
-    type?: "TEXT" | "FILE" | "VOICE",
-    files?: object,
-    voiceUrl?: string
+    type?: "TEXT" | "FILE" | "forwarded" | "VOICE",
+    fileData?: object,
+    voiceUrl?: string,
+    forwardedFrom?: ForwardedData
   ) => void;
   onTypingStart: () => void;
   onTypingStop: () => void;
@@ -128,7 +129,7 @@ export default function ChatInput({
     <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
       {/* File preview - only show when not in voice mode */}
       {!showVoiceComponents && selectedFiles.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-2 max-h-[200px] lg:max-h-[300px] overflow-y-scroll scrollbar-none">
+        <div className="flex flex-wrap gap-2 mb-2 max-h-[00px] lg:max-h-[300px] overflow-y-scroll scrollbar-none">
           {selectedFiles.map((f, i) => (
             <div
               key={i}

@@ -11,7 +11,7 @@ import NewChat from "./NewChat/NewChat";
 import Modal from "../reusable/Modal";
 import UserSettings from "./UserSettings/UserSettings";
 import { useFriendsStore } from "@/store/useFriendsStrore";
-import { useChatStore } from "@/store/useChatStore";
+import { ChatState, useChatStore } from "@/store/useChatStore";
 import { cleanupTyping, startTyping, stopTyping } from "@/lib/typing";
 import { useAuth } from "@/context/useAuth";
 import { socket } from "@/lib/socket"; // ✅ socket import
@@ -110,11 +110,12 @@ const ChatLayout = () => {
 
   const handleSendMessage = (
     message: string,
-    type: "TEXT" | "FILE" | "forwarded" = "TEXT",
+    type: "TEXT" | "FILE" | "forwarded" | "VOICE" = "TEXT",
     fileData?: object,
+    voiceUrl?: string,
     forwardedFrom?: ForwardedData
   ) => {
-    onSendMessage(message, type, fileData, forwardedFrom, user);
+    onSendMessage(message, type, fileData, voiceUrl, forwardedFrom, user);
   };
 
   const handleAddReaction = (messageId: string, emoji: string) => {

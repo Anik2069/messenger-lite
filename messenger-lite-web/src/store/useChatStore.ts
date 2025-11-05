@@ -113,8 +113,9 @@ export type ChatState = {
   emitTyping: ({ user }: { user: { username: string } }) => void;
   onSendMessage: (
     text: string,
-    type?: "TEXT" | "FILE" | "forwarded",
+    type?: "TEXT" | "FILE" | "forwarded" | "VOICE",
     fileData?: object,
+    voiceUrl?: string | undefined,
     forwardedFrom?: ForwardedData,
     currentUser?: { username: string; id: string } | null
   ) => Promise<void>;
@@ -353,6 +354,7 @@ export const useChatStore = create<ChatState>((set, get) => {
       text,
       type = "TEXT",
       fileData,
+      voiceUrl,
       forwardedFrom,
       currentUser
     ) => {
@@ -499,6 +501,17 @@ export const useChatStore = create<ChatState>((set, get) => {
           // file should be a File object from input
           formData.append("files", file as unknown as Blob);
         });
+      }
+      // handle voice message
+      if (voiceUrl) {
+        // Convert voice blob if needed
+        try {
+          const blob = await fetch(voiceUrl).then((res) => res.blob());
+          console.log(blob, "blob");
+          formData.append("files", blob, "voice-message.wav");
+        } catch (e) {
+          console.error("Voice file blob fetch failed", e);
+        }
       }
 
       try {

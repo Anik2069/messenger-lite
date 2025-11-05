@@ -22,6 +22,7 @@ interface FileMessageProps {
 }
 
 const FileMessage = ({ file }: FileMessageProps) => {
+  // console.log(file);
   const url = file.url
     ? `${MEDIA_HOST}${file.url}`
     : file.fileUrl
@@ -34,6 +35,7 @@ const FileMessage = ({ file }: FileMessageProps) => {
   // Detect file type
   const isImage = mimetype.startsWith("image/");
   const isVideo = mimetype.startsWith("video/");
+  const isAudio = mimetype.startsWith("audio/");
 
   // Allowed document types
   const allowedDocs = [
@@ -46,7 +48,8 @@ const FileMessage = ({ file }: FileMessageProps) => {
   ];
 
   // Check if file is allowed
-  const isAllowed = isImage || isVideo || allowedDocs.includes(mimetype);
+  const isAllowed =
+    isImage || isVideo || allowedDocs.includes(mimetype) || isAudio;
   if (!isAllowed) return null; // skip unsupported files
 
   return (
@@ -73,8 +76,20 @@ const FileMessage = ({ file }: FileMessageProps) => {
         </div>
       )}
 
+      {/* Audio preview */}
+      {isAudio && (
+        <div className="relative w-[300px]  rounded-lg overflow-hidden shadow-sm ">
+          <audio
+            controlsList="nodownload"
+            src={url}
+            className="object-cover w-full h-9"
+            controls
+          />
+        </div>
+      )}
+
       {/* Document preview */}
-      {!isImage && !isVideo && (
+      {!isImage && !isVideo && !isAudio && (
         <div className="flex items-center space-x-3 bg-gray-100 dark:bg-gray-700 p-3 rounded-lg max-w-xs hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
           <FileText className="w-8 h-8 text-blue-500 flex-shrink-0" />
           <div className="flex-1 min-w-0">
