@@ -57,11 +57,9 @@ function AuthFormInner() {
             <div className="bg-blue-600 p-3 rounded-2xl flex items-center justify-center shadow-lg">
               <MessageSquare className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Messenger Lite
-            </h1>
+            <h1 className="text-3xl font-bold text-white">Messenger Lite</h1>
           </div>
-          <p className="text-gray-600 dark:text-gray-400 text-sm">
+          <p className="text-gray-100 text-sm">
             Fast, simple, and efficient messaging
           </p>
         </div>
@@ -136,16 +134,16 @@ function AuthFormInner() {
 
         {/* Features */}
         <div className="grid grid-cols-3 gap-4 text-center">
-          <div className="text-gray-600 dark:text-gray-400">
-            <Zap className="w-6 h-6 mx-auto mb-2" />
+          <div className="text-gray-100 ">
+            <Zap className="w-6 h-6 mx-auto mb-2 animate-pulse" />
             <p className="text-xs">Lightning Fast</p>
           </div>
-          <div className="text-gray-600 dark:text-gray-400">
-            <MessageSquare className="w-6 h-6 mx-auto mb-2" />
+          <div className="text-gray-100 ">
+            <MessageSquare className="w-6 h-6 mx-auto mb-2 animate-pulse " />
             <p className="text-xs">Real-time Chat</p>
           </div>
-          <div className="text-gray-600 dark:text-gray-400">
-            <User className="w-6 h-6 mx-auto mb-2" />
+          <div className="text-gray-100 ">
+            <User className="w-6 h-6 mx-auto mb-2 animate-pulse" />
             <p className="text-xs">Simple & Clean</p>
           </div>
         </div>

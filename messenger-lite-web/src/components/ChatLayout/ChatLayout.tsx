@@ -202,7 +202,7 @@ const ChatLayout = () => {
       </RightSideDrawer>
       <Modal
         maxWidth="2xl"
-        title="Settings"
+        title="User Settings"
         open={settingModalIsOpen}
         onClose={settingModalClose}
       >

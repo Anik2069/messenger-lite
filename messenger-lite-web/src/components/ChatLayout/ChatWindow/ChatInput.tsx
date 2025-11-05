@@ -29,7 +29,13 @@ export default function ChatInput({
       (f) =>
         !selectedFiles.some((sf) => sf.name === f.name && sf.size === f.size)
     );
-    if (filtered.length) setSelectedFiles([...selectedFiles, ...filtered]);
+
+    if (filtered.length) {
+      setSelectedFiles([...selectedFiles, ...filtered]);
+    }
+
+    // Reset input so same file can be selected again
+    if (fileRef.current) fileRef.current.value = "";
   };
 
   // Remove a file from selection
