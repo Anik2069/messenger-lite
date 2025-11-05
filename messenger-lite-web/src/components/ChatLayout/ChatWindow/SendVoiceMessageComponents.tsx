@@ -55,9 +55,9 @@ const SendVoiceMessageComponents = ({
   };
 
   return (
-    <div className="flex items-center justify-between gap-2 w-full h-9 rounded-md border bg-gray-50 dark:bg-gray-800 px-2">
+    <div className="flex items-center justify-end gap-2 w-full h-9 rounded-md border bg-gray-50 dark:bg-gray-800 px-2">
       {/* Left: Recording / Playback / Delete */}
-      <div className="flex items-center gap-2 flex-1">
+      <div className="flex items-center gap-2">
         {/* Delete Button - show for both recording and recorded states */}
         {(isRecording || recordedURL) && (
           <button
@@ -72,7 +72,10 @@ const SendVoiceMessageComponents = ({
         {/* Recording Waveform */}
         {isRecording && (
           <div className="flex items-center gap-2 flex-1">
-            <canvas ref={canvasRef} className="h-6 w-[300px] bg-transparent" />
+            <canvas
+              ref={canvasRef}
+              className="h-6  w-[200px] lg:w-[300px] bg-transparent"
+            />
             <span className="text-xs dark:text-white w-10 text-right font-medium">
               {formatTime(seconds)}
             </span>
@@ -82,7 +85,22 @@ const SendVoiceMessageComponents = ({
         {/* Audio playback after recording */}
         {recordedURL && !isRecording && (
           <div className="flex items-center gap-2 flex-1">
-            <audio src={recordedURL} controls className="h-6" />
+            {/* <audio src={recordedURL} controls className="h-6" /> */}
+            {/* <audio
+              src={recordedURL}
+              controls
+              controlsList="nodownload" // Download option hide
+              className="h-6 flex-1"
+            /> */}
+            <audio
+              src={recordedURL}
+              controls
+              // autoPlay={true} // Auto start
+              // loop={true} // Repeat
+              controlsList="nodownload" // Download option hide
+              preload="metadata" // "none" | "metadata" | "auto"
+              className="h-6"
+            />
             <span className="text-xs dark:text-white w-10 text-right">
               {formatTime(seconds)}
             </span>
@@ -121,7 +139,7 @@ const SendVoiceMessageComponents = ({
             </Button>
 
             {/* Stop Recording Button */}
-            <Button
+            {/* <Button
               onClick={stopRecording}
               size="sm"
               variant="ghost"
@@ -129,12 +147,12 @@ const SendVoiceMessageComponents = ({
               title="Stop Recording"
             >
               <CircleStop className="w-4 h-4" />
-            </Button>
+            </Button> */}
           </>
         )}
 
         {/* Send Button for recorded audio */}
-        {recordedURL && !isRecording && (
+        {/* {recordedURL && !isRecording && (
           <Button
             onClick={handleSend}
             size="sm"
@@ -144,7 +162,7 @@ const SendVoiceMessageComponents = ({
           >
             <Send className="w-4 h-4" />
           </Button>
-        )}
+        )} */}
 
         {/* Start recording button when not recording (alternative position) */}
         {!isRecording && !recordedURL && (

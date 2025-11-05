@@ -10,6 +10,9 @@ import { useModal } from "@/hooks/useModal";
 import VoiceMessageTest from "./Audio/VoiceMessageTest";
 import { useChatInputContext } from "@/context/useChatInputContext";
 import SendVoiceMessageComponents from "./SendVoiceMessageComponents";
+import FileMessage from "./FileMessage";
+import UniversalFilePreview from "@/components/reusable/UniversalFilePreview";
+import { toast } from "react-toastify";
 
 interface ChatInputProps {
   onSendMessage: (
@@ -48,6 +51,11 @@ export default function ChatInput({
       (f) =>
         !selectedFiles.some((sf) => sf.name === f.name && sf.size === f.size)
     );
+    if (files.length > 5) {
+      toast.error("You can upload a maximum of 5 files.");
+      e.target.value = ""; // clear input
+      return;
+    }
 
     if (filtered.length) {
       setSelectedFiles([...selectedFiles, ...filtered]);
@@ -111,6 +119,8 @@ export default function ChatInput({
     deleteRecording();
   };
 
+  console.log(selectedFiles);
+
   // Show voice components when recording OR when we have a recorded URL
   const showVoiceComponents = isRecording || recordedURL;
 
@@ -118,17 +128,23 @@ export default function ChatInput({
     <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
       {/* File preview - only show when not in voice mode */}
       {!showVoiceComponents && selectedFiles.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-2">
+        <div className="flex flex-wrap gap-2 mb-2 max-h-[200px] lg:max-h-[300px] overflow-y-scroll scrollbar-none">
           {selectedFiles.map((f, i) => (
             <div
               key={i}
-              className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded px-2 py-1 text-xs"
+              className="flex flex-col items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded px-2 py-1 text-xs "
             >
-              <span className="truncate max-w-[100px]">{f.name}</span>
-              <X
-                className="h-3 w-3 cursor-pointer"
-                onClick={() => removeFile(i)}
-              />
+              <div className="">
+                {/* <FileMessage file={f} /> */}
+                <UniversalFilePreview key={i} file={f} />
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="truncate max-w-[100px]">{f.name}</span>
+                <X
+                  className="h-3 w-3 cursor-pointer"
+                  onClick={() => removeFile(i)}
+                />
+              </div>
             </div>
           ))}
         </div>
