@@ -148,11 +148,11 @@ const MessageItem = ({
         {Object.entries(reactionGroups).map(([emoji, users]) => (
           <div
             key={emoji}
-            className="bg-gray-100 dark:bg-gray-700 rounded-full px-2 py-1 text-xs flex items-center space-x-1"
+            className="text-xs flex items-center space-x-1"
             title={`${users.join(", ")} reacted with ${emoji}`}
           >
             <span>{emoji}</span>
-            <span>{users.length}</span>
+            {users.length > 1 && <span>{users.length}</span>}
           </div>
         ))}
       </div>
@@ -161,44 +161,29 @@ const MessageItem = ({
 
   return (
     <div
-      className={`flex group ${
+      className={`flex flex group ${
         isOwnMessage ? "justify-end " : "justify-start "
       }`}
     >
-      <div
-        className={`flex items-center ${
-          isOwnMessage ? " " : "flex-row-reverse"
-        } `}
-      >
-        {renderMessageActions()}
-        <button
-          onClick={() =>
-            setShowReactions(showReactions === msg.id ? null : msg.id)
-          }
-          className="cursor-pointer p-1 rounded opacity-0 scale-90 transform transition-all duration-200 ease-out group-hover:opacity-100 group-hover:scale-100"
-          aria-label="Add reaction"
+      <div className="flex flex-col">
+        <div
+          className={`flex items-center ${
+            isOwnMessage ? " " : "flex-row-reverse"
+          } `}
         >
-          <Smile className="w-3 h-3" />
-        </button>
-
-        <div className="max-w-xs lg:max-w-lg">
-          <div
-            className={`flex gap-2 items-end px-3 py-2 rounded-lg relative group ${
-              isOwnMessage
-                ? "bg-blue-500 text-white rounded-br-xs"
-                : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-xs"
-            }`}
-          >
-            {renderMessageHeader()}
-            {renderForwardedHeader()}
-            {renderMessageContent()}
-
-            <div className="absolute -bottom-1.5 right-1.5 text-white text-sm text-right py-2">
-              {renderMessageTime()}
-            </div>
-
+          <div className="relative">
+            <button
+              onClick={() =>
+                setShowReactions(showReactions === msg.id ? null : msg.id)
+              }
+              className="cursor-pointer p-1 rounded opacity-0 scale-90 transform transition-all duration-200 ease-out group-hover:opacity-100 group-hover:scale-100"
+              aria-label="Add reaction"
+            >
+              <Smile className="w-3 h-3" />
+            </button>
             {showReactions === msg.id && (
               <ReactionPicker
+                isOwnMessage={isOwnMessage}
                 messageId={msg.id}
                 onAddReaction={onAddReaction}
                 onClose={() => setShowReactions(null)}
@@ -206,6 +191,26 @@ const MessageItem = ({
             )}
           </div>
 
+          <div className="max-w-xs lg:max-w-lg">
+            <div
+              className={`flex gap-2 items-end px-3 py-2 rounded-lg relative group ${
+                isOwnMessage
+                  ? "bg-blue-500 text-white rounded-br-xs"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-xs"
+              }`}
+            >
+              {renderMessageHeader()}
+              {renderForwardedHeader()}
+              {renderMessageContent()}
+
+              <div className="absolute -bottom-1.5 right-1.5 text-white text-sm text-right py-2">
+                {renderMessageTime()}
+              </div>
+              {renderMessageActions()}
+            </div>
+          </div>
+        </div>
+        <div className={` ${isOwnMessage ? "ms-5" : ""}`}>
           {renderReactions()}
         </div>
       </div>
