@@ -33,7 +33,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       height,
       barWidth: 2,
       barRadius: 2,
-      cursorWidth: 1,
+      cursorWidth: 0,
+      // cursorColor: "#ffffff",
       normalize: true,
     });
 
