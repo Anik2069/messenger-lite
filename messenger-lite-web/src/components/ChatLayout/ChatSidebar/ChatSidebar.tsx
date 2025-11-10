@@ -14,6 +14,7 @@ import { formatLocalTime } from "@/types/MessageType";
 import { format, isToday, parseISO } from "date-fns";
 import { useChatStore } from "@/store/useChatStore";
 import { SOCKET_HOST } from "@/constant";
+import AvatarImage from "@/components/reusable/AvatarImage";
 
 interface ChatSidebarProps {
   groups: Group[];
@@ -119,13 +120,10 @@ const ChatSidebar = ({
               >
                 {/* Avatar */}
                 <div className="relative">
-                  <Image
-                    src={displayAvatar || DummyAvatar}
-                    alt={displayName || "Avatar"}
-                    width={40}
-                    height={40}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
+                  {displayAvatar && (
+                    <AvatarImage src={displayAvatar} alt="Profile" />
+                  )}
+
                   {!isGroup && (
                     <div
                       className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${
