@@ -3,14 +3,10 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Mic, Paperclip, Send, X } from "lucide-react";
-import { FileData, ForwardedData } from "@/types/MessageType";
-import Modal from "@/components/reusable/Modal";
-import { useModal } from "@/hooks/useModal";
-import VoiceMessageTest from "./Audio/VoiceMessageTest";
+import { CircleStop, Mic, Paperclip, Send, X } from "lucide-react";
+import { ForwardedData } from "@/types/MessageType";
 import { useChatInputContext } from "@/context/useChatInputContext";
 import SendVoiceMessageComponents from "./SendVoiceMessageComponents";
-import FileMessage from "./FileMessage";
 import UniversalFilePreview from "@/components/reusable/UniversalFilePreview";
 import { toast } from "react-toastify";
 
@@ -193,7 +189,7 @@ export default function ChatInput({
             value={message}
             onChange={(e) => {
               setMessage(e.target.value);
-              e.target.value.trim() ? onTypingStart() : onTypingStop();
+              // e.target.value.trim() ? onTypingStart() : onTypingStop();
             }}
             placeholder="Type a message..."
             className="flex-1 border-gray-300 dark:border-gray-600"
@@ -208,15 +204,19 @@ export default function ChatInput({
           >
             <Send className="w-4 h-4" />
           </Button>
+        ) : isRecording ? (
+          <Button
+            onClick={handleMicClick}
+            type="button"
+            className={`${"bg-red-500 hover:bg-red-600"} text-white`}
+          >
+            <CircleStop className="w-4 h-4" />
+          </Button>
         ) : (
           <Button
             onClick={handleMicClick}
             type="button"
-            className={`${
-              isRecording
-                ? "bg-red-500 hover:bg-red-600"
-                : "bg-blue-500 hover:bg-blue-600"
-            } text-white`}
+            className={`${"bg-blue-500 hover:bg-blue-600"} text-white`}
           >
             <Mic className="w-4 h-4" />
           </Button>

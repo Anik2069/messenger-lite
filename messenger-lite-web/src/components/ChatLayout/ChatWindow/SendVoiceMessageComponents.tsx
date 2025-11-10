@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
-import { CircleStop, Trash2, Send, Mic, Pause, Play } from "lucide-react";
+import { Trash2, Mic, Pause, Play } from "lucide-react";
 import { useChatInputContext } from "@/context/useChatInputContext";
 import { Button } from "@/components/ui/button";
+import AudioPlayer from "@/components/reusable/AudioPlayer";
 
 interface SendVoiceMessageComponentsProps {
   onDeleteRecording?: () => void;
@@ -21,7 +22,6 @@ const SendVoiceMessageComponents = ({
     seconds,
     canvasRef,
     startRecording,
-    stopRecording,
     pauseRecording,
     resumeRecording,
     deleteRecording,
@@ -85,25 +85,10 @@ const SendVoiceMessageComponents = ({
         {/* Audio playback after recording */}
         {recordedURL && !isRecording && (
           <div className="flex items-center gap-2 flex-1">
-            {/* <audio src={recordedURL} controls className="h-6" /> */}
-            {/* <audio
-              src={recordedURL}
-              controls
-              controlsList="nodownload" // Download option hide
-              className="h-6 flex-1"
-            /> */}
-            <audio
-              src={recordedURL}
-              controls
-              // autoPlay={true} // Auto start
-              // loop={true} // Repeat
-              controlsList="nodownload" // Download option hide
-              preload="metadata" // "none" | "metadata" | "auto"
-              className="h-6"
-            />
-            <span className="text-xs dark:text-white w-10 text-right">
+            <AudioPlayer src={recordedURL} width={300} height={30} />
+            {/* <span className="text-xs dark:text-white w-10 text-right">
               {formatTime(seconds)}
-            </span>
+            </span> */}
           </div>
         )}
 
@@ -137,32 +122,8 @@ const SendVoiceMessageComponents = ({
                 <Pause className="w-4 h-4" />
               )}
             </Button>
-
-            {/* Stop Recording Button */}
-            {/* <Button
-              onClick={stopRecording}
-              size="sm"
-              variant="ghost"
-              className="cursor-pointer p-0 dark:text-white hover:text-red-500 transition-colors"
-              title="Stop Recording"
-            >
-              <CircleStop className="w-4 h-4" />
-            </Button> */}
           </>
         )}
-
-        {/* Send Button for recorded audio */}
-        {/* {recordedURL && !isRecording && (
-          <Button
-            onClick={handleSend}
-            size="sm"
-            variant="ghost"
-            className="cursor-pointer p-0 dark:text-white hover:text-green-500 transition-colors"
-            title="Send Recording"
-          >
-            <Send className="w-4 h-4" />
-          </Button>
-        )} */}
 
         {/* Start recording button when not recording (alternative position) */}
         {!isRecording && !recordedURL && (
