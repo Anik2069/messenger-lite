@@ -40,9 +40,9 @@ const ChatHeaderActions = ({ conversationId }: { conversationId: string }) => {
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => console.log("Profile")}>
+        {/* <DropdownMenuItem onClick={() => console.log("Profile")}>
           New group
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
         <DropdownMenuItem onClick={() => console.log("Settings")}>
           Media, link and docs
         </DropdownMenuItem>
