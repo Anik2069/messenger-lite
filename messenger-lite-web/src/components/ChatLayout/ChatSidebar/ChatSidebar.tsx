@@ -119,7 +119,7 @@ const ChatSidebar = ({
                 }`}
               >
                 {/* Avatar */}
-                <div className="relative">
+                <div className="relative w-8 h-8 overflow-hidden">
                   {displayAvatar && (
                     <AvatarImage src={displayAvatar} alt="Profile" />
                   )}

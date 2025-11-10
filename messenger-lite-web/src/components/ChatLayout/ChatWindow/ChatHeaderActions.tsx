@@ -12,8 +12,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "react-toastify";
 import { useChatStore } from "@/store/useChatStore";
+import { useGlobalContext } from "@/provider/GlobalContextProvider";
 const ChatHeaderActions = ({ conversationId }: { conversationId: string }) => {
   const { handleClearConversation } = useChatStore();
+  const {
+    openSelectedChatProfile,
+    closeSelectedChatProfile,
+    isOpenSelectedChatProfile,
+    setIsOpenSelectedChatProfile,
+  } = useGlobalContext();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -23,7 +30,12 @@ const ChatHeaderActions = ({ conversationId }: { conversationId: string }) => {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent className="w-48">
-        <DropdownMenuItem onClick={() => console.log("Profile")}>
+        <DropdownMenuItem
+          onClick={() => {
+            openSelectedChatProfile();
+            console.log("Profile");
+          }}
+        >
           View profile{" "}
         </DropdownMenuItem>
 
