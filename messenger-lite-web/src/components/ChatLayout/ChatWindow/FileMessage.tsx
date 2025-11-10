@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Download, FileText } from "lucide-react";
 import { formatFileSize } from "@/lib/utils";
 import { MEDIA_HOST } from "@/constant";
+import AudioPlayer from "@/components/reusable/AudioPlayer";
 
 export type FileMessageType = {
   url?: string;
@@ -78,13 +79,14 @@ const FileMessage = ({ file }: FileMessageProps) => {
 
       {/* Audio preview */}
       {isAudio && (
-        <div className="relative w-[300px]  rounded-lg overflow-hidden shadow-sm ">
-          <audio
+        <div className="relative w-[300px] overflow-hidden ">
+          {/* <audio
             controlsList="nodownload"
             src={url}
             className="object-cover w-full h-9"
             controls
-          />
+          /> */}
+          {isAudio && <AudioPlayer src={url} width={300} height={30} />}
         </div>
       )}
 
