@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Play, Pause } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
+import { MEDIA_HOST } from "@/constant";
 
 interface AudioPlayerProps {
   src: string;
@@ -26,6 +27,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   useEffect(() => {
     if (!src || !containerRef.current) return;
 
+    // ✅ ensure no duplicate instances
+    if (wavesurferRef.current) {
+      wavesurferRef.current.destroy();
+    }
+
     const ws = WaveSurfer.create({
       container: containerRef.current,
       waveColor: "#ffffff",
@@ -34,52 +40,47 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       barWidth: 2,
       barRadius: 2,
       cursorWidth: 0,
-      // cursorColor: "#ffffff",
       normalize: true,
+      // responsive: true,
     });
 
     wavesurferRef.current = ws;
-    ws.setPlaybackRate(1); // 1x normal speed
 
-    const abortController = new AbortController();
+    let isUnmounted = false;
 
-    fetch(src, { signal: abortController.signal })
-      .then((res) => {
-        if (!res.ok) throw new Error("Network response was not ok");
-        return res.blob();
-      })
-      .then((blob) => {
-        const blobUrl = URL.createObjectURL(blob);
-        ws.load(blobUrl);
-      })
-      .catch((err) => {
-        if (err.name === "AbortError") {
-          console.log("Audio load aborted (normal during unmount)");
-        } else {
-          console.error("Audio load error:", err);
-        }
-      })
-      .finally(() => setIsLoading(false));
-
-    // Update duration when ready
     ws.on("ready", () => {
+      if (isUnmounted) return;
+      setIsLoading(false);
       setDuration(ws.getDuration());
     });
 
-    // Track current time as playback progresses
     ws.on("audioprocess", () => {
+      if (isUnmounted) return;
       setCurrentTime(ws.getCurrentTime());
     });
 
-    // Reset when finished
     ws.on("finish", () => {
+      if (isUnmounted) return;
       setIsPlaying(false);
       setCurrentTime(0);
     });
 
+    // ✅ load audio safely
+    ws.load(src).catch((err) => {
+      if (err.name !== "AbortError") {
+        console.error("Audio load failed:", err);
+      }
+    });
+
     return () => {
-      abortController.abort();
-      ws.destroy();
+      isUnmounted = true;
+      // ✅ destroy without throwing abort error
+      try {
+        ws.unAll();
+        ws.destroy();
+      } catch {
+        /* ignore destroy errors */
+      }
       wavesurferRef.current = null;
     };
   }, [src, height]);
@@ -90,7 +91,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     setIsPlaying((prev) => !prev);
   };
 
-  // ⏱ Format time nicely (e.g. 1:05)
   const formatTime = (t: number) => {
     const minutes = Math.floor(t / 60);
     const seconds = Math.floor(t % 60)
@@ -100,7 +100,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   };
 
   return (
-    <div className="flex items-center gap-3 " style={{ width }}>
+    <div className="flex items-center gap-3" style={{ width }}>
       <button type="button" className="cursor-pointer" onClick={handleToggle}>
         {isPlaying ? (
           <Pause className="w-4 h-4 text-white fill-white" />
@@ -111,7 +111,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
       <div className="flex-1" ref={containerRef} style={{ width: "100%" }} />
 
-      {/* Time display */}
       <div className="text-xs w-8 text-right text-gray-300">
         {isPlaying ? formatTime(currentTime) : formatTime(duration)}
       </div>

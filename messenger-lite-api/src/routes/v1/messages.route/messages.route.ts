@@ -27,7 +27,7 @@ const messagesRouter = (io: IOServerWithHelpers) => {
   router.get("/:conversationId", requireAuth, getMessagesController(prisma));
 
   router.delete(
-    "/clear/:friendId",
+    "/clear/:conversationId",
     requireAuth,
     clearMessagesForFriend(prisma)
   );

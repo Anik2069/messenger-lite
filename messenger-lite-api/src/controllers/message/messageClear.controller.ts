@@ -1,4 +1,3 @@
-// src/controllers/messages/messageClear.controller.ts
 import { StatusCodes } from "http-status-codes";
 import sendResponse from "../../libs/sendResponse";
 import { PrismaClient } from "@prisma/client";
@@ -6,35 +5,22 @@ import { PrismaClient } from "@prisma/client";
 const clearMessagesForFriend = (prisma: PrismaClient) => {
   return async (req: any, res: any) => {
     try {
-      const userId = req.userId;
-      const { friendId } = req.params;
+      const { conversationId } = req.params;
 
-      if (!userId) {
-        return sendResponse({
-          res,
-          statusCode: StatusCodes.UNAUTHORIZED,
-          message: "Unauthorized",
-          data: null,
-        });
-      }
-
-      if (!friendId) {
+      if (!conversationId) {
         return sendResponse({
           res,
           statusCode: StatusCodes.BAD_REQUEST,
-          message: "Friend ID is required",
+          message: "Conversation ID is required",
           data: null,
         });
       }
 
-      // 1️⃣ Find the DIRECT conversation between these two users
+      //  Make sure it's a DIRECT conversation
       const conversation = await prisma.conversation.findFirst({
         where: {
+          id: conversationId,
           type: "DIRECT",
-          AND: [
-            { participants: { some: { userId } } },
-            { participants: { some: { userId: friendId } } },
-          ],
         },
       });
 
@@ -47,15 +33,15 @@ const clearMessagesForFriend = (prisma: PrismaClient) => {
         });
       }
 
-      // 2️⃣ Get all message IDs in that conversation
+      //  Get all messages for this conversation
       const messages = await prisma.message.findMany({
-        where: { conversationId: conversation.id },
+        where: { conversationId },
         select: { id: true },
       });
 
       const messageIds = messages.map((m) => m.id);
 
-      // 3️⃣ Delete reads, reactions, and messages (for both users)
+      // Delete reads, reactions, and messages in a transaction
       await prisma.$transaction([
         prisma.messageRead.deleteMany({
           where: { messageId: { in: messageIds } },
@@ -64,14 +50,14 @@ const clearMessagesForFriend = (prisma: PrismaClient) => {
           where: { messageId: { in: messageIds } },
         }),
         prisma.message.deleteMany({
-          where: { conversationId: conversation.id },
+          where: { conversationId },
         }),
       ]);
 
       return sendResponse({
         res,
         statusCode: StatusCodes.OK,
-        message: `All messages between you and user ${friendId} have been cleared for both sides.`,
+        message: "Messages cleared for conversation.",
         data: null,
       });
     } catch (error: any) {

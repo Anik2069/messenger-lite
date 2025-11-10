@@ -9,19 +9,16 @@ export interface ConversationState {
   fetchConversations: (search?: string) => Promise<void>;
   loading: boolean;
   error: string | null;
+  clearConversations: (conversationId: string) => void;
 }
 
-export const useConversationStore = create<ConversationState>((set) => {
+export const useConversationStore = create<ConversationState>((set, get) => {
   socket.off("conversations_updated");
-  // socket.off("friend_request_update");
+
   socket.on("conversations_updated", (conversations: Conversation[]) => {
     console.log("conversations_updated", conversations);
     set({ conversations });
   });
-  // socket.on("friend_request_update", (conversations: Conversation[]) => {
-  //   console.log("friend_request_update", conversations);
-  //   set({ conversations });
-  // });
 
   return {
     conversations: null,
@@ -41,6 +38,17 @@ export const useConversationStore = create<ConversationState>((set) => {
         set({ error: "Failed to fetch conversations", loading: false });
         console.error("Failed to fetch conversations", error);
       }
+    },
+
+    clearConversations: (conversationId: string) => {
+      const { conversations } = get();
+      if (!conversations) return;
+
+      const updatedConversations = conversations.map((c) =>
+        c.id === conversationId ? { ...c, messages: [] } : c
+      );
+
+      set({ conversations: updatedConversations });
     },
   };
 });

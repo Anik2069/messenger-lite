@@ -10,7 +10,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-const ChatHeaderActions = () => {
+import { toast } from "react-toastify";
+import { useChatStore } from "@/store/useChatStore";
+const ChatHeaderActions = ({ conversationId }: { conversationId: string }) => {
+  const { handleClearConversation } = useChatStore();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -31,26 +34,29 @@ const ChatHeaderActions = () => {
         <DropdownMenuItem onClick={() => console.log("Settings")}>
           Media, link and docs
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => console.log("Logout")}>
+        {/* <DropdownMenuItem onClick={() => console.log("Logout")}>
           Chat Theme
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
         <DropdownMenuSeparator />
 
         <DropdownMenuItem
           variant="destructive"
-          onClick={() => console.log("Logout")}
+          onClick={() => {
+            toast.success("Reported");
+            console.log("this is a demo action!");
+          }}
         >
           Report
         </DropdownMenuItem>
-        <DropdownMenuItem
+        {/* <DropdownMenuItem
           variant="destructive"
           onClick={() => console.log("Logout")}
         >
           Block
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
         <DropdownMenuItem
           variant="destructive"
-          onClick={() => console.log("Logout")}
+          onClick={() => handleClearConversation(conversationId)}
         >
           Clear Chat
         </DropdownMenuItem>

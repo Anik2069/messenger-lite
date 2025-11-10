@@ -74,37 +74,43 @@ const MessageList = ({
       className="flex-1 overflow-y-auto scrollbar-none p-4 "
     >
       <div className="flex flex-col min-h-full justify-end space-y-2">
-        {messages.map((msg) => {
-          const dateLabel = getDateLabel(
-            (msg?.createdAt as string) ?? msg?.timestamp
-          );
-          const isOwnMessage =
-            msg?.from?.id === currentUserId ||
-            msg?.author?.id === currentUserId;
+        {messages?.length > 0 ? (
+          messages?.map((msg) => {
+            const dateLabel = getDateLabel(
+              (msg?.createdAt as string) ?? msg?.timestamp
+            );
+            const isOwnMessage =
+              msg?.from?.id === currentUserId ||
+              msg?.author?.id === currentUserId;
 
-          const showDateHeader = dateLabel !== lastDateLabel;
-          lastDateLabel = dateLabel;
+            const showDateHeader = dateLabel !== lastDateLabel;
+            lastDateLabel = dateLabel;
 
-          return (
-            <div key={msg.id}>
-              {showDateHeader && (
-                <div className="text-center text-gray-400 text-xs my-2 border bg-muted font-normal w-fit mx-auto rounded-md px-2 py-1">
-                  {dateLabel}
-                </div>
-              )}
+            return (
+              <div key={msg.id}>
+                {showDateHeader && (
+                  <div className="text-center text-gray-400 text-xs my-2 border bg-muted font-normal w-fit mx-auto rounded-md px-2 py-1">
+                    {dateLabel}
+                  </div>
+                )}
 
-              <MessageItem
-                msg={msg}
-                isOwnMessage={isOwnMessage}
-                isGroupChat={isGroupChat}
-                showReactions={showReactions}
-                setShowReactions={setShowReactions}
-                onForward={onForward}
-                onAddReaction={onAddReaction}
-              />
-            </div>
-          );
-        })}
+                <MessageItem
+                  msg={msg}
+                  isOwnMessage={isOwnMessage}
+                  isGroupChat={isGroupChat}
+                  showReactions={showReactions}
+                  setShowReactions={setShowReactions}
+                  onForward={onForward}
+                  onAddReaction={onAddReaction}
+                />
+              </div>
+            );
+          })
+        ) : (
+          <div className="text-center text-gray-400 text-sm my-auto">
+            No messages yet
+          </div>
+        )}
 
         {/* Typing indicator */}
         {/* {otherUserTyping && (
