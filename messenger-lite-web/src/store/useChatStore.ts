@@ -12,7 +12,9 @@ import {
 } from "@/types/MessageType";
 import { SendMessagePayload, toServerType } from "@/types/sendMessage";
 import { toast } from "react-toastify";
-import { MEDIA_HOST } from "@/constant";
+import { HOST, MEDIA_HOST } from "@/constant";
+import { useConversationStore } from "./useConversationStore";
+import { User } from "@/types/UserType";
 
 interface ServerMessage {
   id: string;
@@ -102,6 +104,8 @@ export type ChatState = {
   isConnected: boolean;
   showSearch: boolean;
 
+  selectedUserInfo: User | null;
+
   // setters
   setSelectedChat: (chat: Chat | null) => void;
   setMessages: (messages: Message[]) => void;
@@ -124,6 +128,9 @@ export type ChatState = {
     emoji: string,
     currentUser?: { username: string; id: string } | null
   ) => Promise<void>;
+  handleClearConversation: (conversationId: string) => void;
+  handleFetchUsersInfo: (id: string) => void;
+  setSelectedUserInfo: () => void;
 };
 
 let listenersInitialized = false;
@@ -131,7 +138,6 @@ let listenersInitialized = false;
 export const useChatStore = create<ChatState>((set, get) => {
   if (!listenersInitialized) {
     listenersInitialized = true;
-
     // cleanup old listeners
     // socket.off("connect");
     // socket.off("disconnect");
@@ -256,8 +262,10 @@ export const useChatStore = create<ChatState>((set, get) => {
     otherUserTyping: null,
     isConnected: socket.connected,
     showSearch: false,
+    selectedUserInfo: null,
 
     setSelectedChat: (chat) => set({ selectedChat: chat }),
+    setSelectedUserInfo: () => set({ selectedChat: null }),
     setMessages: (messages) => set({ messages }),
     setOtherUserTyping: (userId) => set({ otherUserTyping: userId }),
     setIsConnected: (connected) => set({ isConnected: connected }),
@@ -559,6 +567,32 @@ export const useChatStore = create<ChatState>((set, get) => {
         await axiosInstance.post(`reactions/${messageId}/reactions`, { emoji });
       } catch (e) {
         console.error("reaction failed", e);
+      }
+    },
+
+    handleClearConversation: async (conversationId) => {
+      try {
+        const response = await axiosInstance.delete(
+          `${HOST}/messages/clear/${conversationId}`
+        );
+
+        if (response.status === 200) {
+          set({ messages: [] });
+          const { clearConversations } = useConversationStore.getState();
+          clearConversations(conversationId);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    handleFetchUsersInfo: async (id: string) => {
+      try {
+        const response = await axiosInstance.get(`${HOST}/auth/user/${id}`);
+        const data = await response.data?.results;
+        console.log(data, "==========");
+        set({ selectedUserInfo: data });
+      } catch (error) {
+        console.log(error);
       }
     },
   };

@@ -6,6 +6,7 @@ import { Phone, Video } from "lucide-react";
 import Image from "next/image";
 import { MEDIA_HOST } from "@/constant";
 import { DummyAvatar } from "@/assets/image";
+import AvatarImage from "../../reusable/AvatarImage";
 
 const ChatHeader = ({ selectedChat }: { selectedChat: Chat }) => {
   const image = `${selectedChat.avatar}`;
@@ -20,17 +21,7 @@ const ChatHeader = ({ selectedChat }: { selectedChat: Chat }) => {
             {/* {selectedChat.type === "group"
               ? "#"
               : getInitials(selectedChat.name)} */}
-            <Image
-              width={32}
-              height={32}
-              src={image}
-              alt="Profile"
-              className="rounded-full  object-cover w-full h-full"
-              onError={(e) => {
-                e.currentTarget.src = DummyAvatar.src;
-                e.currentTarget.onerror = null;
-              }}
-            />
+            <AvatarImage src={image} alt="Profile" />
           </div>
         }
         <div>
@@ -47,15 +38,15 @@ const ChatHeader = ({ selectedChat }: { selectedChat: Chat }) => {
         </div>
       </div>
       <div className="flex items-center">
-        <div className="flex items-center">
+        {/* <div className="flex items-center">
           <Button className="cursor-pointer" variant={"ghost"} size={"icon"}>
             <Video className="w-5 h-5" />
           </Button>
           <Button className="cursor-pointer" variant={"ghost"} size={"icon"}>
             <Phone className="w-5 h-5" />
           </Button>
-        </div>
-        <ChatHeaderActions />
+        </div> */}
+        <ChatHeaderActions conversationId={selectedChat.id} />
       </div>
     </div>
   );

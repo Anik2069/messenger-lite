@@ -119,7 +119,7 @@ const MessageItem = ({
       >
         <Forward className="w-3 h-3" />
       </button> */}
-      <button
+      {/* <button
         // onClick={() =>
         //   setShowReactions(showReactions === msg.id ? null : msg.id)
         // }
@@ -127,7 +127,7 @@ const MessageItem = ({
         aria-label="options"
       >
         <ChevronDown className="w-3 h-3" />
-      </button>
+      </button> */}
     </div>
   );
 

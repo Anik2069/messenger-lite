@@ -30,6 +30,11 @@ interface GlobalContextType {
   privacySettingModalClose: () => void;
   isPrivacySettingModalOpen: boolean;
   setIsPrivacySettingModalOpen: (isOpen: boolean) => void;
+
+  openSelectedChatProfile: () => void;
+  closeSelectedChatProfile: () => void;
+  isOpenSelectedChatProfile: boolean;
+  setIsOpenSelectedChatProfile: (isOpen: boolean) => void;
 }
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
@@ -75,6 +80,12 @@ export const GlobalContextProvider = ({
     isOpen: isPrivacySettingModalOpen,
     setIsOpen: setIsPrivacySettingModalOpen,
   } = useModal();
+  const {
+    open: openSelectedChatProfile,
+    close: closeSelectedChatProfile,
+    isOpen: isOpenSelectedChatProfile,
+    setIsOpen: setIsOpenSelectedChatProfile,
+  } = useModal();
 
   return (
     <GlobalContext.Provider
@@ -107,6 +118,11 @@ export const GlobalContextProvider = ({
         privacySettingModalClose,
         isPrivacySettingModalOpen,
         setIsPrivacySettingModalOpen,
+
+        openSelectedChatProfile,
+        closeSelectedChatProfile,
+        isOpenSelectedChatProfile,
+        setIsOpenSelectedChatProfile,
       }}
     >
       {children}

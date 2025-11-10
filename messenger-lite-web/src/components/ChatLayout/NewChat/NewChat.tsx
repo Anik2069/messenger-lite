@@ -9,26 +9,26 @@ import { Chat } from "@/types/ChatType";
 const NewChat = ({ onChatSelect }: { onChatSelect: (chat: Chat) => void }) => {
   const [searchText, setSearchText] = useState<string>("");
   return (
-    <div className="space-y-2  ">
+    <div className="  ">
       <div className="p-4">
         <ReusableSearchInput
           placeholder="Search Name"
           onDebouncedChange={setSearchText}
         />
       </div>
-      <div className="">
+      {/* <div className="">
         <NewActionButton
           label="New Group"
           avatarSrc={dummyGroupAvatar.src}
           onClick={() => {}}
         />
-      </div>
+      </div> */}
       <div className="">
-        <NewActionButton
+        {/* <NewActionButton
           label="New Chat"
           avatarSrc={DummyAvatar.src}
           onClick={() => {}}
-        />
+        /> */}
       </div>
       <div className="">
         <AllContacts searchText={searchText} onChatSelect={onChatSelect} />

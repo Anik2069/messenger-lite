@@ -20,6 +20,11 @@ import { is } from "zod/v4/locales";
 import AddFriend from "./AddFriend/AddFriend";
 import PrivacySettings from "./UserSettings/PrivacySettings";
 import GeneralSettings from "./UserSettings/GeneralSettings";
+import AnimatedWrapper from "../animations/AnimatedWrapper";
+import { Button } from "../ui/button";
+import { Cross, CrossIcon, X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import SelectedChatProfile from "./SelectedChatProfile";
 
 declare global {
   interface Window {
@@ -58,6 +63,9 @@ const ChatLayout = () => {
     isPrivacySettingModalOpen,
     generalSettingModalClose,
     privacySettingModalClose,
+    isOpenSelectedChatProfile,
+    setIsOpenSelectedChatProfile,
+    closeSelectedChatProfile,
   } = useGlobalContext();
 
   // rack socket connection
@@ -137,6 +145,7 @@ const ChatLayout = () => {
     stopTyping(setOtherUserTyping);
   };
 
+  console.log(selectedChat, "selectedChat========");
   return (
     <div className="w-screen h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <div className="shrink-0">
@@ -156,7 +165,7 @@ const ChatLayout = () => {
             onChatSelect={onChatSelect}
           />
         </div>
-        <div className="flex-1 bg-white dark:bg-gray-900 flex flex-col">
+        <div className="flex-1 bg-white dark:bg-gray-900 flex flex-col transition-all duration-300 ease-in-out">
           <ChatWindow
             currentUser={user ?? null}
             selectedChat={selectedChat}
@@ -168,6 +177,26 @@ const ChatLayout = () => {
             onTypingStop={handleTypingStop}
           />
         </div>
+
+        <AnimatedWrapper
+          isOpen={isOpenSelectedChatProfile}
+          fixedRight
+          overlay
+          onClose={closeSelectedChatProfile}
+          className="w-80"
+        >
+          <div className="flex justify-start relative  h-full max-h-[100vh]">
+            <button
+              className="h-fit"
+              type="button"
+              onClick={closeSelectedChatProfile}
+            >
+              <X className="absolute w-5 h-5 m-2 cursor-pointer hover:text-gray-400 transition" />
+            </button>
+            <SelectedChatProfile id={selectedChat?.userId ?? ""} />
+          </div>
+          {/* Profile content here */}
+        </AnimatedWrapper>
       </div>
 
       <RightSideDrawer
@@ -187,6 +216,7 @@ const ChatLayout = () => {
         {/* <NewChat onChatSelect={onChatSelect} /> */}
         <AddFriend isAddFriendModalOpen={isAddFriendModalOpen} />
       </RightSideDrawer>
+
       <RightSideDrawer
         isOpen={isSidebarOpen}
         onOpenChange={setIsSidebarOpen}
@@ -218,6 +248,16 @@ const ChatLayout = () => {
       >
         <GeneralSettings />
       </Modal>
+
+      {/* <RightSideDrawer
+        isOpen={isOpenSelectedChatProfile}
+        onOpenChange={setIsOpenSelectedChatProfile}
+        title={`Profile of ${selectedChat?.name}`}
+        className="w-80"
+        direction="left"
+      >
+        <div className=""></div>
+      </RightSideDrawer> */}
       <Modal
         // overflowAuto={true}
         maxWidth="7xl"

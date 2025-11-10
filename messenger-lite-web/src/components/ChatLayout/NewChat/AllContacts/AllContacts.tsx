@@ -59,9 +59,9 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
 
   return (
     <div>
-      <div className="px-4 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide bg-gray-50 dark:bg-gray-800">
+      {/* <div className="px-4 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide bg-gray-50 dark:bg-gray-800">
         All Contacts
-      </div>
+      </div> */}
 
       {friends?.map((userInfo) => {
         const isSelf = userInfo.id === user?.id;

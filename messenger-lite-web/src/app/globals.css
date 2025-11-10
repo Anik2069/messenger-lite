@@ -155,3 +155,8 @@
 .animate-shake {
   animation: shake 0.5s ease-in-out;
 }
+
+[data-radix-dialog-overlay][data-state="closed"] {
+  pointer-events: none !important;
+  opacity: 0 !important;
+}

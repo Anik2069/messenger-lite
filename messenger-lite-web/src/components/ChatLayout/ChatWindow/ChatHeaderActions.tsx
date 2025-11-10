@@ -10,7 +10,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-const ChatHeaderActions = () => {
+import { toast } from "react-toastify";
+import { useChatStore } from "@/store/useChatStore";
+import { useGlobalContext } from "@/provider/GlobalContextProvider";
+const ChatHeaderActions = ({ conversationId }: { conversationId: string }) => {
+  const { handleClearConversation } = useChatStore();
+  const {
+    openSelectedChatProfile,
+    closeSelectedChatProfile,
+    isOpenSelectedChatProfile,
+    setIsOpenSelectedChatProfile,
+  } = useGlobalContext();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -20,37 +30,45 @@ const ChatHeaderActions = () => {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent className="w-48">
-        <DropdownMenuItem onClick={() => console.log("Profile")}>
+        <DropdownMenuItem
+          onClick={() => {
+            openSelectedChatProfile();
+            console.log("Profile");
+          }}
+        >
           View profile{" "}
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => console.log("Profile")}>
+        {/* <DropdownMenuItem onClick={() => console.log("Profile")}>
           New group
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
         <DropdownMenuItem onClick={() => console.log("Settings")}>
           Media, link and docs
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => console.log("Logout")}>
+        {/* <DropdownMenuItem onClick={() => console.log("Logout")}>
           Chat Theme
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
         <DropdownMenuSeparator />
 
         <DropdownMenuItem
           variant="destructive"
-          onClick={() => console.log("Logout")}
+          onClick={() => {
+            toast.success("Reported");
+            console.log("this is a demo action!");
+          }}
         >
           Report
         </DropdownMenuItem>
-        <DropdownMenuItem
+        {/* <DropdownMenuItem
           variant="destructive"
           onClick={() => console.log("Logout")}
         >
           Block
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
         <DropdownMenuItem
           variant="destructive"
-          onClick={() => console.log("Logout")}
+          onClick={() => handleClearConversation(conversationId)}
         >
           Clear Chat
         </DropdownMenuItem>

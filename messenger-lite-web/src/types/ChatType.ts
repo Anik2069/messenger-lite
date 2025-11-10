@@ -7,4 +7,5 @@ export interface Chat {
   lastMessageTime?: Date;
   unreadCount?: number;
   isOnline?: boolean;
+  userId?: string;
 }

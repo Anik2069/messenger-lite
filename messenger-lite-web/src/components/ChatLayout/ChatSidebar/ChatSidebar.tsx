@@ -14,6 +14,7 @@ import { formatLocalTime } from "@/types/MessageType";
 import { format, isToday, parseISO } from "date-fns";
 import { useChatStore } from "@/store/useChatStore";
 import { SOCKET_HOST } from "@/constant";
+import AvatarImage from "@/components/reusable/AvatarImage";
 
 interface ChatSidebarProps {
   groups: Group[];
@@ -37,10 +38,10 @@ const ChatSidebar = ({
   );
 
   // useEffect(() => {
-  //   console.log(activeStatus, "activeStatus");
   //   console.log(otherStatuses, "otherStatuses");
   // }, [activeStatus, otherStatuses]);
 
+  //   console.log(activeStatus, "activeStatus");
   useEffect(() => {
     console.log(selectedChat, "selectedChat");
   }, [selectedChat]);
@@ -82,7 +83,7 @@ const ChatSidebar = ({
             const otherParticipant = !isGroup
               ? conv.participants.find((p) => p.user.id !== user?.id)?.user
               : null;
-            // console.log(otherParticipant, "otherParticipant");
+            console.log(otherParticipant, "otherParticipant");
             // console.log(conv, "participants");
 
             const displayName = isGroup
@@ -109,6 +110,7 @@ const ChatSidebar = ({
                     name: displayName || "Unknown",
                     avatar: displayAvatar || undefined,
                     isOnline,
+                    userId: otherParticipant?.id || "",
                   })
                 }
                 className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
@@ -118,14 +120,11 @@ const ChatSidebar = ({
                 }`}
               >
                 {/* Avatar */}
-                <div className="relative">
-                  <Image
-                    src={displayAvatar || DummyAvatar}
-                    alt={displayName || "Avatar"}
-                    width={40}
-                    height={40}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
+                <div className="relative w-8 h-8 overflow-hidden">
+                  {displayAvatar && (
+                    <AvatarImage src={displayAvatar} alt="Profile" />
+                  )}
+
                   {!isGroup && (
                     <div
                       className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${

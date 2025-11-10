@@ -21,6 +21,7 @@ const nextConfig: NextConfig = {
         pathname: "/**", // allow all paths
       },
     ],
+    domains: ["192.168.31.152", "192.168.1.102", "localhost"],
   },
 };
 
