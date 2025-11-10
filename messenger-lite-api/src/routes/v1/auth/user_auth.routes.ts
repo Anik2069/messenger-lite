@@ -16,6 +16,8 @@ import {
 } from "../../../controllers/auth/user_auth.controller";
 import { confirm2FA } from "../../../controllers/auth/confirm2FA.controller";
 import tr from "zod/v4/locales/tr.cjs";
+import sendResponse from "../../../libs/sendResponse";
+import { StatusCodes } from "http-status-codes";
 
 const authRouter = (io: IOServerWithHelpers) => {
   const router = Router();
@@ -36,6 +38,29 @@ const authRouter = (io: IOServerWithHelpers) => {
       omit: { password: true, twoFASecret: true },
     });
     return res.json({ results: { userInfo: user } });
+  });
+  router.get("/:id", requireAuth, async (req, res) => {
+    const { id } = req.params;
+    console.log(id);
+
+    const user = await prisma.user.findUnique({
+      where: { id: id as string },
+      omit: { password: true, twoFASecret: true },
+    });
+    if (!user) {
+      return sendResponse({
+        res,
+        statusCode: StatusCodes.NOT_FOUND,
+        message: "User not found",
+      });
+    }
+    // return res.json({ results: { userInfo: user } });
+    return sendResponse({
+      res,
+      statusCode: StatusCodes.OK,
+      message: "",
+      data: user,
+    });
   });
   router.post("/activeStatus", requireAuth, userActiveStatus(io));
 

@@ -38,10 +38,10 @@ const ChatSidebar = ({
   );
 
   // useEffect(() => {
-  //   console.log(activeStatus, "activeStatus");
   //   console.log(otherStatuses, "otherStatuses");
   // }, [activeStatus, otherStatuses]);
 
+  //   console.log(activeStatus, "activeStatus");
   useEffect(() => {
     console.log(selectedChat, "selectedChat");
   }, [selectedChat]);
@@ -83,7 +83,7 @@ const ChatSidebar = ({
             const otherParticipant = !isGroup
               ? conv.participants.find((p) => p.user.id !== user?.id)?.user
               : null;
-            // console.log(otherParticipant, "otherParticipant");
+            console.log(otherParticipant, "otherParticipant");
             // console.log(conv, "participants");
 
             const displayName = isGroup
@@ -110,6 +110,7 @@ const ChatSidebar = ({
                     name: displayName || "Unknown",
                     avatar: displayAvatar || undefined,
                     isOnline,
+                    userId: otherParticipant?.id || "",
                   })
                 }
                 className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${

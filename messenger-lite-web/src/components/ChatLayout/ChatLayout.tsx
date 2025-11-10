@@ -24,6 +24,7 @@ import AnimatedWrapper from "../animations/AnimatedWrapper";
 import { Button } from "../ui/button";
 import { Cross, CrossIcon, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import SelectedChatProfile from "./SelectedChatProfile";
 
 declare global {
   interface Window {
@@ -184,14 +185,15 @@ const ChatLayout = () => {
           onClose={closeSelectedChatProfile}
           className="w-80"
         >
-          <div className="flex justify-start  h-full max-h-[100vh]">
+          <div className="flex justify-start relative  h-full max-h-[100vh]">
             <button
               className="h-fit"
               type="button"
               onClick={closeSelectedChatProfile}
             >
-              <X className=" w-5 h-5 m-2 cursor-pointer hover:text-gray-400 transition" />
+              <X className="absolute w-5 h-5 m-2 cursor-pointer hover:text-gray-400 transition" />
             </button>
+            <SelectedChatProfile id={selectedChat?.userId ?? ""} />
           </div>
           {/* Profile content here */}
         </AnimatedWrapper>
