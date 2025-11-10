@@ -68,7 +68,7 @@ function AuthFormInner() {
         {is2FAEnabled ? (
           <SubmitOtpForm />
         ) : (
-          <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm dark:bg-gray-800/80">
+          <Card className="shadow-xl border-0 bg-white backdrop-blur-sm dark:bg-gray-800/80">
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-xl font-semibold">
                 {isLogin ? "Welcome back" : "Get started"}
