@@ -88,6 +88,7 @@ export const initSocket = (server: any) => {
 
     // Conversation join
     socket.on("join_conversation", async (conversationId: string) => {
+      console.log("conversationId----------------", conversationId);
       const member = await prisma.conversationParticipant.findFirst({
         where: { conversationId, userId },
         select: { id: true },

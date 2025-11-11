@@ -44,6 +44,32 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
     fetchFriends(searchText);
   }, [searchText, fetchFriends]);
 
+  // useEffect(() => {
+  //   if (selectedChat) {
+  //     socket.emit("join_conversation", selectedChat.id);
+  //     console.log("Joined conversation:", selectedChat.id);
+  //     console.log("Fetching messages for conversation:", selectedChat);
+
+  // (async () => {
+  //   try {
+  //     const response = await axiosInstance.get(
+  //       `messages/${selectedChat.id}`
+  //     );
+  //     if (response.status === 200) {
+  //       useChatStore.getState().setMessages(response?.data?.results);
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to fetch messages", error);
+  //   }
+  // })();
+
+  //     return () => {
+  //       socket.emit("leave_conversation", selectedChat.id);
+  //       console.log(" Left conversation:", selectedChat.id);
+  //     };
+  //   }
+  // }, [selectedChat]);
+
   const handleChatSelect = (
     type: "user" | "group",
     id: string,

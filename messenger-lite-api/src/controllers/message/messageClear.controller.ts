@@ -33,26 +33,9 @@ const clearMessagesForFriend = (prisma: PrismaClient) => {
         });
       }
 
-      //  Get all messages for this conversation
-      const messages = await prisma.message.findMany({
+      await prisma.message.deleteMany({
         where: { conversationId },
-        select: { id: true },
       });
-
-      const messageIds = messages.map((m) => m.id);
-
-      // Delete reads, reactions, and messages in a transaction
-      await prisma.$transaction([
-        prisma.messageRead.deleteMany({
-          where: { messageId: { in: messageIds } },
-        }),
-        prisma.messageReaction.deleteMany({
-          where: { messageId: { in: messageIds } },
-        }),
-        prisma.message.deleteMany({
-          where: { conversationId },
-        }),
-      ]);
 
       return sendResponse({
         res,

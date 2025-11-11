@@ -9,9 +9,13 @@ import { DummyAvatar } from "@/assets/image";
 import AvatarImage from "../../reusable/AvatarImage";
 
 const ChatHeader = ({ selectedChat }: { selectedChat: Chat }) => {
-  const image = `${selectedChat.avatar}`;
-  // console.log(selectedChat);
-  // console.log(image);
+  // const image = `${selectedChat.avatar}`;
+
+  const image = selectedChat.avatar
+    ? `${MEDIA_HOST}/${selectedChat.avatar}`
+    : DummyAvatar.src;
+  console.log(selectedChat, ")))))))))))))))))");
+  console.log(image, ")))))))))))))))))");
 
   return (
     <div className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 flex justify-between items-center">

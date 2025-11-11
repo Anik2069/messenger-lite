@@ -25,6 +25,7 @@ import { Button } from "../ui/button";
 import { Cross, CrossIcon, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import SelectedChatProfile from "./SelectedChatProfile";
+import { Conversation } from "@/types/coversations.type";
 
 declare global {
   interface Window {
@@ -85,30 +86,45 @@ const ChatLayout = () => {
   }, [user]);
   // Join/Leave conversation room on selection
   useEffect(() => {
-    if (selectedChat) {
-      socket.emit("join_conversation", selectedChat.id);
-      console.log("Joined conversation:", selectedChat.id);
-      console.log("Fetching messages for conversation:", selectedChat);
+    if (!selectedChat?.id) return;
 
-      (async () => {
-        try {
-          const response = await axiosInstance.get(
-            `messages/${selectedChat.id}`
-          );
-          if (response.status === 200) {
-            useChatStore.getState().setMessages(response?.data?.results);
-          }
-        } catch (error) {
-          console.error("Failed to fetch messages", error);
+    const handleConversationsUpdated = (conversations: Conversation[]) => {
+      console.log("conversations_updated----------------", conversations);
+
+      const matchedConversation = conversations.find(
+        (conversation) =>
+          conversation.participants?.[0]?.user?.id === selectedChat?.id
+      );
+
+      if (matchedConversation) {
+        console.log("Matched conversation:", matchedConversation);
+        // Optional: update state, e.g.
+        // useChatStore.getState().updateConversation(matchedConversation);
+        socket.emit("join_conversation", matchedConversation.id);
+      }
+    };
+
+    socket.on("conversations_updated", handleConversationsUpdated);
+    socket.emit("join_conversation", selectedChat.id);
+    console.log("Joined conversation:", selectedChat.id);
+
+    (async () => {
+      try {
+        const response = await axiosInstance.get(`messages/${selectedChat.id}`);
+        if (response.status === 200) {
+          useChatStore.getState().setMessages(response.data.results);
         }
-      })();
+      } catch (error) {
+        console.error("Failed to fetch messages", error);
+      }
+    })();
 
-      return () => {
-        socket.emit("leave_conversation", selectedChat.id);
-        console.log(" Left conversation:", selectedChat.id);
-      };
-    }
-  }, [selectedChat]);
+    return () => {
+      socket.off("conversations_updated", handleConversationsUpdated);
+      socket.emit("leave_conversation", selectedChat.id);
+      console.log("Left conversation:", selectedChat.id);
+    };
+  }, [selectedChat?.id]);
 
   const onChatSelect = (chat: Chat) => {
     setSelectedChat(chat);

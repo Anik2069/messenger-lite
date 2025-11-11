@@ -83,7 +83,7 @@ const ChatSidebar = ({
             const otherParticipant = !isGroup
               ? conv.participants.find((p) => p.user.id !== user?.id)?.user
               : null;
-            console.log(otherParticipant, "otherParticipant");
+            // console.log(otherParticipant, "otherParticipant");
             // console.log(conv, "participants");
 
             const displayName = isGroup
