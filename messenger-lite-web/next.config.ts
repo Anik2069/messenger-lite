@@ -20,8 +20,13 @@ const nextConfig: NextConfig = {
         hostname: "messenger-lite-ijbp.onrender.com",
         pathname: "/**", // allow all paths
       },
+      {
+        protocol: "https",
+        hostname: "10.81.100.89",
+        pathname: "/**", // allow all paths
+      },
     ],
-    domains: ["192.168.31.152", "192.168.1.102", "localhost"],
+    domains: ["192.168.31.152", "192.168.1.102", "localhost", "10.81.100.89"],
   },
 };
 
