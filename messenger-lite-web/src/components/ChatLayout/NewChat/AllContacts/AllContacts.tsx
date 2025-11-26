@@ -10,6 +10,7 @@ import { useSettings } from "@/context/SettingsContext";
 import { Chat } from "@/types/ChatType";
 import { useGlobalContext } from "@/provider/GlobalContextProvider";
 import { MEDIA_HOST } from "@/constant";
+import { useChatStore } from "@/store/useChatStore";
 
 interface AllContactsProps {
   searchText: string;
@@ -23,7 +24,11 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
     fetchFriends,
     error: friendsError,
   } = useFriendsStore();
-  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+  // const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+    const {
+      selectedChat,
+      setSelectedChat,
+    } = useChatStore();
   const { user } = useAuth();
   const { activeStatus, otherStatuses } = useSettings();
   const { newDrawerClose } = useGlobalContext();

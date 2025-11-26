@@ -42,7 +42,7 @@ const MessageItem = ({
   const renderMessageContent = () => {
     let file: FileData | null = null;
 
-    if (msg.messageType === "FILE") {
+    if (msg.messageType === "FILE" || msg.messageType === "VOICE") {
       // Prefer frontend optimistic fileData, fallback to backend fields
       if (msg.fileData) {
         file = msg.fileData as FileData;
@@ -161,7 +161,7 @@ const MessageItem = ({
 
   return (
     <div
-      className={`flex flex group ${
+      className={`flex  group ${
         isOwnMessage ? "justify-end " : "justify-start "
       }`}
     >
