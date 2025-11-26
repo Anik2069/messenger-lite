@@ -37,11 +37,6 @@ const ChatSidebar = ({
     group.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // useEffect(() => {
-  //   console.log(otherStatuses, "otherStatuses");
-  // }, [activeStatus, otherStatuses]);
-
-  //   console.log(activeStatus, "activeStatus");
   useEffect(() => {
     console.log(selectedChat, "selectedChat");
   }, [selectedChat]);
@@ -80,14 +75,14 @@ const ChatSidebar = ({
           {conversations?.map((conv) => {
             const isGroup = conv.type === "GROUP";
 
+            // ✅ FIX: Safe access to participants
+            const participants = conv.participants || [];
             const otherParticipant = !isGroup
-              ? conv.participants.find((p) => p.user.id !== user?.id)?.user
+              ? participants.find((p) => p.user?.id !== user?.id)?.user
               : null;
-            // console.log(otherParticipant, "otherParticipant");
-            // console.log(conv, "participants");
 
             const displayName = isGroup
-              ? conv.name
+              ? conv.name || "Unknown Group"
               : otherParticipant?.username || "Unknown";
 
             const displayAvatar = isGroup
@@ -100,6 +95,10 @@ const ChatSidebar = ({
             const status = getStatusForUser(participantUserId || "");
             const isOnline = status?.isOnline || false;
 
+            // ✅ FIX: Safe access to messages
+            const lastMessage = conv.messages?.[0];
+            const messageCount = conv.messages?.length || 0;
+
             return (
               <div
                 key={conv.id}
@@ -107,7 +106,7 @@ const ChatSidebar = ({
                   onChatSelect({
                     type: isGroup ? "group" : "user",
                     id: conv.id,
-                    name: displayName || "Unknown",
+                    name: displayName,
                     avatar: displayAvatar || undefined,
                     isOnline,
                     userId: otherParticipant?.id || "",
@@ -140,11 +139,11 @@ const ChatSidebar = ({
                     <h3 className="font-medium text-gray-900 dark:text-white truncate">
                       {displayName}
                     </h3>
-                    {conv.messages?.[0]?.createdAt && (
+                    {lastMessage?.createdAt && (
                       <p className="text-xs text-gray-500 dark:text-gray-400 ml-2">
                         {(() => {
                           const localDate = parseISO(
-                            conv.messages[0].createdAt as string
+                            lastMessage.createdAt as string
                           );
                           return isToday(localDate)
                             ? formatLocalTime(localDate)
@@ -154,16 +153,15 @@ const ChatSidebar = ({
                     )}
                   </div>
 
-                  {conv.messages?.length > 0 ? (
+                  {messageCount > 0 ? (
                     <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                       {isGroup
-                        ? `${conv.participants.length} members`
+                        ? `${participants.length} members`
                         : `${
-                            conv.messages[0]?.author?.username ===
-                            user?.username
+                            lastMessage?.author?.username === user?.username
                               ? "You"
-                              : conv.messages[0]?.author?.username
-                          }: ${conv.messages[0]?.message}`}
+                              : lastMessage?.author?.username || "Unknown"
+                          }: ${lastMessage?.message || "No message"}`}
                     </p>
                   ) : (
                     <p className="text-sm text-gray-500 dark:text-gray-400">

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ChatSidebar from "./ChatSidebar/ChatSidebar";
 import Navbar from "./Navbar/Navbar";
 import ChatWindow from "./ChatWindow/ChatWindow";
@@ -14,24 +14,16 @@ import { useFriendsStore } from "@/store/useFriendsStrore";
 import { ChatState, useChatStore } from "@/store/useChatStore";
 import { cleanupTyping, startTyping, stopTyping } from "@/lib/typing";
 import { useAuth } from "@/context/useAuth";
-import { socket } from "@/lib/socket"; // ✅ socket import
+import { socket } from "@/lib/socket";
 import axiosInstance from "@/config/axiosInstance";
-import { is } from "zod/v4/locales";
 import AddFriend from "./AddFriend/AddFriend";
 import PrivacySettings from "./UserSettings/PrivacySettings";
 import GeneralSettings from "./UserSettings/GeneralSettings";
 import AnimatedWrapper from "../animations/AnimatedWrapper";
-import { Button } from "../ui/button";
-import { Cross, CrossIcon, X } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { X } from "lucide-react";
 import SelectedChatProfile from "./SelectedChatProfile";
 import { Conversation } from "@/types/coversations.type";
-
-declare global {
-  interface Window {
-    typingTimeout: NodeJS.Timeout | null;
-  }
-}
+import SearchModal from "./SearchModal/SearchModal";
 
 const ChatLayout = () => {
   const { user, getMyself } = useAuth();
@@ -69,7 +61,7 @@ const ChatLayout = () => {
     closeSelectedChatProfile,
   } = useGlobalContext();
 
-  // rack socket connection
+  // Track socket connection
   useEffect(() => {
     if (user) {
       setIsConnected(true);
@@ -81,72 +73,100 @@ const ChatLayout = () => {
   useEffect(() => {
     return () => cleanupTyping();
   }, []);
+
   useEffect(() => {
     if (user) getMyself();
   }, [user]);
-  // Join/Leave conversation room on selection
+
+  // ✅ FIXED: Optimized chat selection with useCallback
+  const onChatSelect = useCallback(
+    (chat: Chat) => {
+      setSelectedChat(chat);
+      setMessages([]);
+      setOtherUserTyping(null);
+
+      // Join conversation room
+      socket.emit("join_conversation", chat.id);
+
+      // Fetch messages
+      (async () => {
+        try {
+          const response = await axiosInstance.get(`messages/${chat.id}`);
+          if (response.status === 200) {
+            setMessages(response.data.results || []);
+          }
+        } catch (error) {
+          console.error("Failed to fetch messages", error);
+          setMessages([]);
+        }
+      })();
+    },
+    [setSelectedChat, setMessages, setOtherUserTyping]
+  );
+
   useEffect(() => {
-    if (!selectedChat?.id) return;
+    if (!selectedChat) return;
+
+    let isSubscribed = true;
 
     const handleConversationsUpdated = (conversations: Conversation[]) => {
+      if (!isSubscribed) return;
+
       console.log("conversations_updated----------------", conversations);
 
-      const matchedConversation = conversations.find(
-        (conversation) =>
-          conversation.participants?.[0]?.user?.id === selectedChat?.id
-      );
+      if (selectedChat.type === "user") {
+        // ✅ FIX: Safe participant checking
+        const matchedConversation = conversations.find((conversation) => {
+          const participants = conversation.participants || [];
+          return (
+            participants.some((p) => p.user?.id === selectedChat.id) &&
+            participants.some((p) => p.user?.id === user?.id)
+          );
+        });
 
-      if (matchedConversation) {
-        console.log("Matched conversation:", matchedConversation);
-        // Optional: update state, e.g.
-        // useChatStore.getState().updateConversation(matchedConversation);
-        socket.emit("join_conversation", matchedConversation.id);
+        if (matchedConversation && matchedConversation.id !== selectedChat.id) {
+          console.log(
+            "Updating selected chat with conversation ID:",
+            matchedConversation.id
+          );
+          setSelectedChat({
+            ...selectedChat,
+            id: matchedConversation.id,
+          });
+        }
       }
     };
 
     socket.on("conversations_updated", handleConversationsUpdated);
-    socket.emit("join_conversation", selectedChat.id);
-    console.log("Joined conversation:", selectedChat.id);
-
-    (async () => {
-      try {
-        const response = await axiosInstance.get(`messages/${selectedChat.id}`);
-        if (response.status === 200) {
-          useChatStore.getState().setMessages(response.data.results);
-        }
-      } catch (error) {
-        console.error("Failed to fetch messages", error);
-      }
-    })();
 
     return () => {
+      isSubscribed = false;
       socket.off("conversations_updated", handleConversationsUpdated);
       socket.emit("leave_conversation", selectedChat.id);
-      console.log("Left conversation:", selectedChat.id);
     };
-  }, [selectedChat?.id]);
+  }, [selectedChat, user?.id, setSelectedChat]);
 
-  const onChatSelect = (chat: Chat) => {
-    setSelectedChat(chat);
-    setMessages([]);
-    setOtherUserTyping(null);
-  };
+  const handleSendMessage = useCallback(
+    (
+      message: string,
+      type: "TEXT" | "FILE" | "forwarded" | "VOICE" = "TEXT",
+      fileData?: object,
+      voiceUrl?: string,
+      forwardedFrom?: ForwardedData
+    ) => {
+      onSendMessage(message, type, fileData, voiceUrl, forwardedFrom, user);
+    },
+    [onSendMessage, user]
+  );
 
-  const handleSendMessage = (
-    message: string,
-    type: "TEXT" | "FILE" | "forwarded" | "VOICE" = "TEXT",
-    fileData?: object,
-    voiceUrl?: string,
-    forwardedFrom?: ForwardedData
-  ) => {
-    onSendMessage(message, type, fileData, voiceUrl, forwardedFrom, user);
-  };
+  const handleAddReaction = useCallback(
+    (messageId: string, emoji: string) => {
+      onAddReaction(messageId, emoji, user);
+    },
+    [onAddReaction, user]
+  );
 
-  const handleAddReaction = (messageId: string, emoji: string) => {
-    onAddReaction(messageId, emoji, user);
-  };
-
-  const handleTypingStart = () => {
+  const handleTypingStart = useCallback(() => {
     if (!selectedChat || selectedChat.type !== "user") return;
     if (selectedChat.id === user?.id) return;
 
@@ -155,13 +175,12 @@ const ChatLayout = () => {
       conversationId: selectedChat.id,
       userId: user?.id,
     });
-  };
+  }, [selectedChat, user, setOtherUserTyping]);
 
-  const handleTypingStop = () => {
+  const handleTypingStop = useCallback(() => {
     stopTyping(setOtherUserTyping);
-  };
+  }, [setOtherUserTyping]);
 
-  console.log(selectedChat, "selectedChat========");
   return (
     <div className="w-screen h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <div className="shrink-0">
@@ -181,6 +200,7 @@ const ChatLayout = () => {
             onChatSelect={onChatSelect}
           />
         </div>
+
         <div className="flex-1 bg-white dark:bg-gray-900 flex flex-col transition-all duration-300 ease-in-out">
           <ChatWindow
             currentUser={user ?? null}
@@ -201,7 +221,7 @@ const ChatLayout = () => {
           onClose={closeSelectedChatProfile}
           className="w-80"
         >
-          <div className="flex justify-start relative  h-full max-h-[100vh]">
+          <div className="flex justify-start relative h-full max-h-[100vh]">
             <button
               className="h-fit"
               type="button"
@@ -211,7 +231,6 @@ const ChatLayout = () => {
             </button>
             <SelectedChatProfile id={selectedChat?.userId ?? ""} />
           </div>
-          {/* Profile content here */}
         </AnimatedWrapper>
       </div>
 
@@ -223,13 +242,13 @@ const ChatLayout = () => {
       >
         <NewChat onChatSelect={onChatSelect} />
       </RightSideDrawer>
+
       <RightSideDrawer
         isOpen={isAddFriendModalOpen}
         onOpenChange={setIsAddFriendModalOpen}
         title="Add Friend"
         className="w-80"
       >
-        {/* <NewChat onChatSelect={onChatSelect} /> */}
         <AddFriend isAddFriendModalOpen={isAddFriendModalOpen} />
       </RightSideDrawer>
 
@@ -247,6 +266,7 @@ const ChatLayout = () => {
           sidebarMode
         />
       </RightSideDrawer>
+
       <Modal
         maxWidth="2xl"
         title="User Settings"
@@ -255,6 +275,7 @@ const ChatLayout = () => {
       >
         <UserSettings />
       </Modal>
+
       <Modal
         maxWidth="7xl"
         className="!p-0"
@@ -265,17 +286,7 @@ const ChatLayout = () => {
         <GeneralSettings />
       </Modal>
 
-      {/* <RightSideDrawer
-        isOpen={isOpenSelectedChatProfile}
-        onOpenChange={setIsOpenSelectedChatProfile}
-        title={`Profile of ${selectedChat?.name}`}
-        className="w-80"
-        direction="left"
-      >
-        <div className=""></div>
-      </RightSideDrawer> */}
       <Modal
-        // overflowAuto={true}
         maxWidth="7xl"
         className="!p-0"
         title="Privacy Settings"
@@ -284,6 +295,8 @@ const ChatLayout = () => {
       >
         <PrivacySettings />
       </Modal>
+
+      <SearchModal />
     </div>
   );
 };

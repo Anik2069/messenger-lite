@@ -296,6 +296,202 @@ async function ensureDirectConversation(
 // };
 // }
 
+// export default function createSendMessageController(
+//   io: IOServerWithHelpers,
+//   prisma: PrismaClient
+// ) {
+//   return async (req: Request, res: Response) => {
+//     try {
+//       const userId = (req as any).userId as string;
+
+//       const {
+//         conversationId: conversationIdRaw,
+//         recipientId: recipientIdRaw,
+//         message,
+//         messageType = MessageType.TEXT,
+//         clientTempId,
+//       } = req.body as any;
+//       console.log(req.body, "req.body in send message");
+//       // Files uploaded via multer
+//       const files = req.files as Express.Multer.File[] | undefined;
+//       console.log(files, "llllllllllllllllllllllllllll");
+
+//       let conversationId: string | undefined =
+//         conversationIdRaw?.trim() || undefined;
+//       const recipientId: string | undefined =
+//         recipientIdRaw?.trim() || undefined;
+
+//       const createdMessages = await prisma.$transaction(async (tx) => {
+//         // Fetch conversation
+//         let conversation =
+//           conversationId &&
+//           (await tx.conversation.findUnique({
+//             where: { id: conversationId },
+//             select: { id: true, type: true },
+//           }));
+
+//         // If conversation does not exist, create direct conversation
+//         if (!conversation) {
+//           const peerUserId = recipientId || conversationIdRaw;
+//           if (!peerUserId) {
+//             const err: any = new Error(
+//               "conversationId or recipientId required"
+//             );
+//             err.status = StatusCodes.BAD_REQUEST;
+//             throw err;
+//           }
+
+//           const peerExists = await tx.user.findUnique({
+//             where: { id: peerUserId },
+//             select: { id: true },
+//           });
+//           if (!peerExists) {
+//             const err: any = new Error("Recipient not found");
+//             err.status = StatusCodes.NOT_FOUND;
+//             throw err;
+//           }
+
+//           const ensured = await ensureDirectConversation(
+//             tx,
+//             userId,
+//             peerUserId
+//           );
+//           conversationId = ensured.id;
+//           conversation = { id: ensured.id, type: "DIRECT" as const };
+//         }
+
+//         // Check participant
+//         const membership = await tx.conversationParticipant.findFirst({
+//           where: { conversationId: conversation.id, userId },
+//           select: { id: true },
+//         });
+//         if (!membership) {
+//           const err: any = new Error("Not a participant");
+//           err.status = StatusCodes.FORBIDDEN;
+//           throw err;
+//         }
+
+//         const messagesToCreate: any[] = [];
+
+//         // If files exist, create one message per file
+//         if (files?.length) {
+//           for (const file of files) {
+//             // console.log(file);
+
+//             messagesToCreate.push(
+//               tx.message.create({
+//                 data: {
+//                   conversationId: conversation.id,
+//                   authorId: userId,
+//                   message: message || file.originalname,
+//                   messageType: MessageType.FILE,
+//                   fileUrl: `/uploads/${file.filename}`,
+//                   fileName: file.originalname,
+//                   fileMime: file.mimetype,
+//                   fileSize: file.size,
+//                 },
+//                 include: {
+//                   author: {
+//                     select: { id: true, username: true, avatar: true },
+//                   },
+//                   conversation: {
+//                     select: { id: true, type: true, name: true },
+//                   },
+//                   reactions: {
+//                     include: { user: { select: { id: true, username: true } } },
+//                   },
+//                   receipts: {
+//                     include: { user: { select: { id: true, username: true } } },
+//                   },
+//                 },
+//               })
+//             );
+//           }
+//         } else {
+//           console.log(message, "text");
+//           // Text-only message
+//           messagesToCreate.push(
+//             tx.message.create({
+//               data: {
+//                 conversationId: conversation.id,
+//                 authorId: userId,
+//                 message: message || "",
+//                 messageType,
+//               },
+//               include: {
+//                 author: { select: { id: true, username: true, avatar: true } },
+//                 conversation: { select: { id: true, type: true, name: true } },
+//                 reactions: {
+//                   include: { user: { select: { id: true, username: true } } },
+//                 },
+//                 receipts: {
+//                   include: { user: { select: { id: true, username: true } } },
+//                 },
+//               },
+//             })
+//           );
+//         }
+
+//         const createdMessages = await Promise.all(messagesToCreate);
+
+//         // Upsert message reads and update conversation.updatedAt
+//         for (const msg of createdMessages) {
+//           await tx.messageRead.upsert({
+//             where: { messageId_userId: { messageId: msg.id, userId } },
+//             create: { messageId: msg.id, userId },
+//             update: { readAt: new Date() },
+//           });
+//         }
+
+//         await tx.conversation.update({
+//           where: { id: conversation.id },
+//           data: { updatedAt: new Date() },
+//         });
+
+//         return createdMessages.map((m) => ({
+//           ...m,
+//           clientTempId: clientTempId ?? null,
+//         }));
+//       });
+
+//       // Broadcast messages to conversation room
+//       for (const msg of createdMessages) {
+//         io.to(conversationRoom(msg.conversationId)).emit(
+//           "receive_message",
+//           msg
+//         );
+//       }
+
+//       // Update conversation lists for all participants
+//       const participants = await prisma.conversationParticipant.findMany({
+//         where: { conversationId: createdMessages[0].conversationId },
+//         select: { userId: true },
+//       });
+
+//       for (const p of participants) {
+//         const updatedList = await getUserConversationsSorted(prisma, p.userId);
+//         io.to(p.userId).emit("conversations_updated", updatedList);
+//       }
+
+//       return sendResponse({
+//         res,
+//         statusCode: StatusCodes.CREATED,
+//         message: "Message(s) sent successfully",
+//         data:
+//           createdMessages.length === 1 ? createdMessages[0] : createdMessages,
+//       });
+//     } catch (e: any) {
+//       const status = e?.status ?? StatusCodes.INTERNAL_SERVER_ERROR;
+//       return sendResponse({
+//         res,
+//         statusCode: status,
+//         message: e?.message || "Failed to send message",
+//         data: null,
+//       });
+//     }
+//   };
+// }
+
 export default function createSendMessageController(
   io: IOServerWithHelpers,
   prisma: PrismaClient
@@ -311,10 +507,8 @@ export default function createSendMessageController(
         messageType = MessageType.TEXT,
         clientTempId,
       } = req.body as any;
-      console.log(req.body, "req.body in send message");
-      // Files uploaded via multer
+
       const files = req.files as Express.Multer.File[] | undefined;
-      console.log(files, "llllllllllllllllllllllllllll");
 
       let conversationId: string | undefined =
         conversationIdRaw?.trim() || undefined;
@@ -322,13 +516,14 @@ export default function createSendMessageController(
         recipientIdRaw?.trim() || undefined;
 
       const createdMessages = await prisma.$transaction(async (tx) => {
-        // Fetch conversation
-        let conversation =
-          conversationId &&
-          (await tx.conversation.findUnique({
-            where: { id: conversationId },
-            select: { id: true, type: true },
-          }));
+        let conversation = conversationId
+          ? await tx.conversation.findUnique({
+              where: { id: conversationId },
+              select: { id: true, type: true },
+            })
+          : null;
+
+        let isNewConversation = false;
 
         // If conversation does not exist, create direct conversation
         if (!conversation) {
@@ -358,6 +553,7 @@ export default function createSendMessageController(
           );
           conversationId = ensured.id;
           conversation = { id: ensured.id, type: "DIRECT" as const };
+          isNewConversation = true;
         }
 
         // Check participant
@@ -373,10 +569,23 @@ export default function createSendMessageController(
 
         const messagesToCreate: any[] = [];
 
-        // If files exist, create one message per file
+        // ✅ FIXED: Proper message type handling
         if (files?.length) {
           for (const file of files) {
-            // console.log(file);
+            // Determine actual message type based on content
+            let actualMessageType = messageType;
+
+            // Voice message detection
+            if (
+              file.mimetype.startsWith("audio/") ||
+              file.originalname.includes("voice-message")
+            ) {
+              actualMessageType = MessageType.VOICE;
+            }
+            // File message (if not already set)
+            else if (messageType === MessageType.TEXT) {
+              actualMessageType = MessageType.FILE;
+            }
 
             messagesToCreate.push(
               tx.message.create({
@@ -384,7 +593,7 @@ export default function createSendMessageController(
                   conversationId: conversation.id,
                   authorId: userId,
                   message: message || file.originalname,
-                  messageType: MessageType.FILE,
+                  messageType: actualMessageType, // ✅ Use correct type
                   fileUrl: `/uploads/${file.filename}`,
                   fileName: file.originalname,
                   fileMime: file.mimetype,
@@ -408,15 +617,14 @@ export default function createSendMessageController(
             );
           }
         } else {
-          console.log(message, "text");
-          // Text-only message
+          // Text, forwarded, or voice message without file
           messagesToCreate.push(
             tx.message.create({
               data: {
                 conversationId: conversation.id,
                 authorId: userId,
                 message: message || "",
-                messageType,
+                messageType, // ✅ Use the type from frontend
               },
               include: {
                 author: { select: { id: true, username: true, avatar: true } },
@@ -448,14 +656,39 @@ export default function createSendMessageController(
           data: { updatedAt: new Date() },
         });
 
-        return createdMessages.map((m) => ({
-          ...m,
-          clientTempId: clientTempId ?? null,
-        }));
+        return {
+          messages: createdMessages.map((m) => ({
+            ...m,
+            clientTempId: clientTempId ?? null,
+          })),
+          isNewConversation,
+          conversationId: conversation.id,
+        };
       });
 
+      const {
+        messages: createdMessagesWithTemp,
+        isNewConversation,
+        conversationId: actualConvId,
+      } = createdMessages;
+
+      // ✅ Auto-join participants to new conversation
+      if (isNewConversation) {
+        const participants = await prisma.conversationParticipant.findMany({
+          where: { conversationId: actualConvId },
+          select: { userId: true },
+        });
+
+        for (const participant of participants) {
+          io.to(participant.userId).emit("join_conversation", actualConvId);
+          console.log(
+            `Auto-joined user ${participant.userId} to conversation ${actualConvId}`
+          );
+        }
+      }
+
       // Broadcast messages to conversation room
-      for (const msg of createdMessages) {
+      for (const msg of createdMessagesWithTemp) {
         io.to(conversationRoom(msg.conversationId)).emit(
           "receive_message",
           msg
@@ -464,7 +697,7 @@ export default function createSendMessageController(
 
       // Update conversation lists for all participants
       const participants = await prisma.conversationParticipant.findMany({
-        where: { conversationId: createdMessages[0].conversationId },
+        where: { conversationId: actualConvId },
         select: { userId: true },
       });
 
@@ -477,8 +710,14 @@ export default function createSendMessageController(
         res,
         statusCode: StatusCodes.CREATED,
         message: "Message(s) sent successfully",
-        data:
-          createdMessages.length === 1 ? createdMessages[0] : createdMessages,
+        data: {
+          messages:
+            createdMessagesWithTemp.length === 1
+              ? createdMessagesWithTemp[0]
+              : createdMessagesWithTemp,
+          conversationId: actualConvId,
+          isNewConversation,
+        },
       });
     } catch (e: any) {
       const status = e?.status ?? StatusCodes.INTERNAL_SERVER_ERROR;

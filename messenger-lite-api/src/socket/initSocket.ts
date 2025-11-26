@@ -89,27 +89,89 @@ export const initSocket = (server: any) => {
     // Conversation join
     socket.on("join_conversation", async (conversationId: string) => {
       console.log("conversationId----------------", conversationId);
-      const member = await prisma.conversationParticipant.findFirst({
-        where: { conversationId, userId },
-        select: { id: true },
-      });
+      // const member = await prisma.conversationParticipant.findFirst({
+      //   where: { conversationId, userId },
+      //   select: { id: true },
+      // });
 
-      if (!member) {
-        const peerUserId = conversationId;
-        const conversation = await prisma.conversation.findFirst({
-          where: {
+      // if (!member) {
+      //   const peerUserId = conversationId;
+      //   const conversation = await prisma.conversation.findFirst({
+      //     where: {
+      //       type: "DIRECT",
+      //       participants: { some: { userId } },
+      //       AND: { participants: { some: { userId: peerUserId } } },
+      //     },
+      //     include: { participants: true },
+      //   });
+      //   if (!conversation) return;
+      //   socket.join(convRoom(conversation.id));
+      //   console.log(`${userId} joined conv:${conversation.id}`);
+      // } else {
+      //   socket.join(convRoom(conversationId));
+      //   console.log(`${userId} joined conv:${conversationId}`);
+      // }
+      // Check if this is a direct user ID (not a conversation ID)
+      if (conversationId.length === 36) {
+        // Assuming UUID format
+        const isConversation = await prisma.conversation.findUnique({
+          where: { id: conversationId },
+        });
+
+        if (isConversation) {
+          // It's a conversation ID - join normally
+          const member = await prisma.conversationParticipant.findFirst({
+            where: { conversationId, userId },
+            select: { id: true },
+          });
+
+          if (member) {
+            socket.join(convRoom(conversationId));
+            console.log(`${userId} joined conv:${conversationId}`);
+            return;
+          }
+        }
+      }
+
+      const peerUserId = conversationId;
+      // Find existing direct conversation
+      const existingConversation = await prisma.conversation.findFirst({
+        where: {
+          type: "DIRECT",
+          participants: {
+            some: { userId },
+          },
+          AND: {
+            participants: {
+              some: { userId: peerUserId },
+            },
+          },
+        },
+        include: { participants: true },
+      });
+      if (existingConversation) {
+        socket.join(convRoom(existingConversation.id));
+        console.log(
+          `${userId} joined existing conv:${existingConversation.id}`
+        );
+      } else {
+        // Create new conversation
+        const newConversation = await prisma.conversation.create({
+          data: {
             type: "DIRECT",
-            participants: { some: { userId } },
-            AND: { participants: { some: { userId: peerUserId } } },
+            participants: {
+              create: [{ userId: userId }, { userId: peerUserId }],
+            },
           },
           include: { participants: true },
         });
-        if (!conversation) return;
-        socket.join(convRoom(conversation.id));
-        console.log(`${userId} joined conv:${conversation.id}`);
-      } else {
-        socket.join(convRoom(conversationId));
-        console.log(`${userId} joined conv:${conversationId}`);
+
+        // Emit conversation update to both users
+        io.to(userId).emit("conversations_updated", [newConversation]);
+        io.to(peerUserId).emit("conversations_updated", [newConversation]);
+
+        socket.join(convRoom(newConversation.id));
+        console.log(`${userId} joined new conv:${newConversation.id}`);
       }
     });
 

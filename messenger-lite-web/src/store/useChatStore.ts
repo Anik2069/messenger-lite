@@ -358,6 +358,209 @@ export const useChatStore = create<ChatState>((set, get) => {
     //   }
     // },
 
+    // onSendMessage: async (
+    //   text,
+    //   type = "TEXT",
+    //   fileData,
+    //   voiceUrl,
+    //   forwardedFrom,
+    //   currentUser
+    // ) => {
+    //   const { selectedChat } = get();
+    //   if (!selectedChat || !currentUser) return;
+
+    //   const clientTempId = uuidv4();
+    //   const tempId = `temp-${Date.now()}`;
+
+    //   // Optimistic UI
+    //   const optimistic: Message[] = [];
+
+    //   // if (fileData) {
+    //   //   // if multiple files, fileData can be an array
+    //   //   const files = Array.isArray(fileData) ? fileData : [fileData];
+    //   //   for (const file of files) {
+    //   //     optimistic.push({
+    //   //       id: `temp-${Date.now()}-${uuidv4()}`,
+    //   //       clientTempId,
+    //   //       conversationId: selectedChat.id,
+    //   //       from: { username: currentUser.username, id: currentUser.id },
+    //   //       to: { username: selectedChat.name, id: selectedChat.id },
+    //   //       message: text || file.filename,
+    //   //       messageType: "FILE",
+    //   //       fileData: file,
+    //   //       forwardedFrom,
+    //   //       isGroupMessage: selectedChat.type !== "user",
+    //   //       timestamp: new Date(),
+    //   //       reactions: [],
+    //   //       readBy: [],
+    //   //     });
+    //   //   }
+    //   // } else {
+    //   //   optimistic.push({
+    //   //     id: tempId,
+    //   //     clientTempId,
+    //   //     conversationId: selectedChat.id,
+    //   //     from: { username: currentUser.username, id: currentUser.id },
+    //   //     to: { username: selectedChat.name, id: selectedChat.id },
+    //   //     message: text,
+    //   //     messageType: type,
+    //   //     fileData,
+    //   //     forwardedFrom,
+    //   //     isGroupMessage: selectedChat.type !== "user",
+    //   //     timestamp: new Date(),
+    //   //     reactions: [],
+    //   //     readBy: [],
+    //   //   });
+    //   // }
+
+    //   // if (fileData) {
+    //   //   const files = Array.isArray(fileData) ? fileData : [fileData];
+    //   //   for (const file of files) {
+    //   //     const url = file.url
+    //   //       ? file.url.startsWith("blob:")
+    //   //         ? file.url // local blob URL, use as-is
+    //   //         : `${MEDIA_HOST}${file.url}` // backend URL
+    //   //       : file.fileUrl
+    //   //       ? `${MEDIA_HOST}${file.fileUrl}`
+    //   //       : "";
+    //   //     optimistic.push({
+    //   //       id: `temp-${Date.now()}-${uuidv4()}`,
+    //   //       clientTempId,
+    //   //       conversationId: selectedChat.id,
+    //   //       from: { username: currentUser.username, id: currentUser.id },
+    //   //       to: { username: selectedChat.name, id: selectedChat.id },
+    //   //       message: text || file.name,
+    //   //       messageType: "FILE",
+    //   //       fileData: {
+    //   //         url: url,
+    //   //         filename: file.name,
+    //   //         mimetype: file.type,
+    //   //         size: file.size,
+    //   //       },
+    //   //       forwardedFrom,
+    //   //       isGroupMessage: selectedChat.type !== "user",
+    //   //       timestamp: new Date(),
+    //   //       reactions: [],
+    //   //       readBy: [],
+    //   //     });
+    //   //   }
+    //   // } else {
+    //   //   optimistic.push({
+    //   //     id: tempId,
+    //   //     clientTempId,
+    //   //     conversationId: selectedChat.id,
+    //   //     from: { username: currentUser.username, id: currentUser.id },
+    //   //     to: { username: selectedChat.name, id: selectedChat.id },
+    //   //     message: text,
+    //   //     messageType: type,
+    //   //     fileData,
+    //   //     forwardedFrom,
+    //   //     isGroupMessage: selectedChat.type !== "user",
+    //   //     timestamp: new Date(),
+    //   //     reactions: [],
+    //   //     readBy: [],
+    //   //   });
+    //   // }
+
+    //   // set((state) => ({ messages: [...state.messages, ...optimistic] }));
+
+    //   // API request
+    //   // const payload: SendMessagePayload = {
+    //   //   conversationId: selectedChat.id,
+    //   //   ...(selectedChat.type === "user"
+    //   //     ? { recipientId: selectedChat.id }
+    //   //     : {}),
+    //   //   message: text,
+    //   //   messageType: toServerType(type),
+    //   //   ...(fileData
+    //   //     ? Array.isArray(fileData)
+    //   //       ? { files: fileData } // you can adapt your backend to accept array
+    //   //       : {
+    //   //           fileUrl: fileData.url,
+    //   //           fileName: fileData.filename,
+    //   //           fileMime: fileData.mimetype,
+    //   //           fileSize: fileData.size,
+    //   //         }
+    //   //     : {}),
+    //   //   ...(forwardedFrom
+    //   //     ? { forwardedFrom: forwardedFrom.originalSender }
+    //   //     : {}),
+    //   //   clientTempId,
+    //   // };
+
+    //   const formData = new FormData();
+
+    //   formData.append("conversationId", selectedChat.id);
+    //   if (selectedChat.type === "user") {
+    //     formData.append("recipientId", selectedChat.id);
+    //   }
+    //   formData.append("message", text || "");
+    //   formData.append("messageType", toServerType(type));
+    //   formData.append("clientTempId", clientTempId);
+
+    //   if (forwardedFrom) {
+    //     formData.append("forwardedFrom", forwardedFrom.originalSender);
+    //   }
+
+    //   // If single or multiple files
+    //   if (fileData) {
+    //     const files = Array.isArray(fileData) ? fileData : [fileData];
+    //     files.forEach((file) => {
+    //       // file should be a File object from input
+    //       formData.append("files", file as unknown as Blob);
+    //     });
+    //   }
+    //   // handle voice message
+    //   if (voiceUrl) {
+    //     // Convert voice blob if needed
+    //     try {
+    //       const blob = await fetch(voiceUrl).then((res) => res.blob());
+    //       console.log(blob, "blob");
+    //       formData.append("files", blob, "voice-message.wav");
+    //     } catch (e) {
+    //       console.error("Voice file blob fetch failed", e);
+    //     }
+    //   }
+
+    //   try {
+    //     const res = await axiosInstance.post("messages", formData, {
+    //       headers: {
+    //         "Content-Type": "multipart/form-data",
+    //       },
+    //     });
+    //     // const saved = res.data?.results ?? res.data;
+
+    //     // const normalized = Array.isArray(saved)
+    //     //   ? saved.map((s) => mapServerMessage(s))
+    //     //   : [mapServerMessage(saved)];
+
+    //     // set((state) => ({
+    //     //   messages: state.messages.map(
+    //     //     (m) =>
+    //     //       normalized.find((n) => n.clientTempId === m.clientTempId) || m
+    //     //   ),
+    //     // }));
+    //   } catch (err) {
+    //     // rollback optimistic
+    //     set((state) => ({
+    //       messages: state.messages.filter((m) => !optimistic.includes(m)),
+    //     }));
+    //     // console.error("send failed", err);
+    //     const response = err as unknown as {
+    //       response: { data: { message: string } };
+    //     };
+    //     if (response?.response?.data?.message) {
+    //       toast.error(
+    //         response.response.data.message || "Failed to send message"
+    //       );
+    //       // console.log();
+    //       // TODO : add error message to set state
+    //       return;
+    //     }
+    //     toast.error("Failed to send message");
+    //   }
+    // },
+
     onSendMessage: async (
       text,
       type = "TEXT",
@@ -372,128 +575,34 @@ export const useChatStore = create<ChatState>((set, get) => {
       const clientTempId = uuidv4();
       const tempId = `temp-${Date.now()}`;
 
-      // Optimistic UI
-      const optimistic: Message[] = [];
+      // ✅ Determine actual type
 
-      // if (fileData) {
-      //   // if multiple files, fileData can be an array
-      //   const files = Array.isArray(fileData) ? fileData : [fileData];
-      //   for (const file of files) {
-      //     optimistic.push({
-      //       id: `temp-${Date.now()}-${uuidv4()}`,
-      //       clientTempId,
-      //       conversationId: selectedChat.id,
-      //       from: { username: currentUser.username, id: currentUser.id },
-      //       to: { username: selectedChat.name, id: selectedChat.id },
-      //       message: text || file.filename,
-      //       messageType: "FILE",
-      //       fileData: file,
-      //       forwardedFrom,
-      //       isGroupMessage: selectedChat.type !== "user",
-      //       timestamp: new Date(),
-      //       reactions: [],
-      //       readBy: [],
-      //     });
-      //   }
-      // } else {
-      //   optimistic.push({
-      //     id: tempId,
-      //     clientTempId,
-      //     conversationId: selectedChat.id,
-      //     from: { username: currentUser.username, id: currentUser.id },
-      //     to: { username: selectedChat.name, id: selectedChat.id },
-      //     message: text,
-      //     messageType: type,
-      //     fileData,
-      //     forwardedFrom,
-      //     isGroupMessage: selectedChat.type !== "user",
-      //     timestamp: new Date(),
-      //     reactions: [],
-      //     readBy: [],
-      //   });
-      // }
+      // Optimistic message
+      const optimistic: Message = {
+        id: tempId,
+        clientTempId,
+        conversationId: selectedChat.id,
+        from: { username: currentUser.username, id: currentUser.id },
+        to: { username: selectedChat.name, id: selectedChat.id },
+        message: text,
+        messageType: type,
+        fileData,
+        forwardedFrom,
+        isGroupMessage: selectedChat.type !== "user",
+        timestamp: new Date(),
+        reactions: [],
+        readBy: [],
+      };
 
-      // if (fileData) {
-      //   const files = Array.isArray(fileData) ? fileData : [fileData];
-      //   for (const file of files) {
-      //     const url = file.url
-      //       ? file.url.startsWith("blob:")
-      //         ? file.url // local blob URL, use as-is
-      //         : `${MEDIA_HOST}${file.url}` // backend URL
-      //       : file.fileUrl
-      //       ? `${MEDIA_HOST}${file.fileUrl}`
-      //       : "";
-      //     optimistic.push({
-      //       id: `temp-${Date.now()}-${uuidv4()}`,
-      //       clientTempId,
-      //       conversationId: selectedChat.id,
-      //       from: { username: currentUser.username, id: currentUser.id },
-      //       to: { username: selectedChat.name, id: selectedChat.id },
-      //       message: text || file.name,
-      //       messageType: "FILE",
-      //       fileData: {
-      //         url: url,
-      //         filename: file.name,
-      //         mimetype: file.type,
-      //         size: file.size,
-      //       },
-      //       forwardedFrom,
-      //       isGroupMessage: selectedChat.type !== "user",
-      //       timestamp: new Date(),
-      //       reactions: [],
-      //       readBy: [],
-      //     });
-      //   }
-      // } else {
-      //   optimistic.push({
-      //     id: tempId,
-      //     clientTempId,
-      //     conversationId: selectedChat.id,
-      //     from: { username: currentUser.username, id: currentUser.id },
-      //     to: { username: selectedChat.name, id: selectedChat.id },
-      //     message: text,
-      //     messageType: type,
-      //     fileData,
-      //     forwardedFrom,
-      //     isGroupMessage: selectedChat.type !== "user",
-      //     timestamp: new Date(),
-      //     reactions: [],
-      //     readBy: [],
-      //   });
-      // }
-
-      // set((state) => ({ messages: [...state.messages, ...optimistic] }));
-
-      // API request
-      // const payload: SendMessagePayload = {
-      //   conversationId: selectedChat.id,
-      //   ...(selectedChat.type === "user"
-      //     ? { recipientId: selectedChat.id }
-      //     : {}),
-      //   message: text,
-      //   messageType: toServerType(type),
-      //   ...(fileData
-      //     ? Array.isArray(fileData)
-      //       ? { files: fileData } // you can adapt your backend to accept array
-      //       : {
-      //           fileUrl: fileData.url,
-      //           fileName: fileData.filename,
-      //           fileMime: fileData.mimetype,
-      //           fileSize: fileData.size,
-      //         }
-      //     : {}),
-      //   ...(forwardedFrom
-      //     ? { forwardedFrom: forwardedFrom.originalSender }
-      //     : {}),
-      //   clientTempId,
-      // };
+      set((state) => ({ messages: [...state.messages, optimistic] }));
 
       const formData = new FormData();
-
       formData.append("conversationId", selectedChat.id);
+
       if (selectedChat.type === "user") {
         formData.append("recipientId", selectedChat.id);
       }
+
       formData.append("message", text || "");
       formData.append("messageType", toServerType(type));
       formData.append("clientTempId", clientTempId);
@@ -502,20 +611,18 @@ export const useChatStore = create<ChatState>((set, get) => {
         formData.append("forwardedFrom", forwardedFrom.originalSender);
       }
 
-      // If single or multiple files
+      // Handle files
       if (fileData) {
         const files = Array.isArray(fileData) ? fileData : [fileData];
         files.forEach((file) => {
-          // file should be a File object from input
           formData.append("files", file as unknown as Blob);
         });
       }
-      // handle voice message
+
+      // Handle voice message
       if (voiceUrl) {
-        // Convert voice blob if needed
         try {
           const blob = await fetch(voiceUrl).then((res) => res.blob());
-          console.log(blob, "blob");
           formData.append("files", blob, "voice-message.wav");
         } catch (e) {
           console.error("Voice file blob fetch failed", e);
@@ -524,28 +631,40 @@ export const useChatStore = create<ChatState>((set, get) => {
 
       try {
         const res = await axiosInstance.post("messages", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         });
-        // const saved = res.data?.results ?? res.data;
 
-        // const normalized = Array.isArray(saved)
-        //   ? saved.map((s) => mapServerMessage(s))
-        //   : [mapServerMessage(saved)];
+        const responseData = res.data?.data;
 
-        // set((state) => ({
-        //   messages: state.messages.map(
-        //     (m) =>
-        //       normalized.find((n) => n.clientTempId === m.clientTempId) || m
-        //   ),
-        // }));
+        // ✅ Update conversation ID if new conversation was created
+        if (
+          responseData &&
+          responseData.conversationId &&
+          responseData.conversationId !== selectedChat.id
+        ) {
+          set((state) => ({
+            selectedChat: state.selectedChat
+              ? {
+                  ...state.selectedChat,
+                  id: responseData.conversationId,
+                }
+              : null,
+            messages: state.messages.map((msg) =>
+              msg.clientTempId === clientTempId
+                ? { ...msg, conversationId: responseData.conversationId }
+                : msg
+            ),
+          }));
+
+          // Join the new conversation room
+          socket.emit("join_conversation", responseData.conversationId);
+        }
       } catch (err) {
-        // rollback optimistic
+        // Rollback optimistic message
         set((state) => ({
-          messages: state.messages.filter((m) => !optimistic.includes(m)),
+          messages: state.messages.filter((m) => m.id !== tempId),
         }));
-        // console.error("send failed", err);
+
         const response = err as unknown as {
           response: { data: { message: string } };
         };
@@ -553,8 +672,6 @@ export const useChatStore = create<ChatState>((set, get) => {
           toast.error(
             response.response.data.message || "Failed to send message"
           );
-          // console.log();
-          // TODO : add error message to set state
           return;
         }
         toast.error("Failed to send message");
