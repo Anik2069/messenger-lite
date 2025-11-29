@@ -238,6 +238,18 @@ export default function createSendMessageController(
         }));
       });
 
+      // Join only the message sender to the conversation room (if they have an active socket)
+      const sockets = await io.fetchSockets();
+      for (const socket of sockets) {
+        if (socket.data.userId === userId) {
+          const roomName = conversationRoom(createdMessages[0].conversationId);
+          socket.join(roomName);
+          console.log(
+            `Joined sender ${userId} (socket ${socket.id}) to conversation room ${roomName}`
+          );
+        }
+      }
+
       // Broadcast messages to conversation room
       for (const msg of createdMessages) {
         io.to(conversationRoom(msg.conversationId)).emit(
@@ -255,16 +267,6 @@ export default function createSendMessageController(
       for (const p of participants) {
         const updatedList = await getUserConversationsSorted(prisma, p.userId);
         io.to(p.userId).emit("conversations_updated", updatedList);
-      }
-
-      // Join only the message sender to the conversation room (if they have an active socket)
-      const senderSocket = io.sockets.sockets.get(userId);
-      if (senderSocket) {
-        const roomName = conversationRoom(createdMessages[0].conversationId);
-        senderSocket.join(roomName);
-        console.log(
-          `Joined sender ${userId} to conversation room ${roomName}`
-        );
       }
 
       return sendResponse({

@@ -37,12 +37,10 @@ const ChatSidebar = ({
     group.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  useEffect(() => {
-    console.log(selectedChat, "selectedChat");
-  }, [selectedChat]);
-  useEffect(() => {
-    console.log(conversations, "conversations");
-  }, [conversations]);
+  // useEffect(() => {
+  //   console.log(selectedChat, "selectedChat");
+  // }, [selectedChat]);
+
 
   useEffect(() => {
     fetchConversations();
@@ -106,7 +104,8 @@ const ChatSidebar = ({
             return (
               <div
                 key={conv.id}
-                onClick={() =>
+                onClick={() => {
+
                   onChatSelect({
                     type: isGroup ? "group" : "user",
                     id: conv.id,
@@ -115,8 +114,10 @@ const ChatSidebar = ({
                     isOnline,
                     userId: otherParticipant?.id || "",
                   })
-                }
-                className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${selectedChat?.id === conv.id
+                }}
+                className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${selectedChat?.id === conv.id ||
+                  (selectedChat?.userId &&
+                    otherParticipant?.id === selectedChat.userId)
                   ? "bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500"
                   : ""
                   }`}
@@ -186,7 +187,7 @@ const ChatSidebar = ({
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 };
 

@@ -115,7 +115,6 @@ const ChatLayout = () => {
       console.log("conversations_updated----------------", conversations);
 
       if (selectedChat.type === "user") {
-        // ✅ FIX: Safe participant checking
         const matchedConversation = conversations.find((conversation) => {
           const participants = conversation.participants || [];
           return (
