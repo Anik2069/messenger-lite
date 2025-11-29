@@ -116,7 +116,7 @@ export default function ChatInput({
     deleteRecording();
   };
 
-  console.log(selectedFiles);
+  // console.log(selectedFiles);
 
   // Show voice components when recording OR when we have a recorded URL
   const showVoiceComponents = isRecording || recordedURL;

@@ -40,10 +40,14 @@ const ChatSidebar = ({
   useEffect(() => {
     console.log(selectedChat, "selectedChat");
   }, [selectedChat]);
+  useEffect(() => {
+    console.log(conversations, "conversations");
+  }, [conversations]);
 
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
+
 
   const getStatusForUser = (userId: string): Status => {
     if (userId === user?.id) {
@@ -88,8 +92,8 @@ const ChatSidebar = ({
             const displayAvatar = isGroup
               ? conv.avatar
               : otherParticipant?.avatar
-              ? `${SOCKET_HOST}/${otherParticipant.avatar}`
-              : DummyAvatar.src;
+                ? `${SOCKET_HOST}/${otherParticipant.avatar}`
+                : DummyAvatar.src;
 
             const participantUserId = otherParticipant?.id;
             const status = getStatusForUser(participantUserId || "");
@@ -112,11 +116,10 @@ const ChatSidebar = ({
                     userId: otherParticipant?.id || "",
                   })
                 }
-                className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
-                  selectedChat?.id === conv.id
-                    ? "bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500"
-                    : ""
-                }`}
+                className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${selectedChat?.id === conv.id
+                  ? "bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500"
+                  : ""
+                  }`}
               >
                 {/* Avatar */}
                 <div className="relative w-8 h-8 overflow-hidden">
@@ -126,9 +129,8 @@ const ChatSidebar = ({
 
                   {!isGroup && (
                     <div
-                      className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${
-                        isOnline ? "bg-green-400" : "bg-gray-400"
-                      }`}
+                      className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${isOnline ? "bg-green-400" : "bg-gray-400"
+                        }`}
                     />
                   )}
                 </div>
@@ -157,11 +159,10 @@ const ChatSidebar = ({
                     <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                       {isGroup
                         ? `${participants.length} members`
-                        : `${
-                            lastMessage?.author?.username === user?.username
-                              ? "You"
-                              : lastMessage?.author?.username || "Unknown"
-                          }: ${lastMessage?.message || "No message"}`}
+                        : `${lastMessage?.author?.username === user?.username
+                          ? "You"
+                          : lastMessage?.author?.username || "Unknown"
+                        }: ${lastMessage?.message || "No message"}`}
                     </p>
                   ) : (
                     <p className="text-sm text-gray-500 dark:text-gray-400">

@@ -25,10 +25,10 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
     error: friendsError,
   } = useFriendsStore();
   // const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
-    const {
-      selectedChat,
-      setSelectedChat,
-    } = useChatStore();
+  const {
+    selectedChat,
+    setSelectedChat,
+  } = useChatStore();
   const { user } = useAuth();
   const { activeStatus, otherStatuses } = useSettings();
   const { newDrawerClose } = useGlobalContext();
@@ -94,11 +94,10 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
                 isOnline
               );
             }}
-            className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
-              selectedChat?.type === "user" && selectedChat?.id === userInfo.id
-                ? "bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500"
-                : ""
-            }`}
+            className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${selectedChat?.type === "user" && selectedChat?.id === userInfo.id
+              ? "bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500"
+              : ""
+              }`}
           >
             <div className="relative mr-3">
               <Image
@@ -113,9 +112,8 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
                 className="w-10 h-10 rounded-full object-cover"
               />
               <div
-                className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${
-                  isOnline ? "bg-green-400" : "bg-gray-400"
-                }`}
+                className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${isOnline ? "bg-green-400" : "bg-gray-400"
+                  }`}
               />
             </div>
 
@@ -124,11 +122,10 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
                 {userInfo.username} {isSelf ? "(You)" : ""}
               </h3>
               <p
-                className={`text-sm truncate ${
-                  isOnline
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-gray-500 dark:text-gray-400"
-                }`}
+                className={`text-sm truncate ${isOnline
+                  ? "text-green-600 dark:text-green-400"
+                  : "text-gray-500 dark:text-gray-400"
+                  }`}
               >
                 {isOnline ? "Online" : "Offline"}
               </p>
