@@ -7,6 +7,7 @@ const clearMessagesForFriend = (prisma: PrismaClient) => {
     try {
       const { conversationId } = req.params;
 
+
       if (!conversationId) {
         return sendResponse({
           res,
@@ -16,26 +17,40 @@ const clearMessagesForFriend = (prisma: PrismaClient) => {
         });
       }
 
-      //  Make sure it's a DIRECT conversation
-      const conversation = await prisma.conversation.findFirst({
+      // Check if conversation exists and user is a participant
+      const participant = await prisma.conversationParticipant.findUnique({
         where: {
-          id: conversationId,
-          type: "DIRECT",
+          userId_conversationId: {
+            userId: (req as any).userId,
+            conversationId,
+          },
         },
       });
 
-      if (!conversation) {
+      if (!participant) {
         return sendResponse({
           res,
-          statusCode: StatusCodes.NOT_FOUND,
-          message: "No direct conversation found with this user",
+          statusCode: StatusCodes.FORBIDDEN,
+          message: "You are not a participant of this conversation",
           data: null,
         });
       }
 
-      await prisma.message.deleteMany({
-        where: { conversationId },
+
+
+      await prisma.conversationParticipant.update({
+        where: {
+          userId_conversationId: {
+            userId: (req as any).userId,
+            conversationId,
+          },
+        },
+        data: {
+          clearedAt: new Date(),
+        },
       });
+
+
 
       return sendResponse({
         res,
