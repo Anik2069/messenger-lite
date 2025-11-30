@@ -106,12 +106,18 @@ export type ChatState = {
 
   selectedUserInfo: User | null;
 
+  // Pagination state
+  messageCursor: string | null;
+  hasMoreMessages: boolean;
+  isLoadingMessages: boolean;
+
   // setters
   setSelectedChat: (chat: Chat | null) => void;
   setMessages: (messages: Message[]) => void;
   setOtherUserTyping: (userId: string | null) => void;
   setIsConnected: (connected: boolean) => void;
   setShowSearch: (show: boolean) => void;
+  resetPagination: () => void;
 
   // actions
   emitTyping: ({ user }: { user: { username: string } }) => void;
@@ -131,6 +137,7 @@ export type ChatState = {
   handleClearConversation: (conversationId: string) => void;
   handleFetchUsersInfo: (id: string) => void;
   setSelectedUserInfo: () => void;
+  loadMoreMessages: () => Promise<void>;
 };
 
 let listenersInitialized = false;
@@ -264,12 +271,18 @@ export const useChatStore = create<ChatState>((set, get) => {
     showSearch: false,
     selectedUserInfo: null,
 
+    // Pagination state
+    messageCursor: null,
+    hasMoreMessages: false,
+    isLoadingMessages: false,
+
     setSelectedChat: (chat) => set({ selectedChat: chat }),
     setSelectedUserInfo: () => set({ selectedChat: null }),
     setMessages: (messages) => set({ messages }),
     setOtherUserTyping: (userId) => set({ otherUserTyping: userId }),
     setIsConnected: (connected) => set({ isConnected: connected }),
     setShowSearch: (show) => set({ showSearch: show }),
+    resetPagination: () => set({ messageCursor: null, hasMoreMessages: false, isLoadingMessages: false }),
 
     emitTyping: ({ user }) => {
       const { selectedChat } = get();
@@ -416,6 +429,45 @@ export const useChatStore = create<ChatState>((set, get) => {
         set({ selectedUserInfo: data });
       } catch (error) {
         console.log(error);
+      }
+    },
+
+    loadMoreMessages: async () => {
+      const { selectedChat, messageCursor, hasMoreMessages, isLoadingMessages, messages } = get();
+
+      // Don't load if already loading, no more messages, or no chat selected
+      if (isLoadingMessages || !hasMoreMessages || !selectedChat) return;
+
+      set({ isLoadingMessages: true });
+
+      try {
+        const url = messageCursor
+          ? `messages/${selectedChat.id}?cursor=${messageCursor}`
+          : `messages/${selectedChat.id}`;
+
+        const response = await axiosInstance.get(url);
+
+        if (response.status === 200) {
+          const data = response.data.results || response.data.data;
+          const newMessages = data.messages || [];
+          const hasMore = data.hasMore || false;
+          const nextCursor = data.nextCursor || null;
+
+          // Prepend older messages (they come in chronological order)
+          // Filter out duplicates by ID
+          const existingIds = new Set(messages.map(m => m.id));
+          const uniqueNewMessages = newMessages.filter((m: Message) => !existingIds.has(m.id));
+
+          set({
+            messages: [...uniqueNewMessages, ...messages],
+            messageCursor: nextCursor,
+            hasMoreMessages: hasMore,
+            isLoadingMessages: false,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load more messages", error);
+        set({ isLoadingMessages: false });
       }
     },
   };

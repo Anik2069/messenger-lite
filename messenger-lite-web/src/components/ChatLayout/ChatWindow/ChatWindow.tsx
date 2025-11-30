@@ -22,6 +22,9 @@ interface ChatWindowProps {
   onAddReaction: (id: string, emoji: string) => void;
   onTypingStart: () => void;
   onTypingStop: () => void;
+  hasMoreMessages: boolean;
+  isLoadingMessages: boolean;
+  onLoadMoreMessages: () => Promise<void>;
 }
 
 const ChatWindow = ({
@@ -33,6 +36,9 @@ const ChatWindow = ({
   onAddReaction,
   onTypingStart,
   onTypingStop,
+  hasMoreMessages,
+  isLoadingMessages,
+  onLoadMoreMessages,
 }: ChatWindowProps) => {
   const [message, setMessage] = useState("");
   const [showReactions, setShowReactions] = useState<string | null>(null);
@@ -69,6 +75,9 @@ const ChatWindow = ({
           )
         }
         onAddReaction={onAddReaction}
+        hasMoreMessages={hasMoreMessages}
+        isLoadingMessages={isLoadingMessages}
+        onLoadMoreMessages={onLoadMoreMessages}
       />
       <ChatInput
         // message={message}

@@ -33,6 +33,9 @@ const ChatLayout = () => {
     otherUserTyping,
     isConnected,
     showSearch,
+    messageCursor,
+    hasMoreMessages,
+    isLoadingMessages,
     setSelectedChat,
     setMessages,
     setOtherUserTyping,
@@ -40,6 +43,8 @@ const ChatLayout = () => {
     setShowSearch,
     onSendMessage,
     onAddReaction,
+    resetPagination,
+    loadMoreMessages,
   } = useChatStore();
 
   const {
@@ -84,16 +89,28 @@ const ChatLayout = () => {
       setSelectedChat(chat);
       setMessages([]);
       setOtherUserTyping(null);
+      resetPagination();
 
       // Join conversation room
       socket.emit("join_conversation", chat.id);
 
-      // Fetch messages
+      // Fetch messages with pagination
       (async () => {
         try {
           const response = await axiosInstance.get(`messages/${chat.id}`);
           if (response.status === 200) {
-            setMessages(response.data.results || []);
+            const data = response.data.results || response.data.data;
+            const fetchedMessages = data.messages || [];
+            const hasMore = data.hasMore || false;
+            const nextCursor = data.nextCursor || null;
+
+            setMessages(fetchedMessages);
+
+            // Update pagination state
+            useChatStore.setState({
+              messageCursor: nextCursor,
+              hasMoreMessages: hasMore,
+            });
           }
         } catch (error) {
           console.error("Failed to fetch messages", error);
@@ -101,7 +118,7 @@ const ChatLayout = () => {
         }
       })();
     },
-    [setSelectedChat, setMessages, setOtherUserTyping]
+    [setSelectedChat, setMessages, setOtherUserTyping, resetPagination]
   );
 
   useEffect(() => {
@@ -210,6 +227,9 @@ const ChatLayout = () => {
             onAddReaction={handleAddReaction}
             onTypingStart={handleTypingStart}
             onTypingStop={handleTypingStop}
+            hasMoreMessages={hasMoreMessages}
+            isLoadingMessages={isLoadingMessages}
+            onLoadMoreMessages={loadMoreMessages}
           />
         </div>
 

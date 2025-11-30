@@ -12,6 +12,9 @@ interface MessageListProps {
   setShowReactions: (id: string | null) => void;
   onForward: (msg: Message) => void;
   onAddReaction: (id: string, emoji: string) => void;
+  hasMoreMessages: boolean;
+  isLoadingMessages: boolean;
+  onLoadMoreMessages: () => Promise<void>;
 }
 
 const MessageList = ({
@@ -23,6 +26,9 @@ const MessageList = ({
   setShowReactions,
   onForward,
   onAddReaction,
+  hasMoreMessages,
+  isLoadingMessages,
+  onLoadMoreMessages,
 }: MessageListProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -37,14 +43,17 @@ const MessageList = ({
     const el = containerRef.current;
     if (!el) return;
 
-    if (el.scrollTop === 0) {
+    // Check if scrolled to top (with small threshold)
+    if (el.scrollTop < 100 && hasMoreMessages && !isLoadingMessages) {
       const prevHeight = el.scrollHeight;
+      const prevScrollTop = el.scrollTop;
 
-      // await loadOlderMessages?.();
+      await onLoadMoreMessages();
 
+      // Preserve scroll position after loading
       requestAnimationFrame(() => {
         const newHeight = el.scrollHeight;
-        el.scrollTop = newHeight - prevHeight;
+        el.scrollTop = prevScrollTop + (newHeight - prevHeight);
       });
     }
   };
@@ -55,7 +64,7 @@ const MessageList = ({
       el.addEventListener("scroll", handleScroll);
       return () => el.removeEventListener("scroll", handleScroll);
     }
-  }, []);
+  }, [hasMoreMessages, isLoadingMessages, onLoadMoreMessages]);
 
   // Function to get date label
   const getDateLabel = (dateStr: string) => {
@@ -74,6 +83,13 @@ const MessageList = ({
       className="flex-1 overflow-y-auto scrollbar-none p-4 "
     >
       <div className="flex flex-col min-h-full justify-end space-y-2">
+        {/* Loading indicator at top */}
+        {isLoadingMessages && (
+          <div className="text-center py-2">
+            <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 dark:border-gray-100"></div>
+          </div>
+        )}
+
         {messages?.length > 0 ? (
           messages?.map((msg) => {
             const dateLabel = getDateLabel(
