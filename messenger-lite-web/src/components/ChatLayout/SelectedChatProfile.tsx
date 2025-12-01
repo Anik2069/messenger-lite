@@ -40,7 +40,7 @@ const SelectedChatProfile: React.FC<SelectedChatProfileProps> = ({
   const displayAvatar = avatar ? `${MEDIA_HOST}/${avatar}` : DummyAvatar.src;
 
   return (
-    <div className="w-full h-full flex flex-col bg-white dark:bg-gray-900 shadow-xl p-4">
+    <div className="w-full h-full flex flex-col bg-white dark:bg-gray-800 border-l-2 border-l-gray-200 dark:border-gray-700 shadow-xl p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         {/* <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
