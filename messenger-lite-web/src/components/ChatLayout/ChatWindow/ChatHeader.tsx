@@ -42,14 +42,14 @@ const ChatHeader = ({ selectedChat }: { selectedChat: Chat }) => {
         </div>
       </div>
       <div className="flex items-center">
-        {/* <div className="flex items-center">
-          <Button className="cursor-pointer" variant={"ghost"} size={"icon"}>
+        <div className="flex items-center">
+          <Button title="Video Call - Coming Soon" className="cursor-pointer" variant={"ghost"} size={"icon"}>
             <Video className="w-5 h-5" />
           </Button>
-          <Button className="cursor-pointer" variant={"ghost"} size={"icon"}>
+          <Button title="Phone Call - Coming Soon" className="cursor-pointer" variant={"ghost"} size={"icon"}>
             <Phone className="w-5 h-5" />
           </Button>
-        </div> */}
+        </div>
         <ChatHeaderActions conversationId={selectedChat.id} />
       </div>
     </div>
