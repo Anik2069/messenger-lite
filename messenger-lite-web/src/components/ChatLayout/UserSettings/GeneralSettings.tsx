@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { useAuth } from "@/context/useAuth";
-import { useSettings } from "@/context/SettingsContext";
+
+
 import ProfileSettings from "./@general/ProfileSettings";
 import NotificationSettings from "./@general/NotificationSettings";
 import MessagePreferences from "./@general/MessagePreferences";
@@ -16,8 +15,8 @@ import Sidebar from "./@general/Sidebar";
 const GeneralSettings = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { currentUserDetails } = useAuth();
-  const { settings } = useSettings();
+  // const { currentUserDetails } = useAuth();
+  // const { settings } = useSettings();
 
   const renderActiveTab = () => {
     switch (activeTab) {

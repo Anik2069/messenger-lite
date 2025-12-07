@@ -1,7 +1,6 @@
 "use client";
 
 import { DummyAvatar } from "@/assets/image";
-import { Button } from "@/components/ui/button";
 import { useFriendsStore } from "@/store/useFriendsStrore";
 import Image from "next/image";
 import React, { useEffect } from "react";
@@ -12,13 +11,11 @@ import {
   differenceInWeeks,
   format,
 } from "date-fns";
-import { socket } from "@/lib/socket";
-import { useAuth } from "@/context/useAuth";
+
 import { MEDIA_HOST } from "@/constant";
 
 const RequestedFriendsList = () => {
-  const { user } = useAuth();
-  const userId = user?.id;
+
   const {
     error: friendsError,
     activeTab,
@@ -26,7 +23,6 @@ const RequestedFriendsList = () => {
     pendingRequestsLIst,
     getPendingRequestsLIst,
     pendingRequestsLIstLoading,
-    setupSocketListeners,
   } = useFriendsStore();
 
   useEffect(() => {

@@ -6,16 +6,14 @@ import {
   Shield,
   Zap,
   Upload,
-  Smartphone,
   CheckCircle,
   Cloud,
-  Database,
   SmartphoneIcon as Mobile,
 } from "lucide-react";
 
 const MessengerLiteCover = () => {
   const [currentFeature, setCurrentFeature] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
+
 
   const features = [
     {
@@ -72,7 +70,7 @@ const MessengerLiteCover = () => {
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+
     };
 
     checkMobile();
@@ -147,7 +145,7 @@ const MessengerLiteCover = () => {
                   "File Sharing",
                   "Group Chats",
                   "Mobile Responsive",
-                ].map((feature, index) => (
+                ].map((feature) => (
                   <div
                     key={feature}
                     className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20"
@@ -257,11 +255,10 @@ const MessengerLiteCover = () => {
                 <button
                   key={index}
                   onClick={() => setCurrentFeature(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    index === currentFeature
-                      ? "bg-white scale-125"
-                      : "bg-white/30 hover:bg-white/50"
-                  }`}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentFeature
+                    ? "bg-white scale-125"
+                    : "bg-white/30 hover:bg-white/50"
+                    }`}
                 />
               ))}
             </div>

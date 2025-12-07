@@ -1,8 +1,7 @@
-import { ChevronDown, Forward, Smile } from "lucide-react";
+import { Forward, Smile } from "lucide-react";
 import { formatLocalTime, Message, FileData } from "../../../types/MessageType";
 import FileMessage from "./FileMessage";
 import ReactionPicker from "./ReactionPicker";
-import { is } from "zod/v4/locales";
 
 interface MessageItemProps {
   msg: Message;
@@ -20,7 +19,6 @@ const MessageItem = ({
   isGroupChat,
   showReactions,
   setShowReactions,
-  onForward,
   onAddReaction,
 }: MessageItemProps) => {
   /** Header for group messages */
@@ -91,9 +89,8 @@ const MessageItem = ({
   /** Message timestamp */
   const renderMessageTime = () => (
     <p
-      className={`text-[11px] whitespace-nowrap ${
-        isOwnMessage ? "text-blue-100" : "text-gray-500 dark:text-gray-400"
-      }`}
+      className={`text-[11px] whitespace-nowrap ${isOwnMessage ? "text-blue-100" : "text-gray-500 dark:text-gray-400"
+        }`}
     >
       {formatLocalTime(msg.createdAt ? new Date(msg.createdAt) : msg.timestamp)}
     </p>
@@ -161,15 +158,13 @@ const MessageItem = ({
 
   return (
     <div
-      className={`flex  group ${
-        isOwnMessage ? "justify-end " : "justify-start "
-      }`}
+      className={`flex  group ${isOwnMessage ? "justify-end " : "justify-start "
+        }`}
     >
       <div className="flex flex-col">
         <div
-          className={`flex items-center ${
-            isOwnMessage ? " " : "flex-row-reverse"
-          } `}
+          className={`flex items-center ${isOwnMessage ? " " : "flex-row-reverse"
+            } `}
         >
           <div className="relative">
             <button
@@ -193,11 +188,10 @@ const MessageItem = ({
 
           <div className="max-w-xs lg:max-w-lg">
             <div
-              className={`flex gap-2 items-end px-3 py-2 rounded-lg relative group ${
-                isOwnMessage
-                  ? "bg-blue-500 text-white rounded-br-xs"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-xs"
-              }`}
+              className={`flex gap-2 items-end px-3 py-2 rounded-lg relative group ${isOwnMessage
+                ? "bg-blue-500 text-white rounded-br-xs"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-xs"
+                }`}
             >
               {renderMessageHeader()}
               {renderForwardedHeader()}

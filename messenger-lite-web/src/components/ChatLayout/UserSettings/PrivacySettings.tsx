@@ -1,16 +1,16 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Lock, ShieldCheck, MonitorSmartphone, Menu } from "lucide-react";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import React, { useState } from "react";
+import { Lock, ShieldCheck, MonitorSmartphone } from "lucide-react";
+// import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+// import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import ChangePassword from "./@privacy/ChangePassword";
 import TwoFactorAuth from "./@privacy/TwoFactorAuth";
 import LoggedInDevices from "./@privacy/LoggedInDevices";
 import { useAuth } from "@/context/useAuth";
-import ConfirmationModal from "@/components/reusable/ConfirmationModal";
-import { useGlobalContext } from "@/provider/GlobalContextProvider";
+// import ConfirmationModal from "@/components/reusable/ConfirmationModal";
+// import { useGlobalContext } from "@/provider/GlobalContextProvider";
 import { VerifyModal } from "@/components/reusable/VerifyModal";
 
 const menuItems = [
@@ -23,7 +23,6 @@ const PrivacySettings = () => {
   const [activeTab, setActiveTab] = useState("password");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const {
-    getMyself,
     setSetupError,
     remove2FA,
     removeModalClose,
@@ -31,10 +30,7 @@ const PrivacySettings = () => {
   } = useAuth();
   // const {} = useGlobalContext();
 
-  // const remove2FA = async () => {
-  //   handleRemove();
-  //   removeModalClose();
-  // };
+
 
   const handleRemove2FA = async (code: string) => {
     setSetupError(false);
@@ -78,7 +74,7 @@ const PrivacySettings = () => {
               className={cn(
                 "flex items-center gap-3 px-6 py-3 text-sm font-medium transition-all text-gray-700 dark:text-gray-300 hover:bg-blue-100/60 dark:hover:bg-blue-900/30",
                 activeTab === id &&
-                  "bg-blue-600/10 text-blue-700 dark:text-blue-400 border-l-4 border-blue-600"
+                "bg-blue-600/10 text-blue-700 dark:text-blue-400 border-l-4 border-blue-600"
               )}
             >
               <Icon className="w-4 h-4" />

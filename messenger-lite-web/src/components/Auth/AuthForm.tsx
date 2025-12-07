@@ -29,7 +29,7 @@ function AuthFormInner() {
     register: registerUser,
     loading,
     is2FAEnabled,
-    user,
+
   } = useAuth();
 
   const methods = useForm<FormValues>({
@@ -112,8 +112,8 @@ function AuthFormInner() {
                     {loading
                       ? "Please wait..."
                       : isLogin
-                      ? "Sign In"
-                      : "Create Account"}
+                        ? "Sign In"
+                        : "Create Account"}
                   </Button>
                 </form>
               </FormProvider>

@@ -1,14 +1,13 @@
 "use client";
-import React from "react";
+
 import { Button } from "@/components/ui/button";
-import { LogOut, User, Settings, EllipsisVertical } from "lucide-react";
+import { EllipsisVertical } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "react-toastify";
 import { useChatStore } from "@/store/useChatStore";
@@ -17,9 +16,6 @@ const ChatHeaderActions = ({ conversationId }: { conversationId: string }) => {
   const { handleClearConversation } = useChatStore();
   const {
     openSelectedChatProfile,
-    closeSelectedChatProfile,
-    isOpenSelectedChatProfile,
-    setIsOpenSelectedChatProfile,
   } = useGlobalContext();
   return (
     <DropdownMenu>

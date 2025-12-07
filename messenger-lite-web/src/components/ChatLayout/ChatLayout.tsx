@@ -4,7 +4,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import ChatSidebar from "./ChatSidebar/ChatSidebar";
 import Navbar from "./Navbar/Navbar";
 import ChatWindow from "./ChatWindow/ChatWindow";
-import { FileData, ForwardedData } from "../../types/MessageType";
 import { Chat } from "../../types/ChatType";
 import { RightSideDrawer } from "../reusable/RightSideDrawer";
 import { useGlobalContext } from "@/provider/GlobalContextProvider";
@@ -20,7 +19,6 @@ import AddFriend from "./AddFriend/AddFriend";
 import PrivacySettings from "./UserSettings/PrivacySettings";
 import GeneralSettings from "./UserSettings/GeneralSettings";
 import AnimatedWrapper from "../animations/AnimatedWrapper";
-import { X } from "lucide-react";
 import SelectedChatProfile from "./SelectedChatProfile";
 import { Conversation } from "@/types/coversations.type";
 import SearchModal from "./SearchModal/SearchModal";
@@ -32,8 +30,6 @@ const ChatLayout = () => {
     messages,
     otherUserTyping,
     isConnected,
-    showSearch,
-    messageCursor,
     hasMoreMessages,
     isLoadingMessages,
     setSelectedChat,
@@ -54,7 +50,6 @@ const ChatLayout = () => {
     settingModalIsOpen,
     isSidebarOpen,
     setIsSidebarOpen,
-    addFriendModalClose,
     isAddFriendModalOpen,
     setIsAddFriendModalOpen,
     isGeneralSettingModalOpen,
@@ -62,20 +57,19 @@ const ChatLayout = () => {
     generalSettingModalClose,
     privacySettingModalClose,
     isOpenSelectedChatProfile,
-    setIsOpenSelectedChatProfile,
     closeSelectedChatProfile,
   } = useGlobalContext();
 
   useEffect(() => {
     if (user) setIsConnected(true);
     else setIsConnected(false);
-  }, [user]);
+  }, [user, setIsConnected]);
 
   useEffect(() => cleanupTyping(), []);
 
   useEffect(() => {
     if (user) getMyself();
-  }, [user]);
+  }, [user, getMyself]);
 
   const onChatSelect = useCallback(
     (chat: Chat) => {
@@ -105,7 +99,7 @@ const ChatLayout = () => {
         }
       })();
     },
-    []
+    [setSelectedChat, setMessages, setOtherUserTyping, resetPagination]
   );
 
   const handleTypingStart = useCallback(() => {
@@ -116,9 +110,9 @@ const ChatLayout = () => {
       conversationId: selectedChat.id,
       userId: user?.id,
     });
-  }, [selectedChat, user]);
+  }, [selectedChat, user, setOtherUserTyping]);
 
-  const handleTypingStop = useCallback(() => stopTyping(setOtherUserTyping), []);
+  const handleTypingStop = useCallback(() => stopTyping(setOtherUserTyping), [setOtherUserTyping]);
 
   return (
     <div className="w-screen h-screen flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden">

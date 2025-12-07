@@ -10,12 +10,12 @@ import {
   VolumeX,
 } from "lucide-react";
 import { useGlobalContext } from "@/provider/GlobalContextProvider";
-import React, { use, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useSettings } from "@/context/SettingsContext";
 import { useAuth } from "@/context/useAuth";
 
 const UserSettings = () => {
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const {
     settingModalClose,
     privacySettingModalOpen,
@@ -29,13 +29,13 @@ const UserSettings = () => {
     fetchSettings,
   } = useSettings();
 
-  const { getMyself, setSetupError } = useAuth();
+  const { setSetupError } = useAuth();
 
   useEffect(() => {
     fetchSettings();
 
     setSetupError(false);
-  }, []);
+  }, [fetchSettings, setSetupError]);
 
   return (
     <div>
@@ -61,14 +61,12 @@ const UserSettings = () => {
           </div>
           <button
             onClick={toggleTheme}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              settings?.theme === "DARK" ? "bg-blue-500" : "bg-gray-300"
-            }`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings?.theme === "DARK" ? "bg-blue-500" : "bg-gray-300"
+              }`}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                settings?.theme === "DARK" ? "translate-x-6" : "translate-x-1"
-              }`}
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings?.theme === "DARK" ? "translate-x-6" : "translate-x-1"
+                }`}
             />
           </button>
         </div>
@@ -92,14 +90,12 @@ const UserSettings = () => {
           </div>
           <button
             onClick={toggleSound}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              settings?.soundNotifications ? "bg-blue-500" : "bg-gray-300"
-            }`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings?.soundNotifications ? "bg-blue-500" : "bg-gray-300"
+              }`}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                settings?.soundNotifications ? "translate-x-6" : "translate-x-1"
-              }`}
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings?.soundNotifications ? "translate-x-6" : "translate-x-1"
+                }`}
             />
           </button>
         </div>
@@ -123,14 +119,12 @@ const UserSettings = () => {
           </div>
           <button
             onClick={toggleActiveStatus}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              settings?.activeStatus ? "bg-blue-500" : "bg-gray-300"
-            }`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings?.activeStatus ? "bg-blue-500" : "bg-gray-300"
+              }`}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                settings?.activeStatus ? "translate-x-6" : "translate-x-1"
-              }`}
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings?.activeStatus ? "translate-x-6" : "translate-x-1"
+                }`}
             />
           </button>
         </div>

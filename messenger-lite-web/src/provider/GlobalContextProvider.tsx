@@ -1,7 +1,7 @@
 "use client";
 
 import { useModal } from "@/hooks/useModal";
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext } from "react";
 
 interface GlobalContextType {
   newDrawerOpen: () => void;

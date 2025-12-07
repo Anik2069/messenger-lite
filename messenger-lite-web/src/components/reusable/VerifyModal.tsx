@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShieldCheck } from "lucide-react";
+
 import { useAuth } from "@/context/useAuth";
 import Modal from "./Modal";
 import { OtpInput } from "../ChatLayout/UserSettings/@privacy/OtpInput";
@@ -40,7 +40,7 @@ function VerifyModalInner({
   title = "Verify Account",
   description = "Enter the 6-digit code from your Authenticator app",
 }: VerifyModalProps) {
-  const { verified, setupError } = useAuth();
+  const { setupError } = useAuth();
 
   const methods = useForm<OtpFormValues>({
     resolver: zodResolver(otpSchema),

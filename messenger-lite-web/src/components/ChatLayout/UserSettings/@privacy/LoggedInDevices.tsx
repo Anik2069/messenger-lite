@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useDevices, Device } from "@/hooks/useDevices";
-import { Laptop, Smartphone, Globe, LogOut } from "lucide-react";
+// import { useDevices, Device } from "@/hooks/useDevices";
+// import { Laptop, Smartphone, Globe, LogOut } from "lucide-react";
 import { DeviceCardSkeleton } from "./DeviceCardSkeleton";
 import { DeviceCard } from "./DeviceCard";
 import { useAuth } from "@/context/useAuth";
 
 const LoggedInDevices = () => {
-  const { devices, logoutDevice } = useDevices();
+  // const { devices, logoutDevice } = useDevices();
   const {
     user,
     userTrustedDevices,
@@ -18,7 +18,7 @@ const LoggedInDevices = () => {
 
   useEffect(() => {
     if (user) fetchTrustedDevices(user.id);
-  }, [user]);
+  }, [user, fetchTrustedDevices]);
   return (
     <div className="w-full">
       {isLoadingUserTrustedDevices ? (
@@ -38,7 +38,7 @@ const LoggedInDevices = () => {
                 {...device}
                 last_active={device.last_active.toString()}
                 isCurrent={false}
-                // onTerminate={handleDeleteSession} // Uncomment when ready
+              // onTerminate={handleDeleteSession} // Uncomment when ready
               />
             ))}
           </div>

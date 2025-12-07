@@ -4,10 +4,9 @@ import React from "react";
 import { useAuth } from "@/context/useAuth";
 import { AuthForm } from "./AuthForm";
 import { Spinner } from "../ui/Spinner";
-import MessengerLiteCover from "./MessengerLiteCover";
 
 export const AuthPageComponents = () => {
-  const { user, initialLoading } = useAuth();
+  const { initialLoading } = useAuth();
 
   if (initialLoading)
     return (

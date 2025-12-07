@@ -2,7 +2,7 @@
 
 import axiosInstance from "@/config/axiosInstance";
 import { socket } from "@/lib/socket";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useAuth } from "./useAuth";
 
 export type Settings = {
@@ -54,11 +54,6 @@ export const SettingsProvider = ({
   const userId = user?.id || "";
 
   useEffect(() => {
-    if (!user) return;
-    fetchSettings();
-  }, [user]);
-
-  useEffect(() => {
     if (!userId || !socket) return;
 
     // Handle self presence updates
@@ -103,11 +98,11 @@ export const SettingsProvider = ({
     }
   };
 
-  const persistSettings = (updated: Settings) => {
+  const persistSettings = useCallback((updated: Settings) => {
     setSettings(updated);
     localStorage.setItem("settings", JSON.stringify(updated));
     applyTheme(updated.theme);
-  };
+  }, []);
 
   const updateSettings = async (updated: Partial<Settings>) => {
     try {
@@ -128,7 +123,7 @@ export const SettingsProvider = ({
     }
   };
 
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     try {
       const response = await axiosInstance.get("settings/my-settings");
       const s = response.data?.results as Settings | undefined;
@@ -151,7 +146,7 @@ export const SettingsProvider = ({
     } catch (error) {
       console.error("Failed to fetch settings:", error);
     }
-  };
+  }, [persistSettings, userId]);
 
   const toggleTheme = () => {
     if (!settings) return;
@@ -163,6 +158,11 @@ export const SettingsProvider = ({
     if (!settings) return;
     updateSettings({ soundNotifications: !settings.soundNotifications });
   };
+
+  useEffect(() => {
+    if (!user) return;
+    fetchSettings();
+  }, [user, fetchSettings]);
 
   const toggleActiveStatus = async () => {
     if (!settings) return;

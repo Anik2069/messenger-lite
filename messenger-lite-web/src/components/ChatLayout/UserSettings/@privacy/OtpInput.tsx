@@ -1,6 +1,6 @@
 import { useController, useFormContext } from "react-hook-form";
 import { useRef, useEffect, useState } from "react";
-import { useAuth } from "@/context/useAuth";
+
 
 type OtpInputProps = {
   name: string;
@@ -83,18 +83,16 @@ export function OtpInput({ name, length, setupError }: OtpInputProps) {
 
   return (
     <div
-      className={`flex gap-2 justify-center mt-2 ${
-        shake ? "animate-shake" : ""
-      }`}
+      className={`flex gap-2 justify-center mt-2 ${shake ? "animate-shake" : ""
+        }`}
     >
       {Array.from({ length }).map((_, i) => (
         <input
           key={i}
           type="text"
           maxLength={1}
-          className={`w-12 h-12 text-center border rounded-lg text-lg focus:outline-none focus:border-blue-500 ${
-            setupError ? "border-red-500" : "border-gray-300"
-          }`}
+          className={`w-12 h-12 text-center border rounded-lg text-lg focus:outline-none focus:border-blue-500 ${setupError ? "border-red-500" : "border-gray-300"
+            }`}
           value={valueArray[i] || ""}
           onChange={(e) => handleChange(e, i)}
           onKeyDown={(e) => handleBackspace(e, i)}
