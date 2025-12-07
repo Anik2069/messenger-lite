@@ -15,6 +15,7 @@ import { format, isToday, parseISO } from "date-fns";
 import { useChatStore } from "@/store/useChatStore";
 import { SOCKET_HOST } from "@/constant";
 import AvatarImage from "@/components/reusable/AvatarImage";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface ChatSidebarProps {
   groups: Group[];
@@ -30,7 +31,7 @@ const ChatSidebar = ({
   sidebarMode = false,
 }: ChatSidebarProps) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const { conversations, fetchConversations } = useConversationStore();
+  const { conversations, fetchConversations, isLoadingConversation } = useConversationStore();
   const { user } = useAuth();
   const { activeStatus, otherStatuses } = useSettings();
   const filteredGroups = groups.filter((group) =>
@@ -43,8 +44,8 @@ const ChatSidebar = ({
 
 
   useEffect(() => {
-    fetchConversations();
-  }, []);
+    fetchConversations(searchQuery);
+  }, [searchQuery]);
 
 
   const getStatusForUser = (userId: string): Status => {
@@ -74,106 +75,112 @@ const ChatSidebar = ({
               Conversations
             </div>
           )}
-          {conversations?.map((conv) => {
-            const isGroup = conv.type === "GROUP";
+          {isLoadingConversation ? (
+            //skeleton
+            <div className="flex items-center justify-center h-full">
+              <Spinner size={30} />
+            </div>
+          ) : (
+            conversations?.map((conv) => {
+              const isGroup = conv.type === "GROUP";
 
-            // ✅ FIX: Safe access to participants
-            const participants = conv.participants || [];
-            const otherParticipant = !isGroup
-              ? participants.find((p) => p.user?.id !== user?.id)?.user
-              : null;
+              // ✅ FIX: Safe access to participants
+              const participants = conv.participants || [];
+              const otherParticipant = !isGroup
+                ? participants.find((p) => p.user?.id !== user?.id)?.user
+                : null;
 
-            const displayName = isGroup
-              ? conv.name || "Unknown Group"
-              : otherParticipant?.username || "Unknown";
+              const displayName = isGroup
+                ? conv.name || "Unknown Group"
+                : otherParticipant?.username || "Unknown";
 
-            const displayAvatar = isGroup
-              ? conv.avatar
-              : otherParticipant?.avatar
-                ? `${SOCKET_HOST}/${otherParticipant.avatar}`
-                : DummyAvatar.src;
+              const displayAvatar = isGroup
+                ? conv.avatar
+                : otherParticipant?.avatar
+                  ? `${SOCKET_HOST}/${otherParticipant.avatar}`
+                  : DummyAvatar.src;
 
-            const participantUserId = otherParticipant?.id;
-            const status = getStatusForUser(participantUserId || "");
-            const isOnline = status?.isOnline || false;
+              const participantUserId = otherParticipant?.id;
+              const status = getStatusForUser(participantUserId || "");
+              const isOnline = status?.isOnline || false;
 
-            // ✅ FIX: Safe access to messages
-            const lastMessage = conv.messages?.[0];
-            const messageCount = conv.messages?.length || 0;
+              // ✅ FIX: Safe access to messages
+              const lastMessage = conv.messages?.[0];
+              const messageCount = conv.messages?.length || 0;
 
-            return (
-              <div
-                key={conv.id}
-                onClick={() => {
+              return (
+                <div
+                  key={conv.id}
+                  onClick={() => {
 
-                  onChatSelect({
-                    type: isGroup ? "group" : "user",
-                    id: conv.id,
-                    name: displayName,
-                    avatar: displayAvatar || undefined,
-                    isOnline,
-                    userId: otherParticipant?.id || "",
-                  })
-                }}
-                className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${selectedChat?.id === conv.id ||
-                  (selectedChat?.userId &&
-                    otherParticipant?.id === selectedChat.userId)
-                  ? "bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500"
-                  : ""
-                  }`}
-              >
-                {/* Avatar */}
-                <div className="relative w-8 h-8 overflow-hidden">
-                  {displayAvatar && (
-                    <AvatarImage src={displayAvatar} alt="Profile" />
-                  )}
+                    onChatSelect({
+                      type: isGroup ? "group" : "user",
+                      id: conv.id,
+                      name: displayName,
+                      avatar: displayAvatar || undefined,
+                      isOnline,
+                      userId: otherParticipant?.id || "",
+                    })
+                  }}
+                  className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${selectedChat?.id === conv.id ||
+                    (selectedChat?.userId &&
+                      otherParticipant?.id === selectedChat.userId)
+                    ? "bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500"
+                    : ""
+                    }`}
+                >
+                  {/* Avatar */}
+                  <div className="relative w-8 h-8 overflow-hidden">
+                    {displayAvatar && (
+                      <AvatarImage src={displayAvatar} alt="Profile" />
+                    )}
 
-                  {!isGroup && (
-                    <div
-                      className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${isOnline ? "bg-green-400" : "bg-gray-400"
-                        }`}
-                    />
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0 ml-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium text-gray-900 dark:text-white truncate">
-                      {displayName}
-                    </h3>
-                    {lastMessage?.createdAt && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 ml-2">
-                        {(() => {
-                          const localDate = parseISO(
-                            lastMessage.createdAt as string
-                          );
-                          return isToday(localDate)
-                            ? formatLocalTime(localDate)
-                            : format(localDate, "dd-MM-yyyy");
-                        })()}
-                      </p>
+                    {!isGroup && (
+                      <div
+                        className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${isOnline ? "bg-green-400" : "bg-gray-400"
+                          }`}
+                      />
                     )}
                   </div>
 
-                  {messageCount > 0 ? (
-                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                      {isGroup
-                        ? `${participants.length} members`
-                        : `${lastMessage?.author?.username === user?.username
-                          ? "You"
-                          : lastMessage?.author?.username || "Unknown"
-                        }: ${lastMessage?.message || "No message"}`}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      No messages yet
-                    </p>
-                  )}
+                  {/* Info */}
+                  <div className="flex-1 min-w-0 ml-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium text-gray-900 dark:text-white truncate">
+                        {displayName}
+                      </h3>
+                      {lastMessage?.createdAt && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                          {(() => {
+                            const localDate = parseISO(
+                              lastMessage.createdAt as string
+                            );
+                            return isToday(localDate)
+                              ? formatLocalTime(localDate)
+                              : format(localDate, "dd-MM-yyyy");
+                          })()}
+                        </p>
+                      )}
+                    </div>
+
+                    {messageCount > 0 ? (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                        {isGroup
+                          ? `${participants.length} members`
+                          : `${lastMessage?.author?.username === user?.username
+                            ? "You"
+                            : lastMessage?.author?.username || "Unknown"
+                          }: ${lastMessage?.message || "No message"}`}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        No messages yet
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            }))}
         </div>
 
         {/* Empty State */}

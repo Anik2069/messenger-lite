@@ -22,6 +22,12 @@ export function getConversations(
           participants: {
             some: {
               userId,
+              user: {
+                username: {
+                  contains: searchTerm,
+                  mode: "insensitive",
+                },
+              },
             },
           },
         },
