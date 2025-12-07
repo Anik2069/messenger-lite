@@ -67,12 +67,12 @@ function mapServerMessage(m: ServerMessage): Message {
 
     fileData: m.fileUrl
       ? {
-          url: m.fileUrl,
-          filename: m.fileName ?? "",
-          originalName: m.fileName ?? "",
-          mimetype: m.fileMime ?? "",
-          size: m.fileSize ?? 0,
-        }
+        url: m.fileUrl,
+        filename: m.fileName ?? "",
+        originalName: m.fileName ?? "",
+        mimetype: m.fileMime ?? "",
+        size: m.fileSize ?? 0,
+      }
       : undefined,
 
     forwardedFrom: m.forwardedFrom
@@ -127,7 +127,8 @@ export type ChatState = {
     fileData?: object,
     voiceUrl?: string | undefined,
     forwardedFrom?: ForwardedData,
-    currentUser?: { username: string; id: string } | null
+    currentUser?: { username: string; id: string } | null,
+    isOpenSelectedChatProfile?: boolean
   ) => Promise<void>;
   onAddReaction: (
     messageId: string,
@@ -140,6 +141,7 @@ export type ChatState = {
   loadMoreMessages: () => Promise<void>;
   fetchConversationsMedia: (id: string) => void;
   selectedMedia: any[];
+  isLoadingMedia: boolean;
 };
 
 let listenersInitialized = false;
@@ -200,7 +202,7 @@ export const useChatStore = create<ChatState>((set, get) => {
             return {
               messages: state.messages.map((m) =>
                 m.clientTempId === msg.clientTempId &&
-                (m.fileData as FileData)?.url ===
+                  (m.fileData as FileData)?.url ===
                   (msg.fileData as FileData)?.url
                   ? msg
                   : m
@@ -266,6 +268,7 @@ export const useChatStore = create<ChatState>((set, get) => {
   }
 
   return {
+    isLoadingMedia: false,
     selectedMedia: [],
     selectedChat: null,
     messages: [],
@@ -308,10 +311,14 @@ export const useChatStore = create<ChatState>((set, get) => {
       fileData,
       voiceUrl,
       forwardedFrom,
-      currentUser
+      currentUser,
+      isOpenSelectedChatProfile
     ) => {
-      const { selectedChat } = get();
+      const { selectedChat, fetchConversationsMedia } = get();
+
       if (!selectedChat || !currentUser) return;
+
+
 
       const clientTempId = uuidv4();
       const tempId = `temp-${Date.now()}`;
@@ -360,24 +367,18 @@ export const useChatStore = create<ChatState>((set, get) => {
           },
         });
 
-        const saved = res.data?.data;
+        const saved = res.data?.results;
+        console.log(saved, "saved--------------");
 
         if (saved) {
-          const firstMsg = Array.isArray(saved) ? saved[0] : saved;
-          const realConvId = firstMsg.conversationId;
-
-          const { selectedChat } = get();
-
-          if (selectedChat && selectedChat.id !== realConvId) {
-            set((state) => ({
-              selectedChat: {
-                ...state.selectedChat!,
-                id: realConvId,
-              },
-            }));
-
-            socket.emit("join_conversation", realConvId);
+          // fetch conversation media
+          if (selectedChat && isOpenSelectedChatProfile) {
+            const conversationId = saved?.conversation?.id || saved?.[0]?.conversation?.id;
+            if (conversationId) {
+              fetchConversationsMedia(conversationId);
+            }
           }
+
         }
       } catch (err) {
         // rollback optimistic
@@ -483,16 +484,17 @@ export const useChatStore = create<ChatState>((set, get) => {
     },
 
     fetchConversationsMedia: async (id: string) => {
+      set({ isLoadingMedia: true });
       try {
         const response = await axiosInstance.get(
           `${HOST}/messages/${id}/media`
         );
-        console.log(response?.data?.results?.media, "response");
+        // console.log(response?.data?.results?.media, "response");
         if (response?.status === 200) {
-          set({ selectedMedia: response?.data?.results?.media });
+          set({ selectedMedia: response?.data?.results?.media, isLoadingMedia: false });
         }
       } catch (error) {
-        set({ selectedMedia: [] });
+        set({ selectedMedia: [], isLoadingMedia: false });
         console.log(error);
       }
     },

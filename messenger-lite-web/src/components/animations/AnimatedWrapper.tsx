@@ -5,26 +5,26 @@ import { motion, Variants, AnimatePresence } from "framer-motion";
 
 interface AnimatedWrapperProps {
   type?:
-    | "fade"
-    | "slideUp"
-    | "scale"
-    | "zoomIn"
-    | "slideDown"
-    | "slideLeft"
-    | "slideRight"
-    | "flipX"
-    | "flipY"
-    | "rotateIn"
-    | "pop"
-    | "bounce"
-    | "drop"
-    | "grow"
-    | "shrink"
-    | "fadeFromTop"
-    | "fadeFromBottom"
-    | "fadeFromLeft"
-    | "fadeFromRight"
-    | "growIn";
+  | "fade"
+  | "slideUp"
+  | "scale"
+  | "zoomIn"
+  | "slideDown"
+  | "slideLeft"
+  | "slideRight"
+  | "flipX"
+  | "flipY"
+  | "rotateIn"
+  | "pop"
+  | "bounce"
+  | "drop"
+  | "grow"
+  | "shrink"
+  | "fadeFromTop"
+  | "fadeFromBottom"
+  | "fadeFromLeft"
+  | "fadeFromRight"
+  | "growIn";
   delay?: number;
   duration?: number;
   children: React.ReactNode;
@@ -135,7 +135,12 @@ const AnimatedWrapper: React.FC<AnimatedWrapperProps> = ({
               initial={{ x: "100%", opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               // exit={{ x: "100%", opacity: 0 }}
-              transition={{ type: "spring", stiffness: 250, damping: 25 }}
+              transition={{
+                type: "tween",
+                ease: [0.25, 0.1, 0.25, 1], // custom easing (material design feel)
+                duration: 0.35,
+              }}
+
               className={`${className}`}
             >
               {children}

@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect, useCallback } from "react";
 import ChatSidebar from "./ChatSidebar/ChatSidebar";
 import Navbar from "./Navbar/Navbar";
@@ -10,8 +11,7 @@ import { useGlobalContext } from "@/provider/GlobalContextProvider";
 import NewChat from "./NewChat/NewChat";
 import Modal from "../reusable/Modal";
 import UserSettings from "./UserSettings/UserSettings";
-import { useFriendsStore } from "@/store/useFriendsStrore";
-import { ChatState, useChatStore } from "@/store/useChatStore";
+import { useChatStore } from "@/store/useChatStore";
 import { cleanupTyping, startTyping, stopTyping } from "@/lib/typing";
 import { useAuth } from "@/context/useAuth";
 import { socket } from "@/lib/socket";
@@ -66,24 +66,17 @@ const ChatLayout = () => {
     closeSelectedChatProfile,
   } = useGlobalContext();
 
-  // Track socket connection
   useEffect(() => {
-    if (user) {
-      setIsConnected(true);
-    } else {
-      setIsConnected(false);
-    }
-  }, [user, setIsConnected]);
+    if (user) setIsConnected(true);
+    else setIsConnected(false);
+  }, [user]);
 
-  useEffect(() => {
-    return () => cleanupTyping();
-  }, []);
+  useEffect(() => cleanupTyping(), []);
 
   useEffect(() => {
     if (user) getMyself();
   }, [user]);
 
-  // ✅ FIXED: Optimized chat selection with useCallback
   const onChatSelect = useCallback(
     (chat: Chat) => {
       setSelectedChat(chat);
@@ -91,124 +84,56 @@ const ChatLayout = () => {
       setOtherUserTyping(null);
       resetPagination();
 
-      // Join conversation room
       socket.emit("join_conversation", chat.id);
 
-      // Fetch messages with pagination
       (async () => {
         try {
           const response = await axiosInstance.get(`messages/${chat.id}`);
           if (response.status === 200) {
             const data = response.data.results || response.data.data;
             const fetchedMessages = data.messages || [];
-            const hasMore = data.hasMore || false;
-            const nextCursor = data.nextCursor || null;
 
             setMessages(fetchedMessages);
 
-            // Update pagination state
             useChatStore.setState({
-              messageCursor: nextCursor,
-              hasMoreMessages: hasMore,
+              messageCursor: data.nextCursor || null,
+              hasMoreMessages: data.hasMore || false,
             });
           }
         } catch (error) {
-          console.error("Failed to fetch messages", error);
           setMessages([]);
         }
       })();
     },
-    [setSelectedChat, setMessages, setOtherUserTyping, resetPagination]
-  );
-
-  useEffect(() => {
-    if (!selectedChat) return;
-
-    let isSubscribed = true;
-
-    const handleConversationsUpdated = (conversations: Conversation[]) => {
-      if (!isSubscribed) return;
-
-      console.log("conversations_updated----------------", conversations);
-
-      if (selectedChat.type === "user") {
-        const matchedConversation = conversations.find((conversation) => {
-          const participants = conversation.participants || [];
-          return (
-            participants.some((p) => p.user?.id === selectedChat.id) &&
-            participants.some((p) => p.user?.id === user?.id)
-          );
-        });
-
-        if (matchedConversation && matchedConversation.id !== selectedChat.id) {
-          console.log(
-            "Updating selected chat with conversation ID:",
-            matchedConversation.id
-          );
-          setSelectedChat({
-            ...selectedChat,
-            id: matchedConversation.id,
-          });
-        }
-      }
-    };
-
-    socket.on("conversations_updated", handleConversationsUpdated);
-
-    return () => {
-      isSubscribed = false;
-      socket.off("conversations_updated", handleConversationsUpdated);
-      socket.emit("leave_conversation", selectedChat.id);
-    };
-  }, [selectedChat, user?.id, setSelectedChat]);
-
-  const handleSendMessage = useCallback(
-    (
-      message: string,
-      type: "TEXT" | "FILE" | "forwarded" | "VOICE" = "TEXT",
-      fileData?: object,
-      voiceUrl?: string,
-      forwardedFrom?: ForwardedData
-    ) => {
-      onSendMessage(message, type, fileData, voiceUrl, forwardedFrom, user);
-    },
-    [onSendMessage, user]
-  );
-
-  const handleAddReaction = useCallback(
-    (messageId: string, emoji: string) => {
-      onAddReaction(messageId, emoji, user);
-    },
-    [onAddReaction, user]
+    []
   );
 
   const handleTypingStart = useCallback(() => {
     if (!selectedChat || selectedChat.type !== "user") return;
-    if (selectedChat.id === user?.id) return;
-
     startTyping(setOtherUserTyping, user?.id ?? "Unknown");
+
     socket.emit("typing", {
       conversationId: selectedChat.id,
       userId: user?.id,
     });
-  }, [selectedChat, user, setOtherUserTyping]);
+  }, [selectedChat, user]);
 
-  const handleTypingStop = useCallback(() => {
-    stopTyping(setOtherUserTyping);
-  }, [setOtherUserTyping]);
+  const handleTypingStop = useCallback(() => stopTyping(setOtherUserTyping), []);
 
   return (
-    <div className="w-screen h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="w-screen h-screen flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden">
+
       <div className="shrink-0">
         <Navbar
-          user={user ?? null}
+          user={user}
           isConnected={isConnected}
           onSearchClick={() => setShowSearch(true)}
         />
       </div>
 
-      {/* Main Chat Area */}
       <div className="flex-1 flex overflow-hidden">
+
+        {/* Sidebar */}
         <div className="hidden md:block w-80 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <ChatSidebar
             groups={[]}
@@ -217,42 +142,48 @@ const ChatLayout = () => {
           />
         </div>
 
-        <div className="flex-1 bg-white dark:bg-gray-900 flex flex-col transition-all duration-300 ease-in-out">
+        {/* Chat Window */}
+        {/* <div className="flex-1 bg-white dark:bg-gray-900 flex flex-col overflow-hidden"> */}
+        <AnimatedWrapper
+          type="fadeFromLeft"     // or "slideLeft", "growIn", "shrink"
+          duration={0.30}
+          isOpen={true}           // ChatWindow is always visible
+          className="flex-1 bg-white dark:bg-gray-900 flex flex-col overflow-hidden"
+        >
           <ChatWindow
-            currentUser={user ?? null}
+            currentUser={user}
             selectedChat={selectedChat}
             messages={messages}
             otherUserTyping={otherUserTyping}
-            onSendMessage={handleSendMessage}
-            onAddReaction={handleAddReaction}
+            onSendMessage={(msg, type, file, voice, fwd) =>
+              onSendMessage(msg, type, file, voice, fwd, user, isOpenSelectedChatProfile)
+            }
+            onAddReaction={(id, emoji) =>
+              onAddReaction(id, emoji, user)
+            }
             onTypingStart={handleTypingStart}
             onTypingStop={handleTypingStop}
             hasMoreMessages={hasMoreMessages}
             isLoadingMessages={isLoadingMessages}
             onLoadMoreMessages={loadMoreMessages}
           />
-        </div>
+        </AnimatedWrapper>
+        {/* </div> */}
 
+        {/* Right Drawer → Profile */}
         <AnimatedWrapper
           isOpen={isOpenSelectedChatProfile}
           fixedRight
-          overlay
-          onClose={closeSelectedChatProfile}
-          className="w-80"
+
+          className="w-80 h-full"
         >
-          <div className="flex justify-start relative h-full max-h-[100vh]">
-            <button
-              className="h-fit"
-              type="button"
-              onClick={closeSelectedChatProfile}
-            >
-              <X className="absolute w-5 h-5 m-2 cursor-pointer hover:text-gray-400 transition" />
-            </button>
-            <SelectedChatProfile id={selectedChat?.userId ?? ""} />
+          <div className="relative h-[calc(100vh-64px)] w-full">
+            <SelectedChatProfile onClose={closeSelectedChatProfile} id={selectedChat?.userId ?? ""} />
           </div>
         </AnimatedWrapper>
       </div>
 
+      {/* New Chat Drawer */}
       <RightSideDrawer
         isOpen={newDrawerIsOpen}
         onOpenChange={setNewDrawerIsOpen}
@@ -262,6 +193,7 @@ const ChatLayout = () => {
         <NewChat onChatSelect={onChatSelect} />
       </RightSideDrawer>
 
+      {/* Add Friend Drawer */}
       <RightSideDrawer
         isOpen={isAddFriendModalOpen}
         onOpenChange={setIsAddFriendModalOpen}
@@ -271,6 +203,7 @@ const ChatLayout = () => {
         <AddFriend isAddFriendModalOpen={isAddFriendModalOpen} />
       </RightSideDrawer>
 
+      {/* Left Sidebar Drawer */}
       <RightSideDrawer
         isOpen={isSidebarOpen}
         onOpenChange={setIsSidebarOpen}
@@ -286,6 +219,7 @@ const ChatLayout = () => {
         />
       </RightSideDrawer>
 
+      {/* Modals */}
       <Modal
         maxWidth="2xl"
         title="User Settings"

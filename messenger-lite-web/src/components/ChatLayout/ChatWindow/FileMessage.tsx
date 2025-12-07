@@ -20,15 +20,16 @@ export type FileMessageType = {
 
 interface FileMessageProps {
   file: FileMessageType;
+  className?: string;
 }
 
-const FileMessage = ({ file }: FileMessageProps) => {
+const FileMessage = ({ file, className }: FileMessageProps) => {
   // console.log(file);
   const url = file.url
     ? `${MEDIA_HOST}${file.url}`
     : file.fileUrl
-    ? `${MEDIA_HOST}${file.fileUrl}`
-    : "";
+      ? `${MEDIA_HOST}${file.fileUrl}`
+      : "";
   const filename = file.originalName || file.fileName || "File";
   const mimetype = file.mimetype || file.fileMime || "";
   const size = file.size || file.fileSize || 0;
@@ -57,7 +58,7 @@ const FileMessage = ({ file }: FileMessageProps) => {
     <div className="mt-2">
       {/* Image preview */}
       {isImage && (
-        <div className="relative group w-40 h-40 rounded-lg overflow-hidden shadow-sm hover:scale-105 transition-transform">
+        <div className={`${className} relative group w-40 h-40 rounded-lg overflow-hidden shadow-sm hover:scale-105 transition-transform`}>
           <Image src={url} alt={filename} fill className="object-cover" />
           <a
             href={url}

@@ -43,7 +43,10 @@ const ChatHeaderActions = ({ conversationId }: { conversationId: string }) => {
         {/* <DropdownMenuItem onClick={() => console.log("Profile")}>
           New group
         </DropdownMenuItem> */}
-        <DropdownMenuItem onClick={() => console.log("Settings")}>
+        <DropdownMenuItem onClick={() => {
+          openSelectedChatProfile();
+          console.log("Media, link and docs");
+        }}>
           Media, link and docs
         </DropdownMenuItem>
         {/* <DropdownMenuItem onClick={() => console.log("Logout")}>

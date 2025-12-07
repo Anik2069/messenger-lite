@@ -44,7 +44,7 @@ const ChatSidebar = ({
 
   useEffect(() => {
     fetchConversations();
-  }, [fetchConversations]);
+  }, []);
 
 
   const getStatusForUser = (userId: string): Status => {
