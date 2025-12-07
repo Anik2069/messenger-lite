@@ -7,9 +7,9 @@ import { create } from "zustand";
 export interface ConversationState {
   conversations: Conversation[] | null;
   fetchConversations: (search?: string) => Promise<void>;
-  loading: boolean;
   error: string | null;
   clearConversations: (conversationId: string) => void;
+  isLoadingConversation?: boolean;
 }
 
 export const useConversationStore = create<ConversationState>((set, get) => {
@@ -22,20 +22,20 @@ export const useConversationStore = create<ConversationState>((set, get) => {
 
   return {
     conversations: null,
-    loading: false,
     error: null,
+    isLoadingConversation: false,
 
     fetchConversations: async (search?: string) => {
-      set({ loading: true, error: null });
+      set({ isLoadingConversation: true, error: null });
       try {
         const response = await axiosInstance.get(
           `messages/conversations?search=${search || ""}`
         );
         const data = await response.data;
         console.log("📩 conversations", data);
-        set({ conversations: data?.results, loading: false });
+        set({ conversations: data?.results, isLoadingConversation: false });
       } catch (error) {
-        set({ error: "Failed to fetch conversations", loading: false });
+        set({ error: "Failed to fetch conversations", isLoadingConversation: false });
         console.error("Failed to fetch conversations", error);
       }
     },

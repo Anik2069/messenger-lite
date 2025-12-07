@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
       {
         protocol: "http",
         hostname: "10.81.100.28",
-        port: "",
+        port: "8080",
         pathname: "/**",
       },
       {
@@ -21,7 +21,7 @@ const nextConfig: NextConfig = {
         pathname: "/**", // allow all paths
       },
     ],
-    domains: ["192.168.31.152", "192.168.1.102", "localhost"],
+    domains: ["192.168.31.152", "192.168.1.102", "localhost", "10.81.100.28"],
   },
 };
 

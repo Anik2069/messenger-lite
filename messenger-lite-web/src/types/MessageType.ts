@@ -1,7 +1,7 @@
 import { format, isValid } from "date-fns";
 import { User } from "./UserType";
 
-export type MessageKind = "TEXT" | "FILE" | "forwarded";
+export type MessageKind = "TEXT" | "FILE" | "forwarded" | "VOICE";
 
 export interface MiniUserRef {
   id: string;

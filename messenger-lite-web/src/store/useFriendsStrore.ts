@@ -62,7 +62,7 @@ export const useFriendsStore = create<FriendsState>()(
       pendingRequestsLIst: [],
       pendingRequestsLIstLoading: false,
 
-      activeTab: "suggestion",
+      activeTab: "request",
       searchText: "",
 
       setActiveTab: (tab) => set({ activeTab: tab }),

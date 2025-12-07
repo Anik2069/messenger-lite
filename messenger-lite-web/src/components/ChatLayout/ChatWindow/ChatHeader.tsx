@@ -9,9 +9,13 @@ import { DummyAvatar } from "@/assets/image";
 import AvatarImage from "../../reusable/AvatarImage";
 
 const ChatHeader = ({ selectedChat }: { selectedChat: Chat }) => {
-  const image = `${selectedChat.avatar}`;
-  // console.log(selectedChat);
-  // console.log(image);
+  // const image = `${selectedChat.avatar}`;
+
+  const image = selectedChat.avatar
+    ? `${MEDIA_HOST}/${selectedChat.avatar}`
+    : DummyAvatar.src;
+  // console.log(selectedChat, ")))))))))))))))))");
+  // console.log(image, ")))))))))))))))))");
 
   return (
     <div className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 flex justify-between items-center">
@@ -32,20 +36,20 @@ const ChatHeader = ({ selectedChat }: { selectedChat: Chat }) => {
             {selectedChat.type === "group"
               ? "Group chat"
               : selectedChat.isOnline
-              ? "Online"
-              : "Offline"}
+                ? "Online"
+                : "Offline"}
           </p>
         </div>
       </div>
       <div className="flex items-center">
-        {/* <div className="flex items-center">
-          <Button className="cursor-pointer" variant={"ghost"} size={"icon"}>
+        <div className="flex items-center">
+          <Button title="Video Call - Coming Soon" className="cursor-pointer" variant={"ghost"} size={"icon"}>
             <Video className="w-5 h-5" />
           </Button>
-          <Button className="cursor-pointer" variant={"ghost"} size={"icon"}>
+          <Button title="Phone Call - Coming Soon" className="cursor-pointer" variant={"ghost"} size={"icon"}>
             <Phone className="w-5 h-5" />
           </Button>
-        </div> */}
+        </div>
         <ChatHeaderActions conversationId={selectedChat.id} />
       </div>
     </div>

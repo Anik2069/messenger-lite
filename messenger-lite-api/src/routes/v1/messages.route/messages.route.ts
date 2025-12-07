@@ -7,6 +7,7 @@ import { getConversations } from "../../../controllers/message/conversation/GetC
 import getMessagesController from "../../../controllers/message/getMessage/getMessages.controller";
 import { upload } from "../../../middlewares/upload.middleware";
 import clearMessagesForFriend from "../../../controllers/message/messageClear.controller";
+import getConversationMediaController from "../../../controllers/message/getConversationMedia.controller";
 
 const messagesRouter = (io: IOServerWithHelpers) => {
   const prisma = new PrismaClient();
@@ -30,6 +31,13 @@ const messagesRouter = (io: IOServerWithHelpers) => {
     "/clear/:conversationId",
     requireAuth,
     clearMessagesForFriend(prisma)
+  );
+
+  // Get media files (images/videos) from a conversation
+  router.get(
+    "/:conversationId/media",
+    requireAuth,
+    getConversationMediaController(prisma)
   );
 
   return router;

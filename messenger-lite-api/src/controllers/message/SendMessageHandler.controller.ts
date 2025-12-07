@@ -7,18 +7,6 @@ import type { IOServerWithHelpers } from "../../socket/initSocket";
 
 const conversationRoom = (conversationId: string) => `conv:${conversationId}`;
 
-type SendMessageBody = {
-  conversationId?: string;
-  recipientId?: string;
-  message?: string;
-  messageType?: MessageType;
-  fileUrl?: string;
-  fileName?: string;
-  fileMime?: string;
-  fileSize?: number;
-  forwardedFrom?: string;
-  clientTempId?: string;
-};
 
 // helper: sorted conversation list for a user
 export async function getUserConversationsSorted(
@@ -90,211 +78,7 @@ async function ensureDirectConversation(
   });
 }
 
-// export default function createSendMessageController(
-//   io: IOServerWithHelpers,
-//   prisma: PrismaClient
-// ) {
-//   return async (req: Request, res: Response) => {
-//     try {
-//       const userId = (req as any).userId as string;
 
-//       const {
-//         conversationId: conversationIdRaw,
-//         recipientId: recipientIdRaw,
-//         message,
-//         messageType = MessageType.TEXT,
-//         fileUrl,
-//         fileName,
-//         fileMime,
-//         fileSize,
-//         forwardedFrom,
-//         clientTempId,
-//       } = (req.body || {}) as SendMessageBody;
-
-//       let conversationId: string | undefined =
-//         conversationIdRaw?.trim() || undefined;
-//       const recipientId: string | undefined =
-//         recipientIdRaw?.trim() || undefined;
-
-//       // save message
-//       const savedMessage = await prisma.$transaction(async (tx) => {
-//         let conversation =
-//           conversationId &&
-//           (await tx.conversation.findUnique({
-//             where: { id: conversationId },
-//             select: { id: true, type: true },
-//           }));
-
-//         if (!conversation) {
-//           const peerUserId = recipientId || conversationIdRaw;
-//           if (!peerUserId) {
-//             const err: any = new Error(
-//               "conversationId or recipientId required"
-//             );
-//             err.status = StatusCodes.BAD_REQUEST;
-//             throw err;
-//           }
-
-//           const peerExists = await tx.user.findUnique({
-//             where: { id: peerUserId },
-//             select: { id: true },
-//           });
-//           if (!peerExists) {
-//             const err: any = new Error("Recipient not found");
-//             err.status = StatusCodes.NOT_FOUND;
-//             throw err;
-//           }
-
-//           const ensured = await ensureDirectConversation(
-//             tx,
-//             userId,
-//             peerUserId
-//           );
-//           conversationId = ensured.id;
-//           conversation = { id: ensured.id, type: "DIRECT" as const };
-//         }
-
-//         const membership = await tx.conversationParticipant.findFirst({
-//           where: { conversationId: conversation.id, userId },
-//           select: { id: true },
-//         });
-//         if (!membership) {
-//           const err: any = new Error("Not a participant");
-//           err.status = StatusCodes.FORBIDDEN;
-//           throw err;
-//         }
-
-//         const createdMessage = await tx.message.create({
-//           data: {
-//             conversationId: conversation.id,
-//             authorId: userId,
-//             message: message ?? "",
-//             messageType,
-//             fileUrl: fileUrl ?? null,
-//             fileName: fileName ?? null,
-//             fileMime: fileMime ?? null,
-//             fileSize: fileSize ?? null,
-//             forwardedFrom: forwardedFrom ?? null,
-//           },
-//           include: {
-//             author: { select: { id: true, username: true, avatar: true } },
-//             conversation: { select: { id: true, type: true, name: true } },
-//             reactions: {
-//               include: { user: { select: { id: true, username: true } } },
-//             },
-//             receipts: {
-//               include: { user: { select: { id: true, username: true } } },
-//             },
-//           },
-//         });
-
-//         await tx.messageRead.upsert({
-//           where: { messageId_userId: { messageId: createdMessage.id, userId } },
-//           create: { messageId: createdMessage.id, userId },
-//           update: { readAt: new Date() },
-//         });
-
-//         (createdMessage as any).clientTempId = clientTempId ?? null;
-
-//         // update conversation.updatedAt
-//         await tx.conversation.update({
-//           where: { id: conversation.id },
-//           data: { updatedAt: new Date() },
-//         });
-
-//         return createdMessage;
-//       });
-
-//       // broadcast to conversation room
-//       io.to(conversationRoom(savedMessage.conversationId)).emit(
-//         "receive_message",
-//         savedMessage
-//       );
-
-//       // now push updated conversation list to each participant’s personal room
-//       const participants = await prisma.conversationParticipant.findMany({
-//         where: { conversationId: savedMessage.conversationId },
-//         select: { userId: true },
-//       });
-
-//       for (const p of participants) {
-//         const updatedList = await getUserConversationsSorted(prisma, p.userId);
-//         io.to(p.userId).emit("conversations_updated", updatedList);
-//       }
-
-//       return sendResponse({
-//         res,
-//         statusCode: StatusCodes.CREATED,
-//         message: "Message sent successfully",
-//         data: savedMessage,
-//       });
-//     } catch (e: any) {
-//       const status = e?.status ?? StatusCodes.INTERNAL_SERVER_ERROR;
-//       return sendResponse({
-//         res,
-//         statusCode: status,
-//         message: e?.message || "Failed to send message",
-//         data: null,
-//       });
-//     }
-//   };
-// }
-
-// export default function createSendMessageController(
-//   io: IOServerWithHelpers,
-//   prisma: PrismaClient
-// ) {
-//   return async (req: Request, res: Response) => {
-//     try {
-//       const userId = (req as any).userId as string;
-//       const { conversationId, message, messageType } = req.body;
-//       const files = req.files as Express.Multer.File[] | undefined;
-
-//       const createdMessages = [];
-
-//       if (files?.length) {
-//         for (const file of files) {
-//           const msg = await prisma.message.create({
-//             data: {
-//               conversationId,
-//               authorId: userId,
-//               message: message || file.originalname,
-//               messageType: "FILE",
-//               fileUrl: `/uploads/${file.filename}`,
-//               fileName: file.originalname,
-//               fileMime: file.mimetype,
-//               fileSize: file.size,
-//             },
-//             include: { author: true, conversation: true },
-//           });
-//           createdMessages.push(msg);
-//           io.to(conversationId).emit("receive_message", msg);
-//         }
-//       } else {
-//         const msg = await prisma.message.create({
-//           data: {
-//             conversationId,
-//             authorId: userId,
-//             message,
-//             messageType: messageType || "text",
-//           },
-//           include: { author: true, conversation: true },
-//         });
-//         createdMessages.push(msg);
-//         io.to(conversationId).emit("receive_message", msg);
-//       }
-
-//       res.status(200).json({
-//         message: "Message(s) sent successfully",
-//         results:
-//           createdMessages.length === 1 ? createdMessages[0] : createdMessages,
-//       });
-//     } catch (error) {
-//       console.error("Message send failed:", error);
-//       res.status(500).json({ error: "Failed to send message" });
-//     }
-// };
-// }
 
 export default function createSendMessageController(
   io: IOServerWithHelpers,
@@ -308,7 +92,7 @@ export default function createSendMessageController(
         conversationId: conversationIdRaw,
         recipientId: recipientIdRaw,
         message,
-        messageType = MessageType.TEXT,
+        messageType,
         clientTempId,
       } = req.body as any;
       console.log(req.body, "req.body in send message");
@@ -384,7 +168,7 @@ export default function createSendMessageController(
                   conversationId: conversation.id,
                   authorId: userId,
                   message: message || file.originalname,
-                  messageType: MessageType.FILE,
+                  messageType: messageType,
                   fileUrl: `/uploads/${file.filename}`,
                   fileName: file.originalname,
                   fileMime: file.mimetype,
@@ -453,6 +237,18 @@ export default function createSendMessageController(
           clientTempId: clientTempId ?? null,
         }));
       });
+
+      // Join only the message sender to the conversation room (if they have an active socket)
+      const sockets = await io.fetchSockets();
+      for (const socket of sockets) {
+        if (socket.data.userId === userId) {
+          const roomName = conversationRoom(createdMessages[0].conversationId);
+          socket.join(roomName);
+          console.log(
+            `Joined sender ${userId} (socket ${socket.id}) to conversation room ${roomName}`
+          );
+        }
+      }
 
       // Broadcast messages to conversation room
       for (const msg of createdMessages) {

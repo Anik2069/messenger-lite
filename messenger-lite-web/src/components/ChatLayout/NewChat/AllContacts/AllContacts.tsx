@@ -10,6 +10,7 @@ import { useSettings } from "@/context/SettingsContext";
 import { Chat } from "@/types/ChatType";
 import { useGlobalContext } from "@/provider/GlobalContextProvider";
 import { MEDIA_HOST } from "@/constant";
+import { useChatStore } from "@/store/useChatStore";
 
 interface AllContactsProps {
   searchText: string;
@@ -23,15 +24,17 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
     fetchFriends,
     error: friendsError,
   } = useFriendsStore();
-  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+  // const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+  const {
+    selectedChat,
+    setSelectedChat,
+  } = useChatStore();
   const { user } = useAuth();
   const { activeStatus, otherStatuses } = useSettings();
   const { newDrawerClose } = useGlobalContext();
 
   useEffect(() => {
     const newUserCreate = (datid: string, newUser: boolean) => {
-      // console.log("User created event received:", datid, "New User:", newUser);
-      // setActiveStatus({ userId: uid, isOnline });
       fetchFriends(searchText);
     };
     socket.on("user:created", newUserCreate);
@@ -51,19 +54,27 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
     avatar?: string,
     isOnline?: boolean
   ) => {
-    setSelectedChat({ type, id, name, avatar, isOnline });
-    onChatSelect({ type, id, name, avatar, isOnline });
+    // ✅ FIX: Ensure all required fields are present
+    const chat: Chat = {
+      type,
+      id,
+      name: name || "Unknown",
+      avatar,
+      isOnline,
+      userId: type === "user" ? id : "", // Add userId for user chats
+    };
 
+    setSelectedChat(chat);
+    onChatSelect(chat);
     newDrawerClose();
   };
 
   return (
     <div>
-      {/* <div className="px-4 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide bg-gray-50 dark:bg-gray-800">
-        All Contacts
-      </div> */}
-
       {friends?.map((userInfo) => {
+        // ✅ FIX: Safe user info access
+        if (!userInfo?.id) return null;
+
         const isSelf = userInfo.id === user?.id;
         const status = isSelf
           ? activeStatus
@@ -73,51 +84,48 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
 
         return (
           <div
-            key={userInfo?.id}
+            key={userInfo.id}
             onClick={() => {
               handleChatSelect(
                 "user",
-                userInfo?.id,
-                userInfo?.username,
-                userInfo?.avatar,
+                userInfo.id,
+                userInfo.username || "Unknown",
+                userInfo.avatar,
                 isOnline
               );
             }}
-            className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
-              selectedChat?.type === "user" && selectedChat?.id === userInfo?.id
-                ? "bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500"
-                : ""
-            }`}
+            className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${selectedChat?.type === "user" && selectedChat?.id === userInfo.id
+              ? "bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500"
+              : ""
+              }`}
           >
             <div className="relative mr-3">
               <Image
                 src={
                   userInfo?.avatar
-                    ? MEDIA_HOST + "/" + userInfo?.avatar
+                    ? MEDIA_HOST + "/" + userInfo.avatar
                     : DummyAvatar
                 }
-                alt={userInfo?.username}
+                alt={userInfo.username || "User"}
                 width={40}
                 height={40}
                 className="w-10 h-10 rounded-full object-cover"
               />
               <div
-                className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${
-                  isOnline ? "bg-green-400" : "bg-gray-400"
-                }`}
+                className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${isOnline ? "bg-green-400" : "bg-gray-400"
+                  }`}
               />
             </div>
 
             <div className="flex-1 min-w-0">
               <h3 className="font-medium text-gray-900 dark:text-white truncate">
-                {userInfo?.username} {isSelf ? "(You)" : ""}
+                {userInfo.username} {isSelf ? "(You)" : ""}
               </h3>
               <p
-                className={`text-sm truncate ${
-                  isOnline
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-gray-500 dark:text-gray-400"
-                }`}
+                className={`text-sm truncate ${isOnline
+                  ? "text-green-600 dark:text-green-400"
+                  : "text-gray-500 dark:text-gray-400"
+                  }`}
               >
                 {isOnline ? "Online" : "Offline"}
               </p>

@@ -67,12 +67,12 @@ function mapServerMessage(m: ServerMessage): Message {
 
     fileData: m.fileUrl
       ? {
-          url: m.fileUrl,
-          filename: m.fileName ?? "",
-          originalName: m.fileName ?? "",
-          mimetype: m.fileMime ?? "",
-          size: m.fileSize ?? 0,
-        }
+        url: m.fileUrl,
+        filename: m.fileName ?? "",
+        originalName: m.fileName ?? "",
+        mimetype: m.fileMime ?? "",
+        size: m.fileSize ?? 0,
+      }
       : undefined,
 
     forwardedFrom: m.forwardedFrom
@@ -106,12 +106,18 @@ export type ChatState = {
 
   selectedUserInfo: User | null;
 
+  // Pagination state
+  messageCursor: string | null;
+  hasMoreMessages: boolean;
+  isLoadingMessages: boolean;
+
   // setters
   setSelectedChat: (chat: Chat | null) => void;
   setMessages: (messages: Message[]) => void;
   setOtherUserTyping: (userId: string | null) => void;
   setIsConnected: (connected: boolean) => void;
   setShowSearch: (show: boolean) => void;
+  resetPagination: () => void;
 
   // actions
   emitTyping: ({ user }: { user: { username: string } }) => void;
@@ -121,7 +127,8 @@ export type ChatState = {
     fileData?: object,
     voiceUrl?: string | undefined,
     forwardedFrom?: ForwardedData,
-    currentUser?: { username: string; id: string } | null
+    currentUser?: { username: string; id: string } | null,
+    isOpenSelectedChatProfile?: boolean
   ) => Promise<void>;
   onAddReaction: (
     messageId: string,
@@ -131,6 +138,10 @@ export type ChatState = {
   handleClearConversation: (conversationId: string) => void;
   handleFetchUsersInfo: (id: string) => void;
   setSelectedUserInfo: () => void;
+  loadMoreMessages: () => Promise<void>;
+  fetchConversationsMedia: (id: string) => void;
+  selectedMedia: any[];
+  isLoadingMedia: boolean;
 };
 
 let listenersInitialized = false;
@@ -191,7 +202,7 @@ export const useChatStore = create<ChatState>((set, get) => {
             return {
               messages: state.messages.map((m) =>
                 m.clientTempId === msg.clientTempId &&
-                (m.fileData as FileData)?.url ===
+                  (m.fileData as FileData)?.url ===
                   (msg.fileData as FileData)?.url
                   ? msg
                   : m
@@ -257,6 +268,8 @@ export const useChatStore = create<ChatState>((set, get) => {
   }
 
   return {
+    isLoadingMedia: false,
+    selectedMedia: [],
     selectedChat: null,
     messages: [],
     otherUserTyping: null,
@@ -264,12 +277,23 @@ export const useChatStore = create<ChatState>((set, get) => {
     showSearch: false,
     selectedUserInfo: null,
 
+    // Pagination state
+    messageCursor: null,
+    hasMoreMessages: false,
+    isLoadingMessages: false,
+
     setSelectedChat: (chat) => set({ selectedChat: chat }),
     setSelectedUserInfo: () => set({ selectedChat: null }),
     setMessages: (messages) => set({ messages }),
     setOtherUserTyping: (userId) => set({ otherUserTyping: userId }),
     setIsConnected: (connected) => set({ isConnected: connected }),
     setShowSearch: (show) => set({ showSearch: show }),
+    resetPagination: () =>
+      set({
+        messageCursor: null,
+        hasMoreMessages: false,
+        isLoadingMessages: false,
+      }),
 
     emitTyping: ({ user }) => {
       const { selectedChat } = get();
@@ -281,212 +305,26 @@ export const useChatStore = create<ChatState>((set, get) => {
       });
     },
 
-    // Send message
-    // onSendMessage: async (
-    //   text,
-    //   type = "text",
-    //   fileData,
-    //   forwardedFrom,
-    //   currentUser
-    // ) => {
-    //   const { selectedChat } = get();
-    //   if (!selectedChat || !currentUser) return;
-
-    //   const clientTempId = uuidv4();
-    //   const tempId = `temp-${Date.now()}`;
-
-    //   // optimistic UI update
-    //   const optimistic: Message = {
-    //     id: tempId,
-    //     clientTempId,
-    //     conversationId: selectedChat.id,
-    //     from: { username: currentUser.username, id: currentUser.id },
-    //     to: { username: selectedChat.name, id: selectedChat.id },
-    //     message: text,
-    //     messageType: type,
-    //     fileData,
-    //     forwardedFrom,
-    //     isGroupMessage: selectedChat.type !== "user",
-    //     timestamp: new Date(),
-    //     reactions: [],
-    //     readBy: [],
-    //   };
-    //   set((state) => ({ messages: [...state.messages, optimistic] }));
-
-    //   // actual API request
-    //   const payload: SendMessagePayload = {
-    //     conversationId: selectedChat.id,
-    //     ...(selectedChat.type === "user"
-    //       ? { recipientId: selectedChat.id }
-    //       : {}),
-    //     message: text,
-    //     messageType: toServerType(type),
-    //     ...(fileData
-    //       ? {
-    //           fileUrl: fileData.url,
-    //           fileName: fileData.filename,
-    //           fileMime: fileData.mimetype,
-    //           fileSize: fileData.size,
-    //         }
-    //       : {}),
-    //     ...(forwardedFrom
-    //       ? { forwardedFrom: forwardedFrom.originalSender }
-    //       : {}),
-    //     clientTempId,
-    //   };
-
-    //   try {
-    //     const res = await axiosInstance.post("messages", payload);
-    //     const saved = res.data?.results ?? res.data;
-
-    //     if (saved) {
-    //       const normalized = mapServerMessage(saved);
-    //       set((state) => ({
-    //         messages: state.messages.map((m) =>
-    //           m.clientTempId === clientTempId || m.id === tempId
-    //             ? normalized
-    //             : m
-    //         ),
-    //       }));
-    //     }
-    //   } catch (err) {
-    //     // rollback optimistic if failed
-    //     set((state) => ({
-    //       messages: state.messages.filter((m) => m.id !== tempId),
-    //     }));
-    //     console.error("send failed", err);
-    //   }
-    // },
-
     onSendMessage: async (
       text,
       type = "TEXT",
       fileData,
       voiceUrl,
       forwardedFrom,
-      currentUser
+      currentUser,
+      isOpenSelectedChatProfile
     ) => {
-      const { selectedChat } = get();
+      const { selectedChat, fetchConversationsMedia } = get();
+
       if (!selectedChat || !currentUser) return;
+
+
 
       const clientTempId = uuidv4();
       const tempId = `temp-${Date.now()}`;
 
       // Optimistic UI
       const optimistic: Message[] = [];
-
-      // if (fileData) {
-      //   // if multiple files, fileData can be an array
-      //   const files = Array.isArray(fileData) ? fileData : [fileData];
-      //   for (const file of files) {
-      //     optimistic.push({
-      //       id: `temp-${Date.now()}-${uuidv4()}`,
-      //       clientTempId,
-      //       conversationId: selectedChat.id,
-      //       from: { username: currentUser.username, id: currentUser.id },
-      //       to: { username: selectedChat.name, id: selectedChat.id },
-      //       message: text || file.filename,
-      //       messageType: "FILE",
-      //       fileData: file,
-      //       forwardedFrom,
-      //       isGroupMessage: selectedChat.type !== "user",
-      //       timestamp: new Date(),
-      //       reactions: [],
-      //       readBy: [],
-      //     });
-      //   }
-      // } else {
-      //   optimistic.push({
-      //     id: tempId,
-      //     clientTempId,
-      //     conversationId: selectedChat.id,
-      //     from: { username: currentUser.username, id: currentUser.id },
-      //     to: { username: selectedChat.name, id: selectedChat.id },
-      //     message: text,
-      //     messageType: type,
-      //     fileData,
-      //     forwardedFrom,
-      //     isGroupMessage: selectedChat.type !== "user",
-      //     timestamp: new Date(),
-      //     reactions: [],
-      //     readBy: [],
-      //   });
-      // }
-
-      // if (fileData) {
-      //   const files = Array.isArray(fileData) ? fileData : [fileData];
-      //   for (const file of files) {
-      //     const url = file.url
-      //       ? file.url.startsWith("blob:")
-      //         ? file.url // local blob URL, use as-is
-      //         : `${MEDIA_HOST}${file.url}` // backend URL
-      //       : file.fileUrl
-      //       ? `${MEDIA_HOST}${file.fileUrl}`
-      //       : "";
-      //     optimistic.push({
-      //       id: `temp-${Date.now()}-${uuidv4()}`,
-      //       clientTempId,
-      //       conversationId: selectedChat.id,
-      //       from: { username: currentUser.username, id: currentUser.id },
-      //       to: { username: selectedChat.name, id: selectedChat.id },
-      //       message: text || file.name,
-      //       messageType: "FILE",
-      //       fileData: {
-      //         url: url,
-      //         filename: file.name,
-      //         mimetype: file.type,
-      //         size: file.size,
-      //       },
-      //       forwardedFrom,
-      //       isGroupMessage: selectedChat.type !== "user",
-      //       timestamp: new Date(),
-      //       reactions: [],
-      //       readBy: [],
-      //     });
-      //   }
-      // } else {
-      //   optimistic.push({
-      //     id: tempId,
-      //     clientTempId,
-      //     conversationId: selectedChat.id,
-      //     from: { username: currentUser.username, id: currentUser.id },
-      //     to: { username: selectedChat.name, id: selectedChat.id },
-      //     message: text,
-      //     messageType: type,
-      //     fileData,
-      //     forwardedFrom,
-      //     isGroupMessage: selectedChat.type !== "user",
-      //     timestamp: new Date(),
-      //     reactions: [],
-      //     readBy: [],
-      //   });
-      // }
-
-      // set((state) => ({ messages: [...state.messages, ...optimistic] }));
-
-      // API request
-      // const payload: SendMessagePayload = {
-      //   conversationId: selectedChat.id,
-      //   ...(selectedChat.type === "user"
-      //     ? { recipientId: selectedChat.id }
-      //     : {}),
-      //   message: text,
-      //   messageType: toServerType(type),
-      //   ...(fileData
-      //     ? Array.isArray(fileData)
-      //       ? { files: fileData } // you can adapt your backend to accept array
-      //       : {
-      //           fileUrl: fileData.url,
-      //           fileName: fileData.filename,
-      //           fileMime: fileData.mimetype,
-      //           fileSize: fileData.size,
-      //         }
-      //     : {}),
-      //   ...(forwardedFrom
-      //     ? { forwardedFrom: forwardedFrom.originalSender }
-      //     : {}),
-      //   clientTempId,
-      // };
 
       const formData = new FormData();
 
@@ -528,18 +366,20 @@ export const useChatStore = create<ChatState>((set, get) => {
             "Content-Type": "multipart/form-data",
           },
         });
-        // const saved = res.data?.results ?? res.data;
 
-        // const normalized = Array.isArray(saved)
-        //   ? saved.map((s) => mapServerMessage(s))
-        //   : [mapServerMessage(saved)];
+        const saved = res.data?.results;
+        console.log(saved, "saved--------------");
 
-        // set((state) => ({
-        //   messages: state.messages.map(
-        //     (m) =>
-        //       normalized.find((n) => n.clientTempId === m.clientTempId) || m
-        //   ),
-        // }));
+        if (saved) {
+          // fetch conversation media
+          if (selectedChat && isOpenSelectedChatProfile) {
+            const conversationId = saved?.conversation?.id || saved?.[0]?.conversation?.id;
+            if (conversationId) {
+              fetchConversationsMedia(conversationId);
+            }
+          }
+
+        }
       } catch (err) {
         // rollback optimistic
         set((state) => ({
@@ -589,9 +429,72 @@ export const useChatStore = create<ChatState>((set, get) => {
       try {
         const response = await axiosInstance.get(`${HOST}/auth/user/${id}`);
         const data = await response.data?.results;
-        console.log(data, "==========");
+        // console.log(data, "==========");
         set({ selectedUserInfo: data });
       } catch (error) {
+        console.log(error);
+      }
+    },
+
+    loadMoreMessages: async () => {
+      const {
+        selectedChat,
+        messageCursor,
+        hasMoreMessages,
+        isLoadingMessages,
+        messages,
+      } = get();
+
+      // Don't load if already loading, no more messages, or no chat selected
+      if (isLoadingMessages || !hasMoreMessages || !selectedChat) return;
+
+      set({ isLoadingMessages: true });
+
+      try {
+        const url = messageCursor
+          ? `messages/${selectedChat.id}?cursor=${messageCursor}`
+          : `messages/${selectedChat.id}`;
+
+        const response = await axiosInstance.get(url);
+
+        if (response.status === 200) {
+          const data = response.data.results || response.data.data;
+          const newMessages = data.messages || [];
+          const hasMore = data.hasMore || false;
+          const nextCursor = data.nextCursor || null;
+
+          // Prepend older messages (they come in chronological order)
+          // Filter out duplicates by ID
+          const existingIds = new Set(messages.map((m) => m.id));
+          const uniqueNewMessages = newMessages.filter(
+            (m: Message) => !existingIds.has(m.id)
+          );
+
+          set({
+            messages: [...uniqueNewMessages, ...messages],
+            messageCursor: nextCursor,
+            hasMoreMessages: hasMore,
+            isLoadingMessages: false,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load more messages", error);
+        set({ isLoadingMessages: false });
+      }
+    },
+
+    fetchConversationsMedia: async (id: string) => {
+      set({ isLoadingMedia: true });
+      try {
+        const response = await axiosInstance.get(
+          `${HOST}/messages/${id}/media`
+        );
+        // console.log(response?.data?.results?.media, "response");
+        if (response?.status === 200) {
+          set({ selectedMedia: response?.data?.results?.media, isLoadingMedia: false });
+        }
+      } catch (error) {
+        set({ selectedMedia: [], isLoadingMedia: false });
         console.log(error);
       }
     },

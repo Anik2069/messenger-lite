@@ -19,7 +19,7 @@ const AddFriend = ({
   const { activeTab, setActiveTab, setSearchText } = useFriendsStore();
 
   useEffect(() => {
-    setActiveTab("suggestion");
+    setActiveTab("request");
   }, [setActiveTab, isAddFriendModalOpen]);
   return (
     <div className="">
@@ -31,8 +31,8 @@ const AddFriend = ({
         className="p-4"
       >
         <TabsList className="w-full ">
-          <TabsTrigger value="suggestion">Suggestion</TabsTrigger>
           <TabsTrigger value="request">Request</TabsTrigger>
+          <TabsTrigger value="suggestion">Suggestion</TabsTrigger>
           <TabsTrigger value="pending">Pending</TabsTrigger>
         </TabsList>
         <div className="mt-2">

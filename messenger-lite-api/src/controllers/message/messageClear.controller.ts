@@ -7,6 +7,7 @@ const clearMessagesForFriend = (prisma: PrismaClient) => {
     try {
       const { conversationId } = req.params;
 
+
       if (!conversationId) {
         return sendResponse({
           res,
@@ -16,43 +17,40 @@ const clearMessagesForFriend = (prisma: PrismaClient) => {
         });
       }
 
-      //  Make sure it's a DIRECT conversation
-      const conversation = await prisma.conversation.findFirst({
+      // Check if conversation exists and user is a participant
+      const participant = await prisma.conversationParticipant.findUnique({
         where: {
-          id: conversationId,
-          type: "DIRECT",
+          userId_conversationId: {
+            userId: (req as any).userId,
+            conversationId,
+          },
         },
       });
 
-      if (!conversation) {
+      if (!participant) {
         return sendResponse({
           res,
-          statusCode: StatusCodes.NOT_FOUND,
-          message: "No direct conversation found with this user",
+          statusCode: StatusCodes.FORBIDDEN,
+          message: "You are not a participant of this conversation",
           data: null,
         });
       }
 
-      //  Get all messages for this conversation
-      const messages = await prisma.message.findMany({
-        where: { conversationId },
-        select: { id: true },
+
+
+      await prisma.conversationParticipant.update({
+        where: {
+          userId_conversationId: {
+            userId: (req as any).userId,
+            conversationId,
+          },
+        },
+        data: {
+          clearedAt: new Date(),
+        },
       });
 
-      const messageIds = messages.map((m) => m.id);
 
-      // Delete reads, reactions, and messages in a transaction
-      await prisma.$transaction([
-        prisma.messageRead.deleteMany({
-          where: { messageId: { in: messageIds } },
-        }),
-        prisma.messageReaction.deleteMany({
-          where: { messageId: { in: messageIds } },
-        }),
-        prisma.message.deleteMany({
-          where: { conversationId },
-        }),
-      ]);
 
       return sendResponse({
         res,

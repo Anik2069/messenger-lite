@@ -3,6 +3,7 @@ import { verifyJWT } from "../utils/jwt";
 import { updateUserPresence } from "../helpers/presence.helper";
 import { prisma } from "../configs/prisma.config";
 import { initDeviceSocket, joinedDevices, Device } from "./device.socket";
+import { getUserConversationsSorted } from "../controllers/message/SendMessageHandler.controller";
 
 const convRoom = (id: string) => `conv:${id}`;
 
@@ -50,7 +51,6 @@ export const initSocket = (server: any) => {
 
     console.log("Socket connected:", userId, "Socket ID:", socket.id);
 
-    // --- Device socket integration ---
     initDeviceSocket(io as IOServerWithHelpers, socket);
 
     // Join user's personal room (for presence, notifications)
@@ -88,27 +88,54 @@ export const initSocket = (server: any) => {
 
     // Conversation join
     socket.on("join_conversation", async (conversationId: string) => {
-      const member = await prisma.conversationParticipant.findFirst({
-        where: { conversationId, userId },
-        select: { id: true },
-      });
+      console.log("conversationId----------------", conversationId);
 
-      if (!member) {
-        const peerUserId = conversationId;
-        const conversation = await prisma.conversation.findFirst({
-          where: {
-            type: "DIRECT",
-            participants: { some: { userId } },
-            AND: { participants: { some: { userId: peerUserId } } },
-          },
-          include: { participants: true },
+      // Check if this is a direct user ID (not a conversation ID)
+      if (conversationId.length === 36) {
+        // Assuming UUID format
+        const isConversation = await prisma.conversation.findUnique({
+          where: { id: conversationId },
         });
-        if (!conversation) return;
-        socket.join(convRoom(conversation.id));
-        console.log(`${userId} joined conv:${conversation.id}`);
+
+        if (isConversation) {
+          // It's a conversation ID - join normally
+          const member = await prisma.conversationParticipant.findFirst({
+            where: { conversationId, userId },
+            select: { id: true },
+          });
+
+          if (member) {
+            socket.join(convRoom(conversationId));
+            console.log(`${userId} joined conv:${conversationId}`);
+            return;
+          }
+        }
+      }
+
+      const peerUserId = conversationId;
+      // Find existing direct conversation
+      const existingConversation = await prisma.conversation.findFirst({
+        where: {
+          type: "DIRECT",
+          participants: {
+            some: { userId },
+          },
+          AND: {
+            participants: {
+              some: { userId: peerUserId },
+            },
+          },
+        },
+        include: { participants: true },
+      });
+      if (existingConversation) {
+        socket.join(convRoom(existingConversation.id));
+        console.log(
+          `${userId} joined existing conv:${existingConversation.id}`
+        );
       } else {
-        socket.join(convRoom(conversationId));
-        console.log(`${userId} joined conv:${conversationId}`);
+        // Do nothing. Wait for first message to create conversation.
+        console.log(`User ${userId} selected peer ${peerUserId}, waiting for message to create conversation.`);
       }
     });
 
