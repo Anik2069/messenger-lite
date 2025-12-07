@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { User } from "../../../types/UserType";
 import { Group } from "../../../types/GroupType";
 import { Chat } from "../../../types/ChatType";
 import { MessageCircle } from "lucide-react";
@@ -12,7 +11,6 @@ import { useAuth } from "@/context/useAuth";
 import { Status, useSettings } from "@/context/SettingsContext";
 import { formatLocalTime } from "@/types/MessageType";
 import { format, isToday, parseISO } from "date-fns";
-import { useChatStore } from "@/store/useChatStore";
 import { SOCKET_HOST } from "@/constant";
 import AvatarImage from "@/components/reusable/AvatarImage";
 import { Spinner } from "@/components/ui/Spinner";
@@ -34,9 +32,6 @@ const ChatSidebar = ({
   const { conversations, fetchConversations, isLoadingConversation } = useConversationStore();
   const { user } = useAuth();
   const { activeStatus, otherStatuses } = useSettings();
-  const filteredGroups = groups.filter((group) =>
-    group.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   // useEffect(() => {
   //   console.log(selectedChat, "selectedChat");
@@ -45,7 +40,7 @@ const ChatSidebar = ({
 
   useEffect(() => {
     fetchConversations(searchQuery);
-  }, [searchQuery]);
+  }, [searchQuery, fetchConversations]);
 
 
   const getStatusForUser = (userId: string): Status => {

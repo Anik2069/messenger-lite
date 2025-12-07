@@ -13,9 +13,9 @@ import axios from "axios";
 import { User } from "@/types/UserType";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { set } from "date-fns";
+
 import { useModal } from "@/hooks/useModal";
-import { useSettings } from "./SettingsContext";
+
 interface ApiResponse<T = unknown> {
   statusCode: number;
   message: string;
@@ -239,7 +239,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     setIsLogoutLoading(true);
     try {
-      await axiosInstance.post("auth/user/logout").catch(() => {});
+      await axiosInstance.post("auth/user/logout").catch(() => { });
 
       setUser(null);
       setToken(null);
@@ -268,7 +268,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setQr(response.data?.results?.qr);
         setSecret(response.data?.results?.secret);
       }
-    } catch (error) {
+    } catch {
     } finally {
       setSetupLoading(false);
     }
@@ -284,16 +284,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setVerified(true);
         await getMyself();
       }
-    } catch (error) {
+    } catch {
       setSetupError(true);
     }
   };
 
-  const saveActiveStatus = async (userId: string) => {
-    try {
-      await axiosInstance.post(`users/${userId}`, {});
-    } catch (error) {}
-  };
+
 
   const getMyself = async () => {
     try {
@@ -306,7 +302,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           localStorage.setItem("user", JSON.stringify(u));
         }
       }
-    } catch (error) {}
+    } catch { }
   };
 
   const remove2FA = async (code?: string) => {

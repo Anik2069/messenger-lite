@@ -8,12 +8,10 @@ import AudioPlayer from "@/components/reusable/AudioPlayer";
 
 interface SendVoiceMessageComponentsProps {
   onDeleteRecording?: () => void;
-  onSendRecording?: () => void;
 }
 
 const SendVoiceMessageComponents = ({
   onDeleteRecording,
-  onSendRecording,
 }: SendVoiceMessageComponentsProps) => {
   const {
     isRecording,
@@ -25,7 +23,6 @@ const SendVoiceMessageComponents = ({
     pauseRecording,
     resumeRecording,
     deleteRecording,
-    sendRecording,
     formatTime,
   } = useChatInputContext();
 
@@ -35,14 +32,6 @@ const SendVoiceMessageComponents = ({
       onDeleteRecording();
     } else {
       deleteRecording();
-    }
-  };
-
-  const handleSend = () => {
-    if (onSendRecording) {
-      onSendRecording();
-    } else {
-      sendRecording();
     }
   };
 

@@ -3,7 +3,7 @@ import Image from "next/image";
 import { DummyAvatar } from "@/assets/image";
 
 const AvatarImage = ({ src, alt }: { src: string; alt: string }) => {
-  const [imgSrc, setImgSrc] = useState(src || DummyAvatar.src);
+  const [imgSrc] = useState(src || DummyAvatar.src);
   const [hasError, setHasError] = useState(false);
 
   return (

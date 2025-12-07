@@ -1,24 +1,21 @@
 import { DummyAvatar } from "@/assets/image";
 import { Button } from "@/components/ui/button";
 import { MEDIA_HOST } from "@/constant";
-import { useAuth } from "@/context/useAuth";
-import { socket } from "@/lib/socket";
+
+
 import { useFriendsStore } from "@/store/useFriendsStrore";
 import Image from "next/image";
 import React, { useEffect } from "react";
 
 const RequestFriendsList = () => {
-  const { user } = useAuth();
-  const userId = user?.id;
+
   const {
     requestedFriends,
-    requestedFriendsLoading,
     activeTab,
     searchText,
     getRequestedFriends,
     onAcceptRequest,
     onDeclineFriendRequest,
-    setupSocketListeners,
   } = useFriendsStore();
 
   useEffect(() => {

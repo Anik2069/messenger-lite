@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Play, Pause } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
-import { MEDIA_HOST } from "@/constant";
+
 
 interface AudioPlayerProps {
   src: string;
@@ -20,7 +20,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const wavesurferRef = useRef<WaveSurfer | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  // const [isLoading, setIsLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
@@ -50,7 +50,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
     ws.on("ready", () => {
       if (isUnmounted) return;
-      setIsLoading(false);
+      // setIsLoading(false);
       setDuration(ws.getDuration());
     });
 

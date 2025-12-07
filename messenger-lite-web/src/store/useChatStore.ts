@@ -10,9 +10,9 @@ import {
   Message,
   MessageKind,
 } from "@/types/MessageType";
-import { SendMessagePayload, toServerType } from "@/types/sendMessage";
+import { toServerType } from "@/types/sendMessage";
 import { toast } from "react-toastify";
-import { HOST, MEDIA_HOST } from "@/constant";
+import { HOST } from "@/constant";
 import { useConversationStore } from "./useConversationStore";
 import { User } from "@/types/UserType";
 
@@ -140,6 +140,7 @@ export type ChatState = {
   setSelectedUserInfo: () => void;
   loadMoreMessages: () => Promise<void>;
   fetchConversationsMedia: (id: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   selectedMedia: any[];
   isLoadingMedia: boolean;
 };
@@ -321,7 +322,7 @@ export const useChatStore = create<ChatState>((set, get) => {
 
 
       const clientTempId = uuidv4();
-      const tempId = `temp-${Date.now()}`;
+      // const tempId = `temp-${Date.now()}`;
 
       // Optimistic UI
       const optimistic: Message[] = [];

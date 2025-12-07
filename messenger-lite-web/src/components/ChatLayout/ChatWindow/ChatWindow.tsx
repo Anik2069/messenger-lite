@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Chat } from "../../../types/ChatType";
-import { FileData, Message, ForwardedData } from "../../../types/MessageType";
+import { Message, ForwardedData } from "../../../types/MessageType";
 import { User } from "../../../types/UserType";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
@@ -40,7 +40,6 @@ const ChatWindow = ({
   isLoadingMessages,
   onLoadMoreMessages,
 }: ChatWindowProps) => {
-  const [message, setMessage] = useState("");
   const [showReactions, setShowReactions] = useState<string | null>(null);
 
   if (!selectedChat) {

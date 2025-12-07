@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useRef, useState } from "react";
-import { Camera, Focus } from "lucide-react";
+import { Camera } from "lucide-react";
 import { Spinner } from "@/components/ui/Spinner";
 import { DummyAvatar } from "@/assets/image";
 import Image from "next/image";

@@ -24,7 +24,6 @@ interface ChatInputProps {
 
 export default function ChatInput({
   onSendMessage,
-  onTypingStart,
   onTypingStop,
 }: ChatInputProps) {
   const {

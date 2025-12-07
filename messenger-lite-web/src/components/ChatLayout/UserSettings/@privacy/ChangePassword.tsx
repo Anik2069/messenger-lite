@@ -49,7 +49,7 @@ const ChangePassword = () => {
       if (response?.statusCode === 200) {
         reset();
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to update password");
     }
   };

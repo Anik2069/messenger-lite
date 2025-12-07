@@ -9,8 +9,6 @@ const SuggestedFriendList = () => {
   const {
     suggestedFriends,
     getSuggestedFriends,
-    suggestedFriendsLoading,
-    error: friendsError,
     activeTab,
     searchText,
     onSendRequest,

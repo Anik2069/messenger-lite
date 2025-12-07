@@ -28,7 +28,6 @@ const SelectedChatProfile: React.FC<SelectedChatProfileProps> = ({
   const {
     handleFetchUsersInfo,
     selectedUserInfo,
-    setSelectedUserInfo,
     selectedChat,
   } = useChatStore();
 

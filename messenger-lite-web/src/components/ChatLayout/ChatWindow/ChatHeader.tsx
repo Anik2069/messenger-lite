@@ -1,9 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Chat } from "../../../types/ChatType";
-import { getInitials } from "@/lib/utils";
 import ChatHeaderActions from "./ChatHeaderActions";
 import { Phone, Video } from "lucide-react";
-import Image from "next/image";
 import { MEDIA_HOST } from "@/constant";
 import { DummyAvatar } from "@/assets/image";
 import AvatarImage from "../../reusable/AvatarImage";

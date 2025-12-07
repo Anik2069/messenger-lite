@@ -118,9 +118,7 @@ const AnimatedWrapper: React.FC<AnimatedWrapperProps> = ({
   className = "",
   isOpen = false,
   slide = false,
-  overlay = false,
   fixedRight = false,
-  onClose,
 }) => {
   const variants = animationVariants[type] || animationVariants.fade;
 

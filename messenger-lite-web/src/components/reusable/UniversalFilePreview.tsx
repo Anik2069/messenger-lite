@@ -80,7 +80,7 @@ const UniversalFilePreview: React.FC<UniversalFilePreviewProps> = ({
   if (
     fileType === "application/msword" ||
     fileType ===
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   ) {
     return (
       <div
@@ -106,6 +106,7 @@ const UniversalFilePreview: React.FC<UniversalFilePreviewProps> = ({
   // Image Preview
   if (fileType.startsWith("image/")) {
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={fileUrl}
         alt="Image Preview"

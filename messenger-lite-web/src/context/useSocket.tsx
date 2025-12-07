@@ -1,7 +1,7 @@
 "use client";
 
 import { socket } from "@/lib/socket";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext } from "react";
 
 interface useSocketContextType {
   fetchActiveStatus: () => void;
@@ -17,7 +17,7 @@ export const SocketContextProvider = ({
   const fetchActiveStatus = async () => {
     try {
       socket.emit("get-active-status", {});
-    } catch (error) {}
+    } catch { }
   };
   return (
     <useSocketContext.Provider value={{ fetchActiveStatus }}>

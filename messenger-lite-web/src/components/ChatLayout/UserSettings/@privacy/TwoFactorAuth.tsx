@@ -7,7 +7,7 @@ import { OtpInput } from "./OtpInput";
 import { Switch } from "@/components/ui/switch";
 import { SecretCopy } from "./SecretCopy";
 
-import { useGlobalContext } from "@/provider/GlobalContextProvider";
+
 
 const TwoFactorAuth = () => {
   const {
@@ -19,7 +19,7 @@ const TwoFactorAuth = () => {
     verified,
     currentUserDetails,
     setSetupError,
-    remove2FA,
+
     removeModalOpen,
   } = useAuth();
 
@@ -77,6 +77,7 @@ const TwoFactorAuth = () => {
               <p className="mb-2">
                 Scan this QR code with Google Authenticator:
               </p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={qr} alt="2FA QR Code" className="my-2 w-48 h-48" />
 
               {secret && <SecretCopy secret={secret} />}

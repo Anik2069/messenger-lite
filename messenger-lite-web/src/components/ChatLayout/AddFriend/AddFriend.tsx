@@ -1,15 +1,11 @@
 "use client";
-import { DummyAvatar } from "@/assets/image";
 import ReusableSearchInput from "@/components/reusable/ReusableSearchInput";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFriendsStore } from "@/store/useFriendsStrore";
-import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import SuggestedFriendList from "./SuggestedFriendList";
 import RequestedFriendsList from "./RequestedFriendsList";
 import RequestFriendsList from "./RequestFriendsList";
-import { set } from "zod";
 
 const AddFriend = ({
   isAddFriendModalOpen,
