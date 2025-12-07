@@ -67,12 +67,12 @@ function mapServerMessage(m: ServerMessage): Message {
 
     fileData: m.fileUrl
       ? {
-        url: m.fileUrl,
-        filename: m.fileName ?? "",
-        originalName: m.fileName ?? "",
-        mimetype: m.fileMime ?? "",
-        size: m.fileSize ?? 0,
-      }
+          url: m.fileUrl,
+          filename: m.fileName ?? "",
+          originalName: m.fileName ?? "",
+          mimetype: m.fileMime ?? "",
+          size: m.fileSize ?? 0,
+        }
       : undefined,
 
     forwardedFrom: m.forwardedFrom
@@ -138,6 +138,8 @@ export type ChatState = {
   handleFetchUsersInfo: (id: string) => void;
   setSelectedUserInfo: () => void;
   loadMoreMessages: () => Promise<void>;
+  fetchConversationsMedia: (id: string) => void;
+  selectedMedia: any[];
 };
 
 let listenersInitialized = false;
@@ -198,7 +200,7 @@ export const useChatStore = create<ChatState>((set, get) => {
             return {
               messages: state.messages.map((m) =>
                 m.clientTempId === msg.clientTempId &&
-                  (m.fileData as FileData)?.url ===
+                (m.fileData as FileData)?.url ===
                   (msg.fileData as FileData)?.url
                   ? msg
                   : m
@@ -264,6 +266,7 @@ export const useChatStore = create<ChatState>((set, get) => {
   }
 
   return {
+    selectedMedia: [],
     selectedChat: null,
     messages: [],
     otherUserTyping: null,
@@ -282,7 +285,12 @@ export const useChatStore = create<ChatState>((set, get) => {
     setOtherUserTyping: (userId) => set({ otherUserTyping: userId }),
     setIsConnected: (connected) => set({ isConnected: connected }),
     setShowSearch: (show) => set({ showSearch: show }),
-    resetPagination: () => set({ messageCursor: null, hasMoreMessages: false, isLoadingMessages: false }),
+    resetPagination: () =>
+      set({
+        messageCursor: null,
+        hasMoreMessages: false,
+        isLoadingMessages: false,
+      }),
 
     emitTyping: ({ user }) => {
       const { selectedChat } = get();
@@ -293,7 +301,6 @@ export const useChatStore = create<ChatState>((set, get) => {
         username: user.username,
       });
     },
-
 
     onSendMessage: async (
       text,
@@ -311,8 +318,6 @@ export const useChatStore = create<ChatState>((set, get) => {
 
       // Optimistic UI
       const optimistic: Message[] = [];
-
-
 
       const formData = new FormData();
 
@@ -368,13 +373,12 @@ export const useChatStore = create<ChatState>((set, get) => {
               selectedChat: {
                 ...state.selectedChat!,
                 id: realConvId,
-              }
+              },
             }));
 
             socket.emit("join_conversation", realConvId);
           }
         }
-
       } catch (err) {
         // rollback optimistic
         set((state) => ({
@@ -395,7 +399,6 @@ export const useChatStore = create<ChatState>((set, get) => {
         toast.error("Failed to send message");
       }
     },
-
 
     //  Add reaction
     onAddReaction: async (messageId, emoji) => {
@@ -425,7 +428,7 @@ export const useChatStore = create<ChatState>((set, get) => {
       try {
         const response = await axiosInstance.get(`${HOST}/auth/user/${id}`);
         const data = await response.data?.results;
-        console.log(data, "==========");
+        // console.log(data, "==========");
         set({ selectedUserInfo: data });
       } catch (error) {
         console.log(error);
@@ -433,7 +436,13 @@ export const useChatStore = create<ChatState>((set, get) => {
     },
 
     loadMoreMessages: async () => {
-      const { selectedChat, messageCursor, hasMoreMessages, isLoadingMessages, messages } = get();
+      const {
+        selectedChat,
+        messageCursor,
+        hasMoreMessages,
+        isLoadingMessages,
+        messages,
+      } = get();
 
       // Don't load if already loading, no more messages, or no chat selected
       if (isLoadingMessages || !hasMoreMessages || !selectedChat) return;
@@ -455,8 +464,10 @@ export const useChatStore = create<ChatState>((set, get) => {
 
           // Prepend older messages (they come in chronological order)
           // Filter out duplicates by ID
-          const existingIds = new Set(messages.map(m => m.id));
-          const uniqueNewMessages = newMessages.filter((m: Message) => !existingIds.has(m.id));
+          const existingIds = new Set(messages.map((m) => m.id));
+          const uniqueNewMessages = newMessages.filter(
+            (m: Message) => !existingIds.has(m.id)
+          );
 
           set({
             messages: [...uniqueNewMessages, ...messages],
@@ -468,6 +479,21 @@ export const useChatStore = create<ChatState>((set, get) => {
       } catch (error) {
         console.error("Failed to load more messages", error);
         set({ isLoadingMessages: false });
+      }
+    },
+
+    fetchConversationsMedia: async (id: string) => {
+      try {
+        const response = await axiosInstance.get(
+          `${HOST}/messages/${id}/media`
+        );
+        console.log(response?.data?.results?.media, "response");
+        if (response?.status === 200) {
+          set({ selectedMedia: response?.data?.results?.media });
+        }
+      } catch (error) {
+        set({ selectedMedia: [] });
+        console.log(error);
       }
     },
   };

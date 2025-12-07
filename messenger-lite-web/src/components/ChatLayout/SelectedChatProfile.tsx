@@ -1,10 +1,15 @@
 import { useChatStore } from "@/store/useChatStore";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import AvatarImage from "../reusable/AvatarImage";
 import { MEDIA_HOST, SOCKET_HOST } from "@/constant";
 import { DummyAvatar } from "@/assets/image";
 import { formatDate } from "date-fns";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import ShowFiles from "./SelectedChatProfile/ShowFiles";
+import ShowMedia from "./SelectedChatProfile/ShowMedia";
+import ShowLinksa from "./SelectedChatProfile/ShowLinksa";
+import ShowInfo from "./SelectedChatProfile/ShowInfo";
 
 interface SelectedChatProfileProps {
   id: string;
@@ -15,8 +20,14 @@ const SelectedChatProfile: React.FC<SelectedChatProfileProps> = ({
   id,
   onClose,
 }) => {
-  const { handleFetchUsersInfo, selectedUserInfo, setSelectedUserInfo } =
+  const [activeTab, setActiveTab] = useState("media");
+  const { handleFetchUsersInfo, selectedUserInfo, setSelectedUserInfo, selectedChat } =
     useChatStore();
+
+    useEffect(() => {
+      console.log(selectedChat, "selectedChat");
+    }, [selectedChat]);
+    
   useEffect(() => {
     if (!id) return;
     handleFetchUsersInfo(id);
@@ -71,12 +82,43 @@ const SelectedChatProfile: React.FC<SelectedChatProfileProps> = ({
         <p className="text-gray-600 dark:text-gray-400">{email}</p>
       </div>
 
-      {/* Additional Info */}
-      <div className="flex flex-col gap-2 text-gray-700 dark:text-gray-300 text-sm">
-        <div className="flex justify-between">
-          <span>Account Created:</span>
-          <span>{formatDate(createdAt as Date, "MMMM dd,yyyy")}</span>
-        </div>
+      
+
+      <div className="flex-1 flex flex-col">
+        <Tabs
+        defaultValue={activeTab}
+        onValueChange={(value) => {
+          setActiveTab(value);
+        }}
+        className="flex-1 flex flex-col"
+      >
+        <TabsList className="w-full ">
+          <TabsTrigger value="media">Media</TabsTrigger>
+          <TabsTrigger value="files">Files</TabsTrigger>
+          <TabsTrigger value="links">Links</TabsTrigger>
+          <TabsTrigger value="info">Info</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent className="flex-1 overflow-y-auto" value="media">
+          <div className="mx-2">
+            <ShowMedia selectedChat={selectedChat} />
+          </div>
+        </TabsContent>
+        <TabsContent className="flex-1 overflow-y-auto" value="files">
+          <div className="mx-2">
+            <ShowFiles />
+          </div>
+        </TabsContent>
+        <TabsContent className="flex-1 overflow-y-auto" value="links">
+          <div className="mx-2">
+            <ShowLinksa />
+          </div>
+        </TabsContent>
+        <TabsContent className="flex-1 overflow-y-auto" value="info">
+          {/* Additional Info */}
+        <ShowInfo selectedUserInfo={selectedUserInfo} />
+        </TabsContent>
+      </Tabs>
       </div>
     </div>
   );
