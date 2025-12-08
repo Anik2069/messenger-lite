@@ -4,6 +4,7 @@ import { updateUserPresence } from "../helpers/presence.helper";
 import { prisma } from "../configs/prisma.config";
 import { initDeviceSocket, joinedDevices, Device } from "./device.socket";
 import { getUserConversationsSorted } from "../controllers/message/SendMessageHandler.controller";
+import emitToRecipients from "../helpers/socketEmit.helper";
 
 const convRoom = (id: string) => `conv:${id}`;
 
@@ -154,7 +155,55 @@ export const initSocket = (server: any) => {
       });
     });
 
-    // Handle disconnect
+
+    //Audio/Video Call
+
+    // User A clicks call → emits "call_user" with toUserIds and callType.
+    // Server receives it → emits "call_received" to the recipient(s).
+    // Recipient sees an incoming call notification.
+    socket.on("call_user", async ({ toUerIds, callType }: { toUerIds: string | string[], callType: "audio" | "video" }) => {
+      emitToRecipients(io as IOServerWithHelpers, "call_received", toUerIds, { callType, fromUserId: userId });
+    })
+
+
+    // Triggered when the recipient answers the call.
+    // Server forwards "call_answered" to User A.
+    // Caller now knows the recipient has accepted → can start WebRTC negotiation.
+    socket.on("call_answered", ({ toUserIds }: { toUserIds: string | string[] }) => {
+      emitToRecipients(io as IOServerWithHelpers, "call_answered", toUserIds, { fromUserId: userId });
+    });
+
+
+    // Part of WebRTC handshake (SDP offer).
+    // After call is answered, the caller creates an offer describing how they want to send/receive media. 
+    // Caller creates SDP offer → emits "webrtc_offer".
+    // Server forwards it to the recipient → recipient uses it to set remote description.
+    socket.on("webrtc_offer", ({ toUserIds, sdp }: { toUserIds: string | string[]; sdp: any }) => {
+      emitToRecipients(io as IOServerWithHelpers, "webrtc_offer", toUserIds, { fromUserId: userId, sdp });
+    });
+
+
+    // Response to webrtc_offer.
+    // Recipient of the offer sends back an SDP answer.
+    // Recipient receives offer → sets remote description → creates answer → emits "webrtc_answer".
+    // Server forwards it back to the caller → caller sets remote description.
+    socket.on("webrtc_answer", ({ toUserIds, sdp }: { toUserIds: string | string[]; sdp: any }) => {
+      emitToRecipients(io as IOServerWithHelpers, "webrtc_answer", toUserIds, { fromUserId: userId, sdp });
+    });
+
+    // ICE candidates are needed to actually establish the P2P connection.
+    // These are network addresses that WebRTC tries to use to connect both peers.
+    socket.on("webrtc_ice_candidate", ({ toUserIds, candidate }: { toUserIds: string | string[]; candidate: any }) => {
+      emitToRecipients(io as IOServerWithHelpers, "webrtc_ice_candidate", toUserIds, { fromUserId: userId, candidate });
+    });
+
+    // Triggered when either side hangs up.
+    // Notifies the other peer to close the WebRTC connection and UI.
+    socket.on("call_ended", ({ toUserIds }: { toUserIds: string | string[] }) => {
+      emitToRecipients(io as IOServerWithHelpers, "call_ended", toUserIds, { fromUserId: userId });
+    });
+
+
     socket.on("disconnect", async () => {
       console.log("Socket disconnected:", userId, "Socket ID:", socket.id);
       // Note: Device socket will handle the actual presence update for multi-tab
