@@ -22,6 +22,7 @@ import AnimatedWrapper from '../animations/AnimatedWrapper';
 import SelectedChatProfile from './SelectedChatProfile';
 import { Conversation } from '@/types/coversations.type';
 import SearchModal from './SearchModal/SearchModal';
+import IncomingCallPopup from './IncomingCallPopup';
 
 const ChatLayout = () => {
   const { user, getMyself } = useAuth();
@@ -230,6 +231,8 @@ const ChatLayout = () => {
       </Modal>
 
       <SearchModal />
+
+      <IncomingCallPopup />
     </div>
   );
 };

@@ -14,6 +14,7 @@ const ChatHeader = ({ selectedChat }: { selectedChat: Chat }) => {
   // console.log(selectedChat, ")))))))))))))))))");
   // console.log(image, ")))))))))))))))))");
 
+
   return (
     <div className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 flex justify-between items-center">
       <div className="flex items-center">
@@ -43,7 +44,7 @@ const ChatHeader = ({ selectedChat }: { selectedChat: Chat }) => {
               variant="ghost"
               size="icon"
               className="hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-              // onClick={handleVideoCall}
+            // onClick={handleVideoCall}
             >
               <Video className="w-5 h-5 text-gray-700 dark:text-gray-300" />
             </Button>
@@ -54,7 +55,7 @@ const ChatHeader = ({ selectedChat }: { selectedChat: Chat }) => {
               variant="ghost"
               size="icon"
               className="hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-              // onClick={handleAudioCall}
+            // onClick={handleAudioCall}
             >
               <Phone className="w-5 h-5 text-gray-700 dark:text-gray-300" />
             </Button>
