@@ -1,34 +1,33 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import React, { useState } from 'react';
+import { Menu } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-
-import ProfileSettings from "./@general/ProfileSettings";
-import NotificationSettings from "./@general/NotificationSettings";
-import MessagePreferences from "./@general/MessagePreferences";
-import AppearanceSettings from "./@general/AppearanceSettings";
-import LanguageSettings from "./@general/LanguageSettings";
-import Sidebar from "./@general/Sidebar";
+import ProfileSettings from './@general/ProfileSettings';
+import NotificationSettings from './@general/NotificationSettings';
+import MessagePreferences from './@general/MessagePreferences';
+import AppearanceSettings from './@general/AppearanceSettings';
+import LanguageSettings from './@general/LanguageSettings';
+import Sidebar from './@general/Sidebar';
 
 const GeneralSettings = () => {
-  const [activeTab, setActiveTab] = useState("profile");
+  const [activeTab, setActiveTab] = useState('profile');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // const { currentUserDetails } = useAuth();
   // const { settings } = useSettings();
 
   const renderActiveTab = () => {
     switch (activeTab) {
-      case "profile":
+      case 'profile':
         return <ProfileSettings />;
-      case "notifications":
+      case 'notifications':
         return <NotificationSettings />;
-      case "messages":
+      case 'messages':
         return <MessagePreferences />;
-      case "appearance":
+      case 'appearance':
         return <AppearanceSettings />;
-      case "language":
+      case 'language':
         return <LanguageSettings />;
       default:
         return <ProfileSettings />;
@@ -52,11 +51,7 @@ const GeneralSettings = () => {
           <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             General Settings
           </h1>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setSidebarOpen(true)}
-          >
+          <Button variant="outline" size="icon" onClick={() => setSidebarOpen(true)}>
             <Menu className="w-5 h-5" />
           </Button>
         </div>

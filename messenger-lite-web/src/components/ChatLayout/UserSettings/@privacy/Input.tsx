@@ -1,6 +1,6 @@
-import React from "react";
+import React from 'react';
 
-const Input = ({ label, type = "text" }: { label: string; type?: string }) => {
+const Input = ({ label, type = 'text' }: { label: string; type?: string }) => {
   return (
     <div>
       <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">

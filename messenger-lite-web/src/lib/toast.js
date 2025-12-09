@@ -1,6 +1,6 @@
 // components/shared/toast.js
-import { toast, ToastContainer, Bounce } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast, ToastContainer, Bounce } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Reusable Toast Container Component
 export const AppToastContainer = () => (

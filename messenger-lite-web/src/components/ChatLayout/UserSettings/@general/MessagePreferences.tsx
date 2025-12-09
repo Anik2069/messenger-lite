@@ -1,6 +1,6 @@
-import React from "react";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare } from "lucide-react";
+import React from 'react';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { MessageSquare } from 'lucide-react';
 
 const MessagePreferences = () => {
   return (
@@ -15,9 +15,7 @@ const MessagePreferences = () => {
           <div className="flex items-center space-x-3">
             <MessageSquare className="w-5 h-5 text-blue-500" />
             <div>
-              <h4 className="font-medium text-gray-900 dark:text-white">
-                Read Receipts
-              </h4>
+              <h4 className="font-medium text-gray-900 dark:text-white">Read Receipts</h4>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Let others see when you&apos;ve read their messages
               </p>
@@ -32,9 +30,7 @@ const MessagePreferences = () => {
           <div className="flex items-center space-x-3">
             <MessageSquare className="w-5 h-5 text-blue-500" />
             <div>
-              <h4 className="font-medium text-gray-900 dark:text-white">
-                Typing Indicators
-              </h4>
+              <h4 className="font-medium text-gray-900 dark:text-white">Typing Indicators</h4>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Show when you&apos;re typing
               </p>

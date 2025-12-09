@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import React, { useEffect } from "react";
-import ChatLayout from "@/components/ChatLayout/ChatLayout";
-import { useRouter } from "next/navigation";
-import { Spinner } from "@/components/ui/Spinner";
-import { useAuth } from "@/context/useAuth";
-import { useFriendsStore } from "@/store/useFriendsStrore";
-import { socket } from "@/lib/socket";
+import React, { useEffect } from 'react';
+import ChatLayout from '@/components/ChatLayout/ChatLayout';
+import { useRouter } from 'next/navigation';
+import { Spinner } from '@/components/ui/Spinner';
+import { useAuth } from '@/context/useAuth';
+import { useFriendsStore } from '@/store/useFriendsStrore';
+import { socket } from '@/lib/socket';
 
 const ChatLayoutPage = () => {
   const { user, loading, isLogoutLoading, initialLoading } = useAuth();
@@ -16,7 +16,7 @@ const ChatLayoutPage = () => {
   useEffect(() => {
     if (initialLoading) return;
     if (!user && !isLogoutLoading && !initialLoading) {
-      router.push("/auth?type=login");
+      router.push('/auth?type=login');
     }
   }, [user, router, initialLoading, isLogoutLoading]);
 

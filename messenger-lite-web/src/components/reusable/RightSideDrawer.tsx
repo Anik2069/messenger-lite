@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Drawer,
@@ -8,10 +8,10 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from "@/components/ui/drawer";
-import { ReactNode } from "react";
-import { X } from "lucide-react";
-import { cn } from "@/lib/utils"; // Optional Tailwind merge utility
+} from '@/components/ui/drawer';
+import { ReactNode } from 'react';
+import { X } from 'lucide-react';
+import { cn } from '@/lib/utils'; // Optional Tailwind merge utility
 
 interface RightSideDrawerProps {
   isOpen: boolean;
@@ -21,7 +21,7 @@ interface RightSideDrawerProps {
   children: ReactNode;
   footer?: ReactNode;
   className?: string;
-  direction?: "right" | "left" | "top" | "bottom";
+  direction?: 'right' | 'left' | 'top' | 'bottom';
 }
 
 export function RightSideDrawer({
@@ -32,13 +32,13 @@ export function RightSideDrawer({
   children,
   footer,
   className,
-  direction = "right",
+  direction = 'right',
 }: RightSideDrawerProps) {
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange} direction={direction}>
       <DrawerContent
         className={cn(
-          "fixed right-0 top-0 bottom-0 w-[80%] max-w-[640px] bg-white dark:bg-gray-900 shadow-xl transition-transform duration-300 ease-in-out border-l border-gray-200 dark:border-gray-700",
+          'fixed right-0 top-0 bottom-0 w-[80%] max-w-[640px] bg-white dark:bg-gray-900 shadow-xl transition-transform duration-300 ease-in-out border-l border-gray-200 dark:border-gray-700',
           className
         )}
       >
@@ -47,9 +47,7 @@ export function RightSideDrawer({
           <div className="flex items-center justify-between">
             <div className="w-fit">
               {title && (
-                <DrawerTitle className="text-gray-900 dark:text-white">
-                  {title}
-                </DrawerTitle>
+                <DrawerTitle className="text-gray-900 dark:text-white">{title}</DrawerTitle>
               )}
               {description && (
                 <DrawerDescription className="text-gray-600 dark:text-gray-400">

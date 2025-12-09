@@ -1,6 +1,5 @@
-import { useController, useFormContext } from "react-hook-form";
-import { useRef, useEffect, useState } from "react";
-
+import { useController, useFormContext } from 'react-hook-form';
+import { useRef, useEffect, useState } from 'react';
 
 type OtpInputProps = {
   name: string;
@@ -21,7 +20,7 @@ export function OtpInput({ name, length, setupError }: OtpInputProps) {
   useEffect(() => {
     if (!otpValue) {
       inputsRef.current.forEach((input) => {
-        if (input) input.value = "";
+        if (input) input.value = '';
       });
     }
   }, [otpValue]);
@@ -35,16 +34,13 @@ export function OtpInput({ name, length, setupError }: OtpInputProps) {
     }
   }, [setupError]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    index: number
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const val = e.target.value;
     if (!/^\d*$/.test(val)) return;
 
-    const current = getValues(name)?.split("") || [];
+    const current = getValues(name)?.split('') || [];
     current[index] = val;
-    const newVal = current.join("").slice(0, length);
+    const newVal = current.join('').slice(0, length);
     setValue(name, newVal);
 
     if (val && index < length - 1) {
@@ -52,22 +48,19 @@ export function OtpInput({ name, length, setupError }: OtpInputProps) {
     }
   };
 
-  const handleBackspace = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    if (e.key === "Backspace" && !getValues(name)[index] && index > 0) {
+  const handleBackspace = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === 'Backspace' && !getValues(name)[index] && index > 0) {
       inputsRef.current[index - 1]?.focus();
     }
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const pasteData = e.clipboardData.getData("Text").trim();
+    const pasteData = e.clipboardData.getData('Text').trim();
     if (!/^\d+$/.test(pasteData)) return;
 
-    const chars = pasteData.split("").slice(0, length);
-    setValue(name, chars.join(""));
+    const chars = pasteData.split('').slice(0, length);
+    setValue(name, chars.join(''));
 
     chars.forEach((char, i) => {
       if (inputsRef.current[i]) {
@@ -79,21 +72,19 @@ export function OtpInput({ name, length, setupError }: OtpInputProps) {
     inputsRef.current[lastIndex]?.focus();
   };
 
-  const valueArray = (field.value || "").padEnd(length, "").split("");
+  const valueArray = (field.value || '').padEnd(length, '').split('');
 
   return (
-    <div
-      className={`flex gap-2 justify-center mt-2 ${shake ? "animate-shake" : ""
-        }`}
-    >
+    <div className={`flex gap-2 justify-center mt-2 ${shake ? 'animate-shake' : ''}`}>
       {Array.from({ length }).map((_, i) => (
         <input
           key={i}
           type="text"
           maxLength={1}
-          className={`w-12 h-12 text-center border rounded-lg text-lg focus:outline-none focus:border-blue-500 ${setupError ? "border-red-500" : "border-gray-300"
-            }`}
-          value={valueArray[i] || ""}
+          className={`w-12 h-12 text-center border rounded-lg text-lg focus:outline-none focus:border-blue-500 ${
+            setupError ? 'border-red-500' : 'border-gray-300'
+          }`}
+          value={valueArray[i] || ''}
           onChange={(e) => handleChange(e, i)}
           onKeyDown={(e) => handleBackspace(e, i)}
           onPaste={(e) => handlePaste(e)}

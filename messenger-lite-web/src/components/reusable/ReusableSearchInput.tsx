@@ -1,13 +1,12 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
-import { cn } from "@/lib/utils";
-import useDebounce from "@/hooks/useDebounce";
+import React, { useEffect, useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import useDebounce from '@/hooks/useDebounce';
 
-export interface ReusableSearchInputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface ReusableSearchInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   containerClassName?: string;
   iconClassName?: string;
   onDebouncedChange?: (value: string) => void;
@@ -15,13 +14,10 @@ export interface ReusableSearchInputProps
   clearValue?: boolean;
 }
 
-const ReusableSearchInput = React.forwardRef<
-  HTMLInputElement,
-  ReusableSearchInputProps
->(
+const ReusableSearchInput = React.forwardRef<HTMLInputElement, ReusableSearchInputProps>(
   (
     {
-      placeholder = "Search...",
+      placeholder = 'Search...',
       containerClassName,
       iconClassName,
       className,
@@ -32,7 +28,7 @@ const ReusableSearchInput = React.forwardRef<
     },
     ref
   ) => {
-    const [value, setValue] = useState("");
+    const [value, setValue] = useState('');
     const debouncedValue = useDebounce(value, debounceDelay);
 
     useEffect(() => {
@@ -42,14 +38,14 @@ const ReusableSearchInput = React.forwardRef<
     }, [debouncedValue, onDebouncedChange]);
 
     useEffect(() => {
-      setValue("");
+      setValue('');
     }, [clearValue]);
 
     return (
-      <div className={cn("relative w-full", containerClassName)}>
+      <div className={cn('relative w-full', containerClassName)}>
         <Search
           className={cn(
-            "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none",
+            'absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none',
             iconClassName
           )}
         />
@@ -59,7 +55,7 @@ const ReusableSearchInput = React.forwardRef<
           placeholder={placeholder}
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          className={cn("pl-9", className)}
+          className={cn('pl-9', className)}
           {...props}
         />
       </div>
@@ -67,5 +63,5 @@ const ReusableSearchInput = React.forwardRef<
   }
 );
 
-ReusableSearchInput.displayName = "ReusableSearchInput";
+ReusableSearchInput.displayName = 'ReusableSearchInput';
 export default ReusableSearchInput;

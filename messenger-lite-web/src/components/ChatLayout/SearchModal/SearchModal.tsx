@@ -1,16 +1,16 @@
-import React, { useState } from "react";
-import Modal from "@/components/reusable/Modal";
-import { useChatStore } from "@/store/useChatStore";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import React, { useState } from 'react';
+import Modal from '@/components/reusable/Modal';
+import { useChatStore } from '@/store/useChatStore';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
 const SearchModal = () => {
   const { showSearch, setShowSearch } = useChatStore();
-  const [searchText, setSearchText] = useState("");
+  const [searchText, setSearchText] = useState('');
 
   const handleClose = () => {
     setShowSearch(false);
-    setSearchText("");
+    setSearchText('');
   };
 
   return (
@@ -29,9 +29,7 @@ const SearchModal = () => {
       {/* Future search results can go here */}
       <div className="mt-4">
         {searchText && (
-          <p className="text-sm text-gray-500 text-center">
-            Searching for {searchText}...
-          </p>
+          <p className="text-sm text-gray-500 text-center">Searching for {searchText}...</p>
         )}
       </div>
     </Modal>

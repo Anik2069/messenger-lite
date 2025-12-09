@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import { Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface LoadingProps {
   show?: boolean;
@@ -15,7 +15,7 @@ const Loading: React.FC<LoadingProps> = ({ show = false, className }) => {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm",
+        'fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm',
         className
       )}
     >

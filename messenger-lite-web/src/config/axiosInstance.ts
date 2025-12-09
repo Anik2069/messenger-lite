@@ -1,23 +1,21 @@
-import { HOST } from "@/constant";
-import axios from "axios";
+import { HOST } from '@/constant';
+import axios from 'axios';
 
 const getAccessToken = () => {
-  return typeof window !== "undefined"
-    ? localStorage.getItem("accessToken")
-    : null;
+  return typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 };
 
 const axiosInstance = axios.create({
   baseURL: HOST,
   headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
   },
   withCredentials: true,
 });
 
 const redirectToLogin = () => {
-  window.location.href = "/auth?type=login";
+  window.location.href = '/auth?type=login';
 };
 
 axiosInstance.interceptors.request.use(
@@ -35,11 +33,7 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const OriginalRequest = error.config;
-    if (
-      error.response &&
-      error.response.status === 401 &&
-      !OriginalRequest._retry
-    ) {
+    if (error.response && error.response.status === 401 && !OriginalRequest._retry) {
       OriginalRequest._retry = true;
       redirectToLogin();
     }

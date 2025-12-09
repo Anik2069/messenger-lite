@@ -1,6 +1,6 @@
-import React from "react";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bell } from "lucide-react";
+import React from 'react';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { Bell } from 'lucide-react';
 
 const NotificationSettings = () => {
   return (
@@ -15,9 +15,7 @@ const NotificationSettings = () => {
           <div className="flex items-center space-x-3">
             <Bell className="w-5 h-5 text-blue-500" />
             <div>
-              <h4 className="font-medium text-gray-900 dark:text-white">
-                Push Notifications
-              </h4>
+              <h4 className="font-medium text-gray-900 dark:text-white">Push Notifications</h4>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Receive push notifications for new messages
               </p>
@@ -32,12 +30,8 @@ const NotificationSettings = () => {
           <div className="flex items-center space-x-3">
             <Bell className="w-5 h-5 text-gray-400" />
             <div>
-              <h4 className="font-medium text-gray-900 dark:text-white">
-                Email Notifications
-              </h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Receive email summaries
-              </p>
+              <h4 className="font-medium text-gray-900 dark:text-white">Email Notifications</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Receive email summaries</p>
             </div>
           </div>
           <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-300">

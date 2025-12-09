@@ -1,36 +1,35 @@
-"use client";
+'use client';
 
-import { Suspense } from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { Suspense } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/context/useAuth";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/context/useAuth';
 
-import AuthLoading from "./AuthLoading";
-import { ShieldCheck } from "lucide-react";
-import { OtpInput } from "../ChatLayout/UserSettings/@privacy/OtpInput";
+import AuthLoading from './AuthLoading';
+import { ShieldCheck } from 'lucide-react';
+import { OtpInput } from '../ChatLayout/UserSettings/@privacy/OtpInput';
 
 // 🔹 Schema for OTP form
 const otpSchema = z.object({
   otp: z
     .string()
-    .min(6, "OTP must be 6 digits")
-    .max(6, "OTP must be 6 digits")
-    .regex(/^\d+$/, "OTP must be numeric"),
+    .min(6, 'OTP must be 6 digits')
+    .max(6, 'OTP must be 6 digits')
+    .regex(/^\d+$/, 'OTP must be numeric'),
 });
 
 type OtpFormValues = z.infer<typeof otpSchema>;
 
 function SubmitOtpFormInner() {
-  const { handleVerifyAtSignIn, setupLoading, verified, setupError } =
-    useAuth();
+  const { handleVerifyAtSignIn, setupLoading, verified, setupError } = useAuth();
 
   const methods = useForm<OtpFormValues>({
     resolver: zodResolver(otpSchema),
-    defaultValues: { otp: "" },
+    defaultValues: { otp: '' },
   });
 
   const { handleSubmit, reset } = methods;
@@ -83,7 +82,7 @@ function SubmitOtpFormInner() {
                   className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm"
                   disabled={setupLoading}
                 >
-                  {setupLoading ? "Verifying..." : "Verify Code"}
+                  {setupLoading ? 'Verifying...' : 'Verify Code'}
                 </Button>
 
                 {/* Error Message */}

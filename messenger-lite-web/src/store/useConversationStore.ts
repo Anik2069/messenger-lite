@@ -1,8 +1,8 @@
 // src/store/useConversationStore.ts
-import axiosInstance from "@/config/axiosInstance";
-import { socket } from "@/lib/socket";
-import { Conversation } from "@/types/coversations.type";
-import { create } from "zustand";
+import axiosInstance from '@/config/axiosInstance';
+import { socket } from '@/lib/socket';
+import { Conversation } from '@/types/coversations.type';
+import { create } from 'zustand';
 
 export interface ConversationState {
   conversations: Conversation[] | null;
@@ -13,10 +13,10 @@ export interface ConversationState {
 }
 
 export const useConversationStore = create<ConversationState>((set, get) => {
-  socket.off("conversations_updated");
+  socket.off('conversations_updated');
 
-  socket.on("conversations_updated", (conversations: Conversation[]) => {
-    console.log("conversations_updated", conversations);
+  socket.on('conversations_updated', (conversations: Conversation[]) => {
+    console.log('conversations_updated', conversations);
     set({ conversations });
   });
 
@@ -28,15 +28,13 @@ export const useConversationStore = create<ConversationState>((set, get) => {
     fetchConversations: async (search?: string) => {
       set({ isLoadingConversation: true, error: null });
       try {
-        const response = await axiosInstance.get(
-          `messages/conversations?search=${search || ""}`
-        );
+        const response = await axiosInstance.get(`messages/conversations?search=${search || ''}`);
         const data = await response.data;
-        console.log("📩 conversations", data);
+        console.log('📩 conversations', data);
         set({ conversations: data?.results, isLoadingConversation: false });
       } catch (error) {
-        set({ error: "Failed to fetch conversations", isLoadingConversation: false });
-        console.error("Failed to fetch conversations", error);
+        set({ error: 'Failed to fetch conversations', isLoadingConversation: false });
+        console.error('Failed to fetch conversations', error);
       }
     },
 

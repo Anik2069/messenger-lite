@@ -1,30 +1,30 @@
-"use client";
+'use client';
 
-import React from "react";
-import { motion, Variants, AnimatePresence } from "framer-motion";
+import React from 'react';
+import { motion, Variants, AnimatePresence } from 'framer-motion';
 
 interface AnimatedWrapperProps {
   type?:
-  | "fade"
-  | "slideUp"
-  | "scale"
-  | "zoomIn"
-  | "slideDown"
-  | "slideLeft"
-  | "slideRight"
-  | "flipX"
-  | "flipY"
-  | "rotateIn"
-  | "pop"
-  | "bounce"
-  | "drop"
-  | "grow"
-  | "shrink"
-  | "fadeFromTop"
-  | "fadeFromBottom"
-  | "fadeFromLeft"
-  | "fadeFromRight"
-  | "growIn";
+    | 'fade'
+    | 'slideUp'
+    | 'scale'
+    | 'zoomIn'
+    | 'slideDown'
+    | 'slideLeft'
+    | 'slideRight'
+    | 'flipX'
+    | 'flipY'
+    | 'rotateIn'
+    | 'pop'
+    | 'bounce'
+    | 'drop'
+    | 'grow'
+    | 'shrink'
+    | 'fadeFromTop'
+    | 'fadeFromBottom'
+    | 'fadeFromLeft'
+    | 'fadeFromRight'
+    | 'growIn';
   delay?: number;
   duration?: number;
   children: React.ReactNode;
@@ -41,7 +41,7 @@ const animationVariants: Record<string, Variants> = {
     hidden: { opacity: 0 },
     visible: (custom: number) => ({
       opacity: 1,
-      transition: { delay: custom, duration: 0.4, ease: "easeOut" },
+      transition: { delay: custom, duration: 0.4, ease: 'easeOut' },
     }),
     exit: { opacity: 0 },
   },
@@ -50,7 +50,7 @@ const animationVariants: Record<string, Variants> = {
     visible: (custom: number) => ({
       opacity: 1,
       y: 0,
-      transition: { delay: custom, duration: 0.4, ease: "easeOut" },
+      transition: { delay: custom, duration: 0.4, ease: 'easeOut' },
     }),
     exit: { opacity: 0, y: 20 },
   },
@@ -86,7 +86,7 @@ const animationVariants: Record<string, Variants> = {
     visible: (custom: number) => ({
       scale: 1,
       opacity: 1,
-      transition: { delay: custom, duration: 0.4, ease: "backOut" },
+      transition: { delay: custom, duration: 0.4, ease: 'backOut' },
     }),
     exit: { scale: 0.8, opacity: 0 },
   },
@@ -95,7 +95,7 @@ const animationVariants: Record<string, Variants> = {
     visible: (custom: number) => ({
       scale: 1,
       opacity: 1,
-      transition: { delay: custom, duration: 0.3, ease: "backOut" },
+      transition: { delay: custom, duration: 0.3, ease: 'backOut' },
     }),
     exit: { scale: 0, opacity: 0 },
   },
@@ -112,10 +112,10 @@ const animationVariants: Record<string, Variants> = {
 
 const AnimatedWrapper: React.FC<AnimatedWrapperProps> = ({
   children,
-  type = "slideUp",
+  type = 'slideUp',
   delay = 0,
   duration = 0.4,
-  className = "",
+  className = '',
   isOpen = false,
   slide = false,
   fixedRight = false,
@@ -130,15 +130,14 @@ const AnimatedWrapper: React.FC<AnimatedWrapperProps> = ({
           <>
             <motion.div
               key="drawer"
-              initial={{ x: "100%", opacity: 0 }}
+              initial={{ x: '100%', opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               // exit={{ x: "100%", opacity: 0 }}
               transition={{
-                type: "tween",
+                type: 'tween',
                 ease: [0.25, 0.1, 0.25, 1], // custom easing (material design feel)
                 duration: 0.35,
               }}
-
               className={`${className}`}
             >
               {children}

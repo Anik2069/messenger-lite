@@ -1,13 +1,6 @@
-"use client";
+'use client';
 
-import {
-  AlertTriangle,
-  RefreshCw,
-  Home,
-  MessageSquare,
-  Shield,
-  Bug,
-} from "lucide-react";
+import { AlertTriangle, RefreshCw, Home, MessageSquare, Shield, Bug } from 'lucide-react';
 
 interface GlobalErrorProps {
   error: Error & { digest?: string };
@@ -28,9 +21,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                   <AlertTriangle className="w-8 h-8 animate-pulse" />
                 </div>
                 <h1 className="text-2xl font-bold mb-2">Critical Error</h1>
-                <p className="text-red-100">
-                  Messenger Lite has encountered a serious problem
-                </p>
+                <p className="text-red-100">Messenger Lite has encountered a serious problem</p>
               </div>
 
               {/* Content */}
@@ -40,19 +31,14 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                   <div className="flex items-center  space-x-3">
                     <Shield className="w-5 h-5 text-red-500 mt-0.5" />
                     <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">
-                        System Error
-                      </h3>
+                      <h3 className="font-semibold text-gray-900 mb-1">System Error</h3>
                       <p className="text-gray-700 text-sm">
                         {error.message ||
-                          "A critical system error has occurred. The application needs to be restarted."}
+                          'A critical system error has occurred. The application needs to be restarted.'}
                       </p>
                       {error.digest && (
                         <p className="text-xs text-gray-500 mt-2">
-                          Error ID:{" "}
-                          <code className="bg-gray-100 px-1 rounded">
-                            {error.digest}
-                          </code>
+                          Error ID: <code className="bg-gray-100 px-1 rounded">{error.digest}</code>
                         </p>
                       )}
                     </div>
@@ -70,7 +56,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                   </button>
 
                   <button
-                    onClick={() => (window.location.href = "/")}
+                    onClick={() => (window.location.href = '/')}
                     className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-medium flex items-center justify-center space-x-2 transition-colors"
                   >
                     <Home className="w-5 h-5" />

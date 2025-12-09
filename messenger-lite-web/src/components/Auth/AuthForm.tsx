@@ -1,40 +1,34 @@
-"use client";
+'use client';
 
-import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { FormProvider, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { FormProvider, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Lock, Mail, MessageSquare, Zap } from "lucide-react";
-import { InputField } from "../reusable/InputField";
-import { FormValues, getSchema } from "@/schema/auth.schema";
-import { useAuth } from "@/context/useAuth";
-import AuthLoading from "./AuthLoading";
-import { SubmitOtpForm } from "./SubmitOtpForm";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { User, Lock, Mail, MessageSquare, Zap } from 'lucide-react';
+import { InputField } from '../reusable/InputField';
+import { FormValues, getSchema } from '@/schema/auth.schema';
+import { useAuth } from '@/context/useAuth';
+import AuthLoading from './AuthLoading';
+import { SubmitOtpForm } from './SubmitOtpForm';
 
 // Inner component: এখানে useSearchParams ব্যবহার হচ্ছে
 function AuthFormInner() {
   const searchParams = useSearchParams();
-  const type = searchParams.get("type") || "login";
-  const [isLogin, setIsLogin] = useState(type === "login");
+  const type = searchParams.get('type') || 'login';
+  const [isLogin, setIsLogin] = useState(type === 'login');
 
   useEffect(() => {
-    setIsLogin(type === "login");
+    setIsLogin(type === 'login');
   }, [type]);
 
-  const {
-    login,
-    register: registerUser,
-    loading,
-    is2FAEnabled,
-
-  } = useAuth();
+  const { login, register: registerUser, loading, is2FAEnabled } = useAuth();
 
   const methods = useForm<FormValues>({
     resolver: zodResolver(getSchema(isLogin)),
-    defaultValues: { username: "", email: "", password: "" },
+    defaultValues: { username: '', email: '', password: '' },
   });
 
   const { handleSubmit, reset } = methods;
@@ -59,9 +53,7 @@ function AuthFormInner() {
             </div>
             <h1 className="text-3xl font-bold text-white">Messenger Lite</h1>
           </div>
-          <p className="text-gray-100 text-sm">
-            Fast, simple, and efficient messaging
-          </p>
+          <p className="text-gray-100 text-sm">Fast, simple, and efficient messaging</p>
         </div>
 
         {/* Auth Card */}
@@ -71,10 +63,10 @@ function AuthFormInner() {
           <Card className="shadow-xl border-0 bg-white backdrop-blur-sm dark:bg-gray-800/80">
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-xl font-semibold">
-                {isLogin ? "Welcome back" : "Get started"}
+                {isLogin ? 'Welcome back' : 'Get started'}
               </CardTitle>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {isLogin ? "Sign in to continue" : "Create your account"}
+                {isLogin ? 'Sign in to continue' : 'Create your account'}
               </p>
             </CardHeader>
 
@@ -109,23 +101,17 @@ function AuthFormInner() {
                     className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm"
                     disabled={loading}
                   >
-                    {loading
-                      ? "Please wait..."
-                      : isLogin
-                        ? "Sign In"
-                        : "Create Account"}
+                    {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Create Account'}
                   </Button>
                 </form>
               </FormProvider>
 
               <div className="mt-6 text-center">
                 <a
-                  href={`/auth?type=${isLogin ? "register" : "login"}`}
+                  href={`/auth?type=${isLogin ? 'register' : 'login'}`}
                   className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                 >
-                  {isLogin
-                    ? "Don't have an account? Sign up"
-                    : "Already have an account? Sign in"}
+                  {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
                 </a>
               </div>
             </CardContent>

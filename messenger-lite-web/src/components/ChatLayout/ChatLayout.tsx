@@ -1,27 +1,27 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useCallback } from "react";
-import ChatSidebar from "./ChatSidebar/ChatSidebar";
-import Navbar from "./Navbar/Navbar";
-import ChatWindow from "./ChatWindow/ChatWindow";
-import { Chat } from "../../types/ChatType";
-import { RightSideDrawer } from "../reusable/RightSideDrawer";
-import { useGlobalContext } from "@/provider/GlobalContextProvider";
-import NewChat from "./NewChat/NewChat";
-import Modal from "../reusable/Modal";
-import UserSettings from "./UserSettings/UserSettings";
-import { useChatStore } from "@/store/useChatStore";
-import { cleanupTyping, startTyping, stopTyping } from "@/lib/typing";
-import { useAuth } from "@/context/useAuth";
-import { socket } from "@/lib/socket";
-import axiosInstance from "@/config/axiosInstance";
-import AddFriend from "./AddFriend/AddFriend";
-import PrivacySettings from "./UserSettings/PrivacySettings";
-import GeneralSettings from "./UserSettings/GeneralSettings";
-import AnimatedWrapper from "../animations/AnimatedWrapper";
-import SelectedChatProfile from "./SelectedChatProfile";
-import { Conversation } from "@/types/coversations.type";
-import SearchModal from "./SearchModal/SearchModal";
+import React, { useState, useEffect, useCallback } from 'react';
+import ChatSidebar from './ChatSidebar/ChatSidebar';
+import Navbar from './Navbar/Navbar';
+import ChatWindow from './ChatWindow/ChatWindow';
+import { Chat } from '../../types/ChatType';
+import { RightSideDrawer } from '../reusable/RightSideDrawer';
+import { useGlobalContext } from '@/provider/GlobalContextProvider';
+import NewChat from './NewChat/NewChat';
+import Modal from '../reusable/Modal';
+import UserSettings from './UserSettings/UserSettings';
+import { useChatStore } from '@/store/useChatStore';
+import { cleanupTyping, startTyping, stopTyping } from '@/lib/typing';
+import { useAuth } from '@/context/useAuth';
+import { socket } from '@/lib/socket';
+import axiosInstance from '@/config/axiosInstance';
+import AddFriend from './AddFriend/AddFriend';
+import PrivacySettings from './UserSettings/PrivacySettings';
+import GeneralSettings from './UserSettings/GeneralSettings';
+import AnimatedWrapper from '../animations/AnimatedWrapper';
+import SelectedChatProfile from './SelectedChatProfile';
+import { Conversation } from '@/types/coversations.type';
+import SearchModal from './SearchModal/SearchModal';
 
 const ChatLayout = () => {
   const { user, getMyself } = useAuth();
@@ -78,7 +78,7 @@ const ChatLayout = () => {
       setOtherUserTyping(null);
       resetPagination();
 
-      socket.emit("join_conversation", chat.id);
+      socket.emit('join_conversation', chat.id);
 
       (async () => {
         try {
@@ -103,10 +103,10 @@ const ChatLayout = () => {
   );
 
   const handleTypingStart = useCallback(() => {
-    if (!selectedChat || selectedChat.type !== "user") return;
-    startTyping(setOtherUserTyping, user?.id ?? "Unknown");
+    if (!selectedChat || selectedChat.type !== 'user') return;
+    startTyping(setOtherUserTyping, user?.id ?? 'Unknown');
 
-    socket.emit("typing", {
+    socket.emit('typing', {
       conversationId: selectedChat.id,
       userId: user?.id,
     });
@@ -116,32 +116,22 @@ const ChatLayout = () => {
 
   return (
     <div className="w-screen h-screen flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden">
-
       <div className="shrink-0">
-        <Navbar
-          user={user}
-          isConnected={isConnected}
-          onSearchClick={() => setShowSearch(true)}
-        />
+        <Navbar user={user} isConnected={isConnected} onSearchClick={() => setShowSearch(true)} />
       </div>
 
       <div className="flex-1 flex overflow-hidden">
-
         {/* Sidebar */}
         <div className="hidden md:block w-80 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-          <ChatSidebar
-            groups={[]}
-            selectedChat={selectedChat}
-            onChatSelect={onChatSelect}
-          />
+          <ChatSidebar groups={[]} selectedChat={selectedChat} onChatSelect={onChatSelect} />
         </div>
 
         {/* Chat Window */}
         {/* <div className="flex-1 bg-white dark:bg-gray-900 flex flex-col overflow-hidden"> */}
         <AnimatedWrapper
-          type="fadeFromLeft"     // or "slideLeft", "growIn", "shrink"
-          duration={0.30}
-          isOpen={true}           // ChatWindow is always visible
+          type="fadeFromLeft" // or "slideLeft", "growIn", "shrink"
+          duration={0.3}
+          isOpen={true} // ChatWindow is always visible
           className="flex-1 bg-white dark:bg-gray-900 flex flex-col overflow-hidden"
         >
           <ChatWindow
@@ -152,9 +142,7 @@ const ChatLayout = () => {
             onSendMessage={(msg, type, file, voice, fwd) =>
               onSendMessage(msg, type, file, voice, fwd, user, isOpenSelectedChatProfile)
             }
-            onAddReaction={(id, emoji) =>
-              onAddReaction(id, emoji, user)
-            }
+            onAddReaction={(id, emoji) => onAddReaction(id, emoji, user)}
             onTypingStart={handleTypingStart}
             onTypingStop={handleTypingStop}
             hasMoreMessages={hasMoreMessages}
@@ -165,14 +153,12 @@ const ChatLayout = () => {
         {/* </div> */}
 
         {/* Right Drawer → Profile */}
-        <AnimatedWrapper
-          isOpen={isOpenSelectedChatProfile}
-          fixedRight
-
-          className="w-80 h-full"
-        >
+        <AnimatedWrapper isOpen={isOpenSelectedChatProfile} fixedRight className="w-80 h-full">
           <div className="relative h-[calc(100vh-64px)] w-full">
-            <SelectedChatProfile onClose={closeSelectedChatProfile} id={selectedChat?.userId ?? ""} />
+            <SelectedChatProfile
+              onClose={closeSelectedChatProfile}
+              id={selectedChat?.userId ?? ''}
+            />
           </div>
         </AnimatedWrapper>
       </div>

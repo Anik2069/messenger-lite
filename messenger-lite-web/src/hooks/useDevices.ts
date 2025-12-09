@@ -1,6 +1,6 @@
-"use client";
-import { useEffect, useState } from "react";
-import { socket } from "@/lib/socket";
+'use client';
+import { useEffect, useState } from 'react';
+import { socket } from '@/lib/socket';
 
 export interface Device {
   id: string;
@@ -19,16 +19,16 @@ export const useDevices = () => {
       setDevices(updatedDevices);
     };
 
-    socket.on("devicesUpdate", handleUpdate);
-    socket.emit("request_devices");
+    socket.on('devicesUpdate', handleUpdate);
+    socket.emit('request_devices');
 
     return () => {
-      socket.off("devicesUpdate", handleUpdate);
+      socket.off('devicesUpdate', handleUpdate);
     };
   }, []);
 
   const logoutDevice = (deviceId: string) => {
-    socket.emit("logout_device", deviceId);
+    socket.emit('logout_device', deviceId);
   };
 
   return { devices, logoutDevice };

@@ -1,9 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { Play, Pause } from "lucide-react";
-import WaveSurfer from "wavesurfer.js";
-
+import { useEffect, useRef, useState } from 'react';
+import { Play, Pause } from 'lucide-react';
+import WaveSurfer from 'wavesurfer.js';
 
 interface AudioPlayerProps {
   src: string;
@@ -11,11 +10,7 @@ interface AudioPlayerProps {
   height?: number;
 }
 
-const AudioPlayer: React.FC<AudioPlayerProps> = ({
-  src,
-  width = 300,
-  height = 40,
-}) => {
+const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, width = 300, height = 40 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
 
@@ -34,8 +29,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
     const ws = WaveSurfer.create({
       container: containerRef.current,
-      waveColor: "#ffffff",
-      progressColor: "#696969",
+      waveColor: '#ffffff',
+      progressColor: '#696969',
       height,
       barWidth: 2,
       barRadius: 2,
@@ -48,18 +43,18 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
     let isUnmounted = false;
 
-    ws.on("ready", () => {
+    ws.on('ready', () => {
       if (isUnmounted) return;
       // setIsLoading(false);
       setDuration(ws.getDuration());
     });
 
-    ws.on("audioprocess", () => {
+    ws.on('audioprocess', () => {
       if (isUnmounted) return;
       setCurrentTime(ws.getCurrentTime());
     });
 
-    ws.on("finish", () => {
+    ws.on('finish', () => {
       if (isUnmounted) return;
       setIsPlaying(false);
       setCurrentTime(0);
@@ -67,8 +62,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
     // ✅ load audio safely
     ws.load(src).catch((err) => {
-      if (err.name !== "AbortError") {
-        console.error("Audio load failed:", err);
+      if (err.name !== 'AbortError') {
+        console.error('Audio load failed:', err);
       }
     });
 
@@ -95,7 +90,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     const minutes = Math.floor(t / 60);
     const seconds = Math.floor(t % 60)
       .toString()
-      .padStart(2, "0");
+      .padStart(2, '0');
     return `${minutes}:${seconds}`;
   };
 
@@ -109,7 +104,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         )}
       </button>
 
-      <div className="flex-1" ref={containerRef} style={{ width: "100%" }} />
+      <div className="flex-1" ref={containerRef} style={{ width: '100%' }} />
 
       <div className="text-xs w-8 text-right text-gray-300">
         {isPlaying ? formatTime(currentTime) : formatTime(duration)}

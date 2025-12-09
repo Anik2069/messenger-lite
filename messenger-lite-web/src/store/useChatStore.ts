@@ -1,20 +1,15 @@
 // src/store/useChatStore.ts
-import { create } from "zustand";
-import axiosInstance from "@/config/axiosInstance";
-import { socket } from "@/lib/socket";
-import { uuidv4 } from "@/lib/utils";
-import { Chat } from "@/types/ChatType";
-import {
-  FileData,
-  ForwardedData,
-  Message,
-  MessageKind,
-} from "@/types/MessageType";
-import { toServerType } from "@/types/sendMessage";
-import { toast } from "react-toastify";
-import { HOST } from "@/constant";
-import { useConversationStore } from "./useConversationStore";
-import { User } from "@/types/UserType";
+import { create } from 'zustand';
+import axiosInstance from '@/config/axiosInstance';
+import { socket } from '@/lib/socket';
+import { uuidv4 } from '@/lib/utils';
+import { Chat } from '@/types/ChatType';
+import { FileData, ForwardedData, Message, MessageKind } from '@/types/MessageType';
+import { toServerType } from '@/types/sendMessage';
+import { toast } from 'react-toastify';
+import { HOST } from '@/constant';
+import { useConversationStore } from './useConversationStore';
+import { User } from '@/types/UserType';
 
 interface ServerMessage {
   id: string;
@@ -46,7 +41,7 @@ interface ServerMessage {
 }
 
 function mapServerMessage(m: ServerMessage): Message {
-  const messageType = (m.messageType ?? "TEXT") as MessageKind;
+  const messageType = (m.messageType ?? 'TEXT') as MessageKind;
 
   return {
     id: m.id,
@@ -54,43 +49,41 @@ function mapServerMessage(m: ServerMessage): Message {
     conversationId: m.conversationId,
 
     from: {
-      id: m.author?.id ?? m.authorId ?? "",
-      username: m.author?.username ?? "Unknown",
+      id: m.author?.id ?? m.authorId ?? '',
+      username: m.author?.username ?? 'Unknown',
     },
     to: {
       id: m.conversationId,
-      username: m.conversation?.name ?? "",
+      username: m.conversation?.name ?? '',
     },
 
-    message: m.message ?? "",
+    message: m.message ?? '',
     messageType, // always "text" | "FILE" | "forwarded"
 
     fileData: m.fileUrl
       ? {
-        url: m.fileUrl,
-        filename: m.fileName ?? "",
-        originalName: m.fileName ?? "",
-        mimetype: m.fileMime ?? "",
-        size: m.fileSize ?? 0,
-      }
+          url: m.fileUrl,
+          filename: m.fileName ?? '',
+          originalName: m.fileName ?? '',
+          mimetype: m.fileMime ?? '',
+          size: m.fileSize ?? 0,
+        }
       : undefined,
 
-    forwardedFrom: m.forwardedFrom
-      ? { originalSender: m.forwardedFrom }
-      : undefined,
+    forwardedFrom: m.forwardedFrom ? { originalSender: m.forwardedFrom } : undefined,
 
-    isGroupMessage: m.conversation?.type === "GROUP",
+    isGroupMessage: m.conversation?.type === 'GROUP',
     timestamp: new Date(m.createdAt ?? Date.now()),
 
     reactions: (m.reactions ?? []).map((r) => ({
       emoji: r.emoji,
-      username: r.user?.username ?? r.userId ?? "",
+      username: r.user?.username ?? r.userId ?? '',
       userId: r.userId,
       timestamp: new Date(r.createdAt ?? Date.now()),
     })),
 
     readBy: (m.receipts ?? []).map((rc) => ({
-      username: rc.user?.username ?? rc.userId ?? "",
+      username: rc.user?.username ?? rc.userId ?? '',
       userId: rc.userId,
       timestamp: new Date(rc.readAt ?? Date.now()),
     })),
@@ -123,7 +116,7 @@ export type ChatState = {
   emitTyping: ({ user }: { user: { username: string } }) => void;
   onSendMessage: (
     text: string,
-    type?: "TEXT" | "FILE" | "forwarded" | "VOICE",
+    type?: 'TEXT' | 'FILE' | 'forwarded' | 'VOICE',
     fileData?: object,
     voiceUrl?: string | undefined,
     forwardedFrom?: ForwardedData,
@@ -153,9 +146,9 @@ export const useChatStore = create<ChatState>((set, get) => {
     // cleanup old listeners
     // socket.off("connect");
     // socket.off("disconnect");
-    socket.off("receive_message");
-    socket.off("user_typing");
-    socket.off("message_reaction");
+    socket.off('receive_message');
+    socket.off('user_typing');
+    socket.off('message_reaction');
 
     // socket.on("connect", () => set({ isConnected: true }));
     // socket.on("disconnect", () => set({ isConnected: false }));
@@ -185,9 +178,9 @@ export const useChatStore = create<ChatState>((set, get) => {
     //   });
     // });
 
-    socket.on("receive_message", (raw: unknown) => {
+    socket.on('receive_message', (raw: unknown) => {
       const msg = mapServerMessage(raw as ServerMessage);
-      console.log(msg, "receive msg");
+      console.log(msg, 'receive msg');
 
       set((state) => {
         // ✅ Replace logic: allow multiple messages with same clientTempId (for multiple file sends)
@@ -203,8 +196,7 @@ export const useChatStore = create<ChatState>((set, get) => {
             return {
               messages: state.messages.map((m) =>
                 m.clientTempId === msg.clientTempId &&
-                  (m.fileData as FileData)?.url ===
-                  (msg.fileData as FileData)?.url
+                (m.fileData as FileData)?.url === (msg.fileData as FileData)?.url
                   ? msg
                   : m
               ),
@@ -217,31 +209,28 @@ export const useChatStore = create<ChatState>((set, get) => {
         if (alreadyExists) return state;
 
         // ✅ Append new message normally
-        console.log(state, "state");
+        console.log(state, 'state');
         return { messages: [...state.messages, msg] };
       });
     });
 
     // Typing indicator
-    socket.on(
-      "user_typing",
-      (data: { conversationId: string; username?: string }) => {
-        const { selectedChat } = get();
-        if (selectedChat && selectedChat.id === data.conversationId) {
-          set({ otherUserTyping: data.username ?? null });
-        }
+    socket.on('user_typing', (data: { conversationId: string; username?: string }) => {
+      const { selectedChat } = get();
+      if (selectedChat && selectedChat.id === data.conversationId) {
+        set({ otherUserTyping: data.username ?? null });
       }
-    );
+    });
 
     // Reactions
-    socket.on("message_reaction", (payload) => {
+    socket.on('message_reaction', (payload) => {
       set((state) => ({
         messages: state.messages.map((msg) => {
           if (msg.id !== payload.messageId) return msg;
 
-          const actor = payload.username || payload.userId || "Unknown";
+          const actor = payload.username || payload.userId || 'Unknown';
 
-          if (payload.action === "removed") {
+          if (payload.action === 'removed') {
             return {
               ...msg,
               reactions: msg.reactions.filter(
@@ -257,9 +246,7 @@ export const useChatStore = create<ChatState>((set, get) => {
               {
                 emoji: payload.emoji,
                 username: actor,
-                timestamp: payload.timestamp
-                  ? new Date(payload.timestamp)
-                  : new Date(),
+                timestamp: payload.timestamp ? new Date(payload.timestamp) : new Date(),
               },
             ],
           };
@@ -300,7 +287,7 @@ export const useChatStore = create<ChatState>((set, get) => {
       const { selectedChat } = get();
       if (!selectedChat || !user) return;
 
-      socket.emit("typing", {
+      socket.emit('typing', {
         conversationId: selectedChat.id,
         username: user.username,
       });
@@ -308,7 +295,7 @@ export const useChatStore = create<ChatState>((set, get) => {
 
     onSendMessage: async (
       text,
-      type = "TEXT",
+      type = 'TEXT',
       fileData,
       voiceUrl,
       forwardedFrom,
@@ -319,8 +306,6 @@ export const useChatStore = create<ChatState>((set, get) => {
 
       if (!selectedChat || !currentUser) return;
 
-
-
       const clientTempId = uuidv4();
       // const tempId = `temp-${Date.now()}`;
 
@@ -329,16 +314,16 @@ export const useChatStore = create<ChatState>((set, get) => {
 
       const formData = new FormData();
 
-      formData.append("conversationId", selectedChat.id);
-      if (selectedChat.type === "user") {
-        formData.append("recipientId", selectedChat.id);
+      formData.append('conversationId', selectedChat.id);
+      if (selectedChat.type === 'user') {
+        formData.append('recipientId', selectedChat.id);
       }
-      formData.append("message", text || "");
-      formData.append("messageType", toServerType(type));
-      formData.append("clientTempId", clientTempId);
+      formData.append('message', text || '');
+      formData.append('messageType', toServerType(type));
+      formData.append('clientTempId', clientTempId);
 
       if (forwardedFrom) {
-        formData.append("forwardedFrom", forwardedFrom.originalSender);
+        formData.append('forwardedFrom', forwardedFrom.originalSender);
       }
 
       // If single or multiple files
@@ -346,7 +331,7 @@ export const useChatStore = create<ChatState>((set, get) => {
         const files = Array.isArray(fileData) ? fileData : [fileData];
         files.forEach((file) => {
           // file should be a File object from input
-          formData.append("files", file as unknown as Blob);
+          formData.append('files', file as unknown as Blob);
         });
       }
       // handle voice message
@@ -354,22 +339,22 @@ export const useChatStore = create<ChatState>((set, get) => {
         // Convert voice blob if needed
         try {
           const blob = await fetch(voiceUrl).then((res) => res.blob());
-          console.log(blob, "blob");
-          formData.append("files", blob, "voice-message.wav");
+          console.log(blob, 'blob');
+          formData.append('files', blob, 'voice-message.wav');
         } catch (e) {
-          console.error("Voice file blob fetch failed", e);
+          console.error('Voice file blob fetch failed', e);
         }
       }
 
       try {
-        const res = await axiosInstance.post("messages", formData, {
+        const res = await axiosInstance.post('messages', formData, {
           headers: {
-            "Content-Type": "multipart/form-data",
+            'Content-Type': 'multipart/form-data',
           },
         });
 
         const saved = res.data?.results;
-        console.log(saved, "saved--------------");
+        console.log(saved, 'saved--------------');
 
         if (saved) {
           // fetch conversation media
@@ -379,7 +364,6 @@ export const useChatStore = create<ChatState>((set, get) => {
               fetchConversationsMedia(conversationId);
             }
           }
-
         }
       } catch (err) {
         // rollback optimistic
@@ -391,14 +375,12 @@ export const useChatStore = create<ChatState>((set, get) => {
           response: { data: { message: string } };
         };
         if (response?.response?.data?.message) {
-          toast.error(
-            response.response.data.message || "Failed to send message"
-          );
+          toast.error(response.response.data.message || 'Failed to send message');
           // console.log();
           // TODO : add error message to set state
           return;
         }
-        toast.error("Failed to send message");
+        toast.error('Failed to send message');
       }
     },
 
@@ -407,15 +389,13 @@ export const useChatStore = create<ChatState>((set, get) => {
       try {
         await axiosInstance.post(`reactions/${messageId}/reactions`, { emoji });
       } catch (e) {
-        console.error("reaction failed", e);
+        console.error('reaction failed', e);
       }
     },
 
     handleClearConversation: async (conversationId) => {
       try {
-        const response = await axiosInstance.delete(
-          `${HOST}/messages/clear/${conversationId}`
-        );
+        const response = await axiosInstance.delete(`${HOST}/messages/clear/${conversationId}`);
 
         if (response.status === 200) {
           set({ messages: [] });
@@ -438,13 +418,7 @@ export const useChatStore = create<ChatState>((set, get) => {
     },
 
     loadMoreMessages: async () => {
-      const {
-        selectedChat,
-        messageCursor,
-        hasMoreMessages,
-        isLoadingMessages,
-        messages,
-      } = get();
+      const { selectedChat, messageCursor, hasMoreMessages, isLoadingMessages, messages } = get();
 
       // Don't load if already loading, no more messages, or no chat selected
       if (isLoadingMessages || !hasMoreMessages || !selectedChat) return;
@@ -467,9 +441,7 @@ export const useChatStore = create<ChatState>((set, get) => {
           // Prepend older messages (they come in chronological order)
           // Filter out duplicates by ID
           const existingIds = new Set(messages.map((m) => m.id));
-          const uniqueNewMessages = newMessages.filter(
-            (m: Message) => !existingIds.has(m.id)
-          );
+          const uniqueNewMessages = newMessages.filter((m: Message) => !existingIds.has(m.id));
 
           set({
             messages: [...uniqueNewMessages, ...messages],
@@ -479,7 +451,7 @@ export const useChatStore = create<ChatState>((set, get) => {
           });
         }
       } catch (error) {
-        console.error("Failed to load more messages", error);
+        console.error('Failed to load more messages', error);
         set({ isLoadingMessages: false });
       }
     },
@@ -487,9 +459,7 @@ export const useChatStore = create<ChatState>((set, get) => {
     fetchConversationsMedia: async (id: string) => {
       set({ isLoadingMedia: true });
       try {
-        const response = await axiosInstance.get(
-          `${HOST}/messages/${id}/media`
-        );
+        const response = await axiosInstance.get(`${HOST}/messages/${id}/media`);
         // console.log(response?.data?.results?.media, "response");
         if (response?.status === 200) {
           set({ selectedMedia: response?.data?.results?.media, isLoadingMedia: false });

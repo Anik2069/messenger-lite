@@ -1,21 +1,20 @@
-"use client";
+'use client';
 
-import { DummyAvatar } from "@/assets/image";
-import { useFriendsStore } from "@/store/useFriendsStrore";
-import Image from "next/image";
-import React, { useEffect } from "react";
+import { DummyAvatar } from '@/assets/image';
+import { useFriendsStore } from '@/store/useFriendsStrore';
+import Image from 'next/image';
+import React, { useEffect } from 'react';
 import {
   differenceInMinutes,
   differenceInHours,
   differenceInDays,
   differenceInWeeks,
   format,
-} from "date-fns";
+} from 'date-fns';
 
-import { MEDIA_HOST } from "@/constant";
+import { MEDIA_HOST } from '@/constant';
 
 const RequestedFriendsList = () => {
-
   const {
     error: friendsError,
     activeTab,
@@ -33,17 +32,11 @@ const RequestedFriendsList = () => {
     return <p className="text-center text-sm text-gray-500">Loading...</p>;
 
   if (friendsError)
-    return (
-      <p className="text-center text-sm text-red-500">
-        Failed to load requested users
-      </p>
-    );
+    return <p className="text-center text-sm text-red-500">Failed to load requested users</p>;
 
   if (!pendingRequestsLIst?.length)
     return (
-      <p className="text-center text-sm text-gray-500">
-        You haven’t sent any friend requests yet.
-      </p>
+      <p className="text-center text-sm text-gray-500">You haven’t sent any friend requests yet.</p>
     );
 
   const formatSocialTime = (dateString: string | Date) => {
@@ -51,7 +44,7 @@ const RequestedFriendsList = () => {
     const now = new Date();
 
     const minutesAgo = differenceInMinutes(now, date);
-    if (minutesAgo < 1) return "Just now";
+    if (minutesAgo < 1) return 'Just now';
     if (minutesAgo < 60) return `${minutesAgo}m ago`; // minutes
 
     const hoursAgo = differenceInHours(now, date);
@@ -64,7 +57,7 @@ const RequestedFriendsList = () => {
     if (weeksAgo < 4) return `${weeksAgo}w ago`; // weeks
 
     // older than 4 weeks, fallback to month + day
-    return format(date, "MMM d");
+    return format(date, 'MMM d');
   };
 
   return (
@@ -77,11 +70,7 @@ const RequestedFriendsList = () => {
           {/* Avatar + Info */}
           <div className="flex items-center gap-3 min-w-0">
             <Image
-              src={
-                userInfo?.avatar
-                  ? MEDIA_HOST + "/" + userInfo?.avatar
-                  : DummyAvatar
-              }
+              src={userInfo?.avatar ? MEDIA_HOST + '/' + userInfo?.avatar : DummyAvatar}
               alt={userInfo?.username}
               width={40}
               height={40}
@@ -91,9 +80,7 @@ const RequestedFriendsList = () => {
               <h3 className="font-medium text-gray-900 dark:text-white truncate">
                 {userInfo?.username}
               </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                10 mutual friends
-              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">10 mutual friends</p>
             </div>
           </div>
 

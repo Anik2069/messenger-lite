@@ -1,18 +1,11 @@
-"use client";
+'use client';
 
-import type React from "react";
+import type React from 'react';
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  MessageSquare,
-  Home,
-  RefreshCw,
-  HelpCircle,
-  Mail,
-  ChevronLeft,
-} from "lucide-react";
-import Link from "next/link";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { MessageSquare, Home, RefreshCw, HelpCircle, Mail, ChevronLeft } from 'lucide-react';
+import Link from 'next/link';
 
 export default function NotFound() {
   return (
@@ -40,9 +33,8 @@ export default function NotFound() {
                   Oops! This page doesn&apos;t exist
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                  The page you&apos;re looking for might have been moved,
-                  deleted, or you entered the wrong URL. Don&apos;t worry,
-                  let&apos;s get you back on track!
+                  The page you&apos;re looking for might have been moved, deleted, or you entered
+                  the wrong URL. Don&apos;t worry, let&apos;s get you back on track!
                 </p>
               </div>
 

@@ -1,9 +1,9 @@
-import type React from "react";
-import { useFormContext } from "react-hook-form";
-import { Input } from "@/components/ui/input";
+import type React from 'react';
+import { useFormContext } from 'react-hook-form';
+import { Input } from '@/components/ui/input';
 
-import { clsx } from "clsx";
-import { Label } from "../ui/label";
+import { clsx } from 'clsx';
+import { Label } from '../ui/label';
 
 interface InputFieldProps {
   name: string;
@@ -24,9 +24,9 @@ interface InputFieldProps {
 export const InputField: React.FC<InputFieldProps> = ({
   name,
   label,
-  type = "text",
+  type = 'text',
   placeholder,
-  className = "",
+  className = '',
   icon,
   iconToggle,
   min,
@@ -43,7 +43,7 @@ export const InputField: React.FC<InputFieldProps> = ({
 
   // Handler to disable number input scroll
   const handleWheel = (e: React.WheelEvent<HTMLInputElement>) => {
-    if (type === "number") {
+    if (type === 'number') {
       e.currentTarget.blur();
     }
   };
@@ -74,21 +74,11 @@ export const InputField: React.FC<InputFieldProps> = ({
           value={readOnly ? value : undefined}
           readOnly={readOnly}
           onWheel={handleWheel}
-          className={clsx(
-            icon ? "pl-10" : "",
-            iconToggle ? "pr-10" : "",
-            className
-          )}
-          {...(readOnly
-            ? {}
-            : register(name, { valueAsNumber: type === "number" }))}
+          className={clsx(icon ? 'pl-10' : '', iconToggle ? 'pr-10' : '', className)}
+          {...(readOnly ? {} : register(name, { valueAsNumber: type === 'number' }))}
         />
       </div>
-      {errors[name] && (
-        <p className="text-sm text-red-500">
-          {errors[name]?.message as string}
-        </p>
-      )}
+      {errors[name] && <p className="text-sm text-red-500">{errors[name]?.message as string}</p>}
     </div>
   );
 };

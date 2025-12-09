@@ -1,22 +1,22 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { AppToastContainer } from "@/lib/toast";
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
+import './globals.css';
+import { AppToastContainer } from '@/lib/toast';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
-  title: "messenger lite",
+  title: 'messenger lite',
   description:
-    "Messenger Lite is a minimalist, web-based chat application. Built for users who prefer a fast, responsive, and data-efficient messaging experience, this project focuses on delivering core chat functionalities without the distractions of a full-featured messenger.",
+    'Messenger Lite is a minimalist, web-based chat application. Built for users who prefer a fast, responsive, and data-efficient messaging experience, this project focuses on delivering core chat functionalities without the distractions of a full-featured messenger.',
 };
 
 export default function RootLayout({
@@ -26,9 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
         <AppToastContainer />
       </body>

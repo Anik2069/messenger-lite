@@ -1,36 +1,29 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { Lock, ShieldCheck, MonitorSmartphone } from "lucide-react";
+import React, { useState } from 'react';
+import { Lock, ShieldCheck, MonitorSmartphone } from 'lucide-react';
 // import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 // import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import ChangePassword from "./@privacy/ChangePassword";
-import TwoFactorAuth from "./@privacy/TwoFactorAuth";
-import LoggedInDevices from "./@privacy/LoggedInDevices";
-import { useAuth } from "@/context/useAuth";
+import { cn } from '@/lib/utils';
+import ChangePassword from './@privacy/ChangePassword';
+import TwoFactorAuth from './@privacy/TwoFactorAuth';
+import LoggedInDevices from './@privacy/LoggedInDevices';
+import { useAuth } from '@/context/useAuth';
 // import ConfirmationModal from "@/components/reusable/ConfirmationModal";
 // import { useGlobalContext } from "@/provider/GlobalContextProvider";
-import { VerifyModal } from "@/components/reusable/VerifyModal";
+import { VerifyModal } from '@/components/reusable/VerifyModal';
 
 const menuItems = [
-  { id: "password", label: "Change Password", icon: Lock },
-  { id: "2fa", label: "2FA Authentication", icon: ShieldCheck },
-  { id: "devices", label: "Logged-in Devices", icon: MonitorSmartphone },
+  { id: 'password', label: 'Change Password', icon: Lock },
+  { id: '2fa', label: '2FA Authentication', icon: ShieldCheck },
+  { id: 'devices', label: 'Logged-in Devices', icon: MonitorSmartphone },
 ];
 
 const PrivacySettings = () => {
-  const [activeTab, setActiveTab] = useState("password");
+  const [activeTab, setActiveTab] = useState('password');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const {
-    setSetupError,
-    remove2FA,
-    removeModalClose,
-    removeModalIsOpen,
-  } = useAuth();
+  const { setSetupError, remove2FA, removeModalClose, removeModalIsOpen } = useAuth();
   // const {} = useGlobalContext();
-
-
 
   const handleRemove2FA = async (code: string) => {
     setSetupError(false);
@@ -44,8 +37,8 @@ const PrivacySettings = () => {
       {/* ===== Sidebar ===== */}
       <aside
         className={cn(
-          " fixed top-0 left-0  md:relative md:flex flex-col md:w-1/3 lg:w-1/4 bg-white/90 dark:bg-gray-800/90 shadow-lg backdrop-blur-sm border-b md:border-r dark:border-gray-700 transition-transform duration-300 ease-in-out",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+          ' fixed top-0 left-0  md:relative md:flex flex-col md:w-1/3 lg:w-1/4 bg-white/90 dark:bg-gray-800/90 shadow-lg backdrop-blur-sm border-b md:border-r dark:border-gray-700 transition-transform duration-300 ease-in-out',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         )}
       >
         {/* Sidebar Header */}
@@ -72,9 +65,9 @@ const PrivacySettings = () => {
                 setSidebarOpen(false);
               }}
               className={cn(
-                "flex items-center gap-3 px-6 py-3 text-sm font-medium transition-all text-gray-700 dark:text-gray-300 hover:bg-blue-100/60 dark:hover:bg-blue-900/30",
+                'flex items-center gap-3 px-6 py-3 text-sm font-medium transition-all text-gray-700 dark:text-gray-300 hover:bg-blue-100/60 dark:hover:bg-blue-900/30',
                 activeTab === id &&
-                "bg-blue-600/10 text-blue-700 dark:text-blue-400 border-l-4 border-blue-600"
+                  'bg-blue-600/10 text-blue-700 dark:text-blue-400 border-l-4 border-blue-600'
               )}
             >
               <Icon className="w-4 h-4" />
@@ -102,9 +95,9 @@ const PrivacySettings = () => {
 
         {/* Content Container */}
         <div className="w-full  md:h-auto overflow-y-auto   backdrop-blur-sm">
-          {activeTab === "password" && <ChangePassword />}
-          {activeTab === "2fa" && <TwoFactorAuth />}
-          {activeTab === "devices" && <LoggedInDevices />}
+          {activeTab === 'password' && <ChangePassword />}
+          {activeTab === '2fa' && <TwoFactorAuth />}
+          {activeTab === 'devices' && <LoggedInDevices />}
         </div>
         {/* <ConfirmationModal
           open={removeModalIsOpen}

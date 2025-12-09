@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import type React from "react";
+import type React from 'react';
 
-import { useRef, useState } from "react";
-import { Camera } from "lucide-react";
-import { Spinner } from "@/components/ui/Spinner";
-import { DummyAvatar } from "@/assets/image";
-import Image from "next/image";
+import { useRef, useState } from 'react';
+import { Camera } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
+import { DummyAvatar } from '@/assets/image';
+import Image from 'next/image';
 
 interface ProfileImageProps {
   loading?: boolean;
@@ -32,15 +32,9 @@ export function ProfileImage({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const validTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "image/svg+xml",
-      "image/jpg",
-    ];
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/jpg'];
     if (!validTypes.includes(file.type)) {
-      alert("Please select a valid image file (JPG, JPEG, PNG, WEBP, or SVG)");
+      alert('Please select a valid image file (JPG, JPEG, PNG, WEBP, or SVG)');
       return;
     }
 

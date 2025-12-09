@@ -1,7 +1,7 @@
-import { Forward, Smile } from "lucide-react";
-import { formatLocalTime, Message, FileData } from "../../../types/MessageType";
-import FileMessage from "./FileMessage";
-import ReactionPicker from "./ReactionPicker";
+import { Forward, Smile } from 'lucide-react';
+import { formatLocalTime, Message, FileData } from '../../../types/MessageType';
+import FileMessage from './FileMessage';
+import ReactionPicker from './ReactionPicker';
 
 interface MessageItemProps {
   msg: Message;
@@ -29,7 +29,7 @@ const MessageItem = ({
 
   /** Forwarded message header */
   const renderForwardedHeader = () =>
-    msg.messageType === "forwarded" && msg.forwardedFrom?.originalSender ? (
+    msg.messageType === 'forwarded' && msg.forwardedFrom?.originalSender ? (
       <div className="text-xs opacity-75 mb-1 flex items-center">
         <Forward className="w-3 h-3 mr-1" />
         Forwarded from {msg.forwardedFrom.originalSender}
@@ -40,7 +40,7 @@ const MessageItem = ({
   const renderMessageContent = () => {
     let file: FileData | null = null;
 
-    if (msg.messageType === "FILE" || msg.messageType === "VOICE") {
+    if (msg.messageType === 'FILE' || msg.messageType === 'VOICE') {
       // Prefer frontend optimistic fileData, fallback to backend fields
       if (msg.fileData) {
         file = msg.fileData as FileData;
@@ -55,7 +55,7 @@ const MessageItem = ({
       }
     }
 
-    const isAudio = file?.mimetype?.startsWith("audio/");
+    const isAudio = file?.mimetype?.startsWith('audio/');
 
     return (
       <>
@@ -89,8 +89,9 @@ const MessageItem = ({
   /** Message timestamp */
   const renderMessageTime = () => (
     <p
-      className={`text-[11px] whitespace-nowrap ${isOwnMessage ? "text-blue-100" : "text-gray-500 dark:text-gray-400"
-        }`}
+      className={`text-[11px] whitespace-nowrap ${
+        isOwnMessage ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
+      }`}
     >
       {formatLocalTime(msg.createdAt ? new Date(msg.createdAt) : msg.timestamp)}
     </p>
@@ -132,13 +133,10 @@ const MessageItem = ({
   const renderReactions = () => {
     if (!msg.reactions?.length) return null;
 
-    const reactionGroups = msg.reactions.reduce<Record<string, string[]>>(
-      (acc, r) => {
-        acc[r.emoji] = (acc[r.emoji] || []).concat(r.username);
-        return acc;
-      },
-      {}
-    );
+    const reactionGroups = msg.reactions.reduce<Record<string, string[]>>((acc, r) => {
+      acc[r.emoji] = (acc[r.emoji] || []).concat(r.username);
+      return acc;
+    }, {});
 
     return (
       <div className="flex flex-wrap gap-1 mt-1">
@@ -146,7 +144,7 @@ const MessageItem = ({
           <div
             key={emoji}
             className="text-xs flex items-center space-x-1"
-            title={`${users.join(", ")} reacted with ${emoji}`}
+            title={`${users.join(', ')} reacted with ${emoji}`}
           >
             <span>{emoji}</span>
             {users.length > 1 && <span>{users.length}</span>}
@@ -157,20 +155,12 @@ const MessageItem = ({
   };
 
   return (
-    <div
-      className={`flex  group ${isOwnMessage ? "justify-end " : "justify-start "
-        }`}
-    >
+    <div className={`flex  group ${isOwnMessage ? 'justify-end ' : 'justify-start '}`}>
       <div className="flex flex-col">
-        <div
-          className={`flex items-center ${isOwnMessage ? " " : "flex-row-reverse"
-            } `}
-        >
+        <div className={`flex items-center ${isOwnMessage ? ' ' : 'flex-row-reverse'} `}>
           <div className="relative">
             <button
-              onClick={() =>
-                setShowReactions(showReactions === msg.id ? null : msg.id)
-              }
+              onClick={() => setShowReactions(showReactions === msg.id ? null : msg.id)}
               className="cursor-pointer p-1 rounded opacity-0 scale-90 transform transition-all duration-200 ease-out group-hover:opacity-100 group-hover:scale-100"
               aria-label="Add reaction"
             >
@@ -188,10 +178,11 @@ const MessageItem = ({
 
           <div className="max-w-xs lg:max-w-lg">
             <div
-              className={`flex gap-2 items-end px-3 py-2 rounded-lg relative group ${isOwnMessage
-                ? "bg-blue-500 text-white rounded-br-xs"
-                : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-xs"
-                }`}
+              className={`flex gap-2 items-end px-3 py-2 rounded-lg relative group ${
+                isOwnMessage
+                  ? 'bg-blue-500 text-white rounded-br-xs'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-xs'
+              }`}
             >
               {renderMessageHeader()}
               {renderForwardedHeader()}
@@ -204,9 +195,7 @@ const MessageItem = ({
             </div>
           </div>
         </div>
-        <div className={` ${isOwnMessage ? "ms-5" : ""}`}>
-          {renderReactions()}
-        </div>
+        <div className={` ${isOwnMessage ? 'ms-5' : ''}`}>{renderReactions()}</div>
       </div>
     </div>
   );

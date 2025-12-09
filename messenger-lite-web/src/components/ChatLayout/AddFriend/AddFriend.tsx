@@ -1,21 +1,17 @@
-"use client";
-import ReusableSearchInput from "@/components/reusable/ReusableSearchInput";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useFriendsStore } from "@/store/useFriendsStrore";
-import React, { useEffect } from "react";
-import SuggestedFriendList from "./SuggestedFriendList";
-import RequestedFriendsList from "./RequestedFriendsList";
-import RequestFriendsList from "./RequestFriendsList";
+'use client';
+import ReusableSearchInput from '@/components/reusable/ReusableSearchInput';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useFriendsStore } from '@/store/useFriendsStrore';
+import React, { useEffect } from 'react';
+import SuggestedFriendList from './SuggestedFriendList';
+import RequestedFriendsList from './RequestedFriendsList';
+import RequestFriendsList from './RequestFriendsList';
 
-const AddFriend = ({
-  isAddFriendModalOpen,
-}: {
-  isAddFriendModalOpen: boolean;
-}) => {
+const AddFriend = ({ isAddFriendModalOpen }: { isAddFriendModalOpen: boolean }) => {
   const { activeTab, setActiveTab, setSearchText } = useFriendsStore();
 
   useEffect(() => {
-    setActiveTab("request");
+    setActiveTab('request');
   }, [setActiveTab, isAddFriendModalOpen]);
   return (
     <div className="">
@@ -32,10 +28,7 @@ const AddFriend = ({
           <TabsTrigger value="pending">Pending</TabsTrigger>
         </TabsList>
         <div className="mt-2">
-          <ReusableSearchInput
-            placeholder="Search Name"
-            onDebouncedChange={setSearchText}
-          />
+          <ReusableSearchInput placeholder="Search Name" onDebouncedChange={setSearchText} />
         </div>
         <TabsContent value="suggestion">
           <SuggestedFriendList />

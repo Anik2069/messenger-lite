@@ -1,20 +1,14 @@
-"use client";
+'use client';
 
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { socket } from "@/lib/socket";
-import axiosInstance from "@/config/axiosInstance";
-import axios from "axios";
-import { User } from "@/types/UserType";
-import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { socket } from '@/lib/socket';
+import axiosInstance from '@/config/axiosInstance';
+import axios from 'axios';
+import { User } from '@/types/UserType';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 
-import { useModal } from "@/hooks/useModal";
+import { useModal } from '@/hooks/useModal';
 
 interface ApiResponse<T = unknown> {
   statusCode: number;
@@ -23,13 +17,7 @@ interface ApiResponse<T = unknown> {
   timestamp: string;
 }
 
-type DeviceType =
-  | "DESKTOP"
-  | "MOBILE"
-  | "TABLET"
-  | "BOT"
-  | "POSTMAN"
-  | "UNKNOWN";
+type DeviceType = 'DESKTOP' | 'MOBILE' | 'TABLET' | 'BOT' | 'POSTMAN' | 'UNKNOWN';
 
 export interface UserDevice {
   id: string;
@@ -47,11 +35,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (
-    email: string,
-    username: string,
-    password: string
-  ) => Promise<void>;
+  register: (email: string, username: string, password: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
   isLogoutLoading: boolean;
@@ -72,10 +56,7 @@ interface AuthContextType {
   handleRemove: (code: string) => void;
   is2FAEnabled: boolean;
   handleVerifyAtSignIn: (codeFrom2FA: string | number) => void;
-  changePassword: (
-    currentPassword: string,
-    newPassword: string
-  ) => Promise<ApiResponse | null>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<ApiResponse | null>;
   removeModalOpen: () => void;
   removeModalClose: () => void;
   removeModalIsOpen: boolean;
@@ -90,9 +71,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [currentUserDetails, setCurrentUserDetails] = useState<User | null>(
-    null
-  );
+  const [currentUserDetails, setCurrentUserDetails] = useState<User | null>(null);
 
   const [is2FAEnabled, setIs2FAEnabled] = useState<boolean>(false);
   const [token, setToken] = useState<string | null>(null);
@@ -102,29 +81,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [qr, setQr] = useState<string | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
   const [setupLoading, setSetupLoading] = useState<boolean>(false);
-  const [codeFrom2FA, setCodeFrom2FA] = useState<string | number | undefined>(
-    undefined
-  );
+  const [codeFrom2FA, setCodeFrom2FA] = useState<string | number | undefined>(undefined);
   const [userId, setUserId] = useState<string | null>(null);
   const [setupError, setSetupError] = useState<boolean>(false);
   const [verified, setVerified] = useState<boolean>(false);
   const router = useRouter();
   const [isLogoutLoading, setIsLogoutLoading] = useState(false);
-  const {
-    open: removeModalOpen,
-    close: removeModalClose,
-    isOpen: removeModalIsOpen,
-  } = useModal();
+  const { open: removeModalOpen, close: removeModalClose, isOpen: removeModalIsOpen } = useModal();
 
-  const [userTrustedDevices, setUserTrustedDevices] = useState<UserDevice[]>(
-    []
-  );
-  const [isLoadingUserTrustedDevices, setIsLoadingUserTrustedDevices] =
-    useState<boolean>(false);
+  const [userTrustedDevices, setUserTrustedDevices] = useState<UserDevice[]>([]);
+  const [isLoadingUserTrustedDevices, setIsLoadingUserTrustedDevices] = useState<boolean>(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    const savedUser = localStorage.getItem("user");
+    const token = localStorage.getItem('accessToken');
+    const savedUser = localStorage.getItem('user');
 
     if (token && savedUser) {
       setUser(JSON.parse(savedUser));
@@ -140,24 +110,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const response = await axiosInstance.post("/auth/user/sign-in", {
+      const response = await axiosInstance.post('/auth/user/sign-in', {
         email,
         password,
       });
 
       const result = response.data?.results;
 
-      if (!result) throw new Error("Invalid server response");
+      if (!result) throw new Error('Invalid server response');
 
       const is2FA = Boolean(result.twoFA);
 
       // If 2FA is enabled, go to OTP verification step
       if (is2FA) {
         const id = result.userId as string;
-        if (!id) throw new Error("Missing user ID for 2FA");
+        if (!id) throw new Error('Missing user ID for 2FA');
         setIs2FAEnabled(true);
         setUserId(id);
-        toast.info("Two-Factor Authentication required");
+        toast.info('Two-Factor Authentication required');
         return;
       }
 
@@ -165,7 +135,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const token = result.accessToken as string;
       const userInfo = result.userInfo as User;
 
-      if (!token || !userInfo) throw new Error("Incomplete login data");
+      if (!token || !userInfo) throw new Error('Incomplete login data');
 
       //  Update local states
       setUser(userInfo);
@@ -176,16 +146,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (!socket.connected) socket.connect();
 
       // Persist session locally
-      localStorage.setItem("accessToken", token);
-      localStorage.setItem("user", JSON.stringify(userInfo));
+      localStorage.setItem('accessToken', token);
+      localStorage.setItem('user', JSON.stringify(userInfo));
 
-      toast.success(`Welcome back, ${userInfo.username || "User"}!`);
-      router.replace("/"); // use replace instead of push to prevent going back to login
+      toast.success(`Welcome back, ${userInfo.username || 'User'}!`);
+      router.replace('/'); // use replace instead of push to prevent going back to login
     } catch (error) {
-      console.error("Login error:", error);
+      console.error('Login error:', error);
       const message = axios.isAxiosError(error)
-        ? error.response?.data?.message || "Invalid credentials"
-        : (error as Error).message || "Login failed";
+        ? error.response?.data?.message || 'Invalid credentials'
+        : (error as Error).message || 'Login failed';
       toast.error(message);
     } finally {
       setLoading(false);
@@ -193,14 +163,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   //  REGISTER
-  const register = async (
-    email: string,
-    username: string,
-    password: string
-  ) => {
+  const register = async (email: string, username: string, password: string) => {
     setLoading(true);
     try {
-      const res = await axiosInstance.post("auth/user/sign-up", {
+      const res = await axiosInstance.post('auth/user/sign-up', {
         username,
         email,
         password,
@@ -213,22 +179,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(u);
         setToken(t);
 
-        localStorage.setItem("accessToken", t);
-        localStorage.setItem("user", JSON.stringify(u));
+        localStorage.setItem('accessToken', t);
+        localStorage.setItem('user', JSON.stringify(u));
 
         socket.auth = { token: t };
         if (!socket.connected) socket.connect();
 
         // toast.success("Registration successful");
-        router.push("/");
+        router.push('/');
       } else {
-        toast.success("Registration successful! Please login.");
-        router.push("/auth?type=login");
+        toast.success('Registration successful! Please login.');
+        router.push('/auth?type=login');
       }
     } catch (err: unknown) {
       const message = axios.isAxiosError(err)
-        ? err.response?.data?.message ?? "Registration failed"
-        : "Registration failed";
+        ? (err.response?.data?.message ?? 'Registration failed')
+        : 'Registration failed';
       toast.error(message);
     } finally {
       setLoading(false);
@@ -239,21 +205,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     setIsLogoutLoading(true);
     try {
-      await axiosInstance.post("auth/user/logout").catch(() => { });
+      await axiosInstance.post('auth/user/logout').catch(() => {});
 
       setUser(null);
       setToken(null);
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("user");
-      localStorage.removeItem("friend-storage");
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('user');
+      localStorage.removeItem('friend-storage');
 
       if (socket.connected) socket.disconnect();
-      socket.auth = { token: "" };
+      socket.auth = { token: '' };
 
-      router.replace("/auth?type=login");
+      router.replace('/auth?type=login');
     } catch (error) {
-      console.error("Logout failed", error);
-      toast.error("Logout failed, please try again.");
+      console.error('Logout failed', error);
+      toast.error('Logout failed, please try again.');
     } finally {
       setIsLogoutLoading(false);
     }
@@ -262,7 +228,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const setUp2FA = async () => {
     setSetupLoading(true);
     try {
-      const response = await axiosInstance.post("auth/user/2fa/generate");
+      const response = await axiosInstance.post('auth/user/2fa/generate');
       if (response.status === 200) {
         console.log(response.data?.results);
         setQr(response.data?.results?.qr);
@@ -276,7 +242,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const handleVerify = async (codeFrom2FA: string | number) => {
     try {
-      const response = await axiosInstance.post("auth/user/2fa/verify-setup", {
+      const response = await axiosInstance.post('auth/user/2fa/verify-setup', {
         token: codeFrom2FA,
       });
       if (response.status === 200) {
@@ -289,25 +255,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-
-
   const getMyself = async () => {
     try {
-      const response = await axiosInstance.get("auth/user/me");
+      const response = await axiosInstance.get('auth/user/me');
       console.log(response);
       if (response.status === 200) {
         const u = response.data?.results?.userInfo as User | undefined;
         if (u) {
           setCurrentUserDetails(u);
-          localStorage.setItem("user", JSON.stringify(u));
+          localStorage.setItem('user', JSON.stringify(u));
         }
       }
-    } catch { }
+    } catch {}
   };
 
   const remove2FA = async (code?: string) => {
     try {
-      const response = await axiosInstance.post("auth/user/2fa/remove", {
+      const response = await axiosInstance.post('auth/user/2fa/remove', {
         token: code,
       });
 
@@ -320,7 +284,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setVerified(false);
         setCodeFrom2FA(undefined);
         removeModalClose();
-        toast.success("2FA removed successfully.");
+        toast.success('2FA removed successfully.');
         // refresh user info
         await getMyself();
 
@@ -328,14 +292,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return result;
       }
 
-      toast.error("2FA removal failed. Please try again.");
+      toast.error('2FA removal failed. Please try again.');
       return null;
     } catch (error) {
       console.error(error);
       const message = error as unknown as {
         response: { data: { message: string } };
       };
-      toast.error(message?.response?.data?.message || "2FA removal failed.");
+      toast.error(message?.response?.data?.message || '2FA removal failed.');
       return null;
     }
   };
@@ -347,29 +311,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const handleVerifyAtSignIn = async (codeFrom2FA: string | number) => {
     try {
-      const response = await axiosInstance.post(
-        "/auth/user/verify-2FA/sign-in",
-        {
-          token: codeFrom2FA,
-          userId,
-        }
-      );
+      const response = await axiosInstance.post('/auth/user/verify-2FA/sign-in', {
+        token: codeFrom2FA,
+        userId,
+      });
 
       const data = response.data?.results;
-      if (!data) throw new Error("Invalid server response");
+      if (!data) throw new Error('Invalid server response');
 
       const accessToken = data.accessToken;
       const userInfo = data.user;
 
       if (!accessToken || !userInfo) {
-        throw new Error("Missing access token or user info");
+        throw new Error('Missing access token or user info');
       }
 
       // ✅ Update global auth state
       setUser(userInfo);
       setToken(accessToken);
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("user", JSON.stringify(userInfo));
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('user', JSON.stringify(userInfo));
 
       // ✅ Socket setup
       socket.auth = { token: accessToken };
@@ -380,30 +341,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setCodeFrom2FA(undefined);
       setVerified(true);
 
-      toast.success("Login successful!");
-      router.replace("/"); // 🔁 Use replace instead of push to prevent going back to login
+      toast.success('Login successful!');
+      router.replace('/'); // 🔁 Use replace instead of push to prevent going back to login
     } catch (error) {
       const message = axios.isAxiosError(error)
-        ? error.response?.data?.message || "Invalid or expired 2FA code"
-        : (error as Error).message || "2FA verification failed";
+        ? error.response?.data?.message || 'Invalid or expired 2FA code'
+        : (error as Error).message || '2FA verification failed';
       toast.error(message);
     }
   };
 
   const updateProfilePicture = async (formData: FormData) => {
     try {
-      const response = await axiosInstance.patch(
-        `auth/update/profile-picture`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await axiosInstance.patch(`auth/update/profile-picture`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
       if (response.status === 200) {
-        toast.success("Profile picture updated successfully");
+        toast.success('Profile picture updated successfully');
         await getMyself();
       }
     } catch (error) {
@@ -411,9 +368,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const message = error as unknown as {
         response: { data: { message: string } };
       };
-      toast.error(
-        message?.response?.data?.message || "Profile picture update failed"
-      );
+      toast.error(message?.response?.data?.message || 'Profile picture update failed');
     }
   };
 
@@ -422,16 +377,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     newPassword: string
   ): Promise<ApiResponse | null> => {
     try {
-      const response = await axiosInstance.patch<ApiResponse>(
-        "auth/update/password",
-        {
-          currentPassword,
-          newPassword,
-        }
-      );
+      const response = await axiosInstance.patch<ApiResponse>('auth/update/password', {
+        currentPassword,
+        newPassword,
+      });
 
       if (response.status === 200) {
-        toast.success(response.data.message || "Password updated successfully");
+        toast.success(response.data.message || 'Password updated successfully');
       }
 
       return response.data;
@@ -441,7 +393,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const message = error as unknown as {
         response: { data: { message: string } };
       };
-      toast.error(message?.response?.data?.message || "Password update failed");
+      toast.error(message?.response?.data?.message || 'Password update failed');
 
       return null; // returning null on failure
     }
@@ -449,9 +401,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const fetchTrustedDevices = useCallback(async (id: string) => {
     setIsLoadingUserTrustedDevices(true);
     try {
-      const response = await axiosInstance.get(
-        "auth/user/trusted-devices" + "/" + id
-      );
+      const response = await axiosInstance.get('auth/user/trusted-devices' + '/' + id);
       if (response.status === 200) {
         setUserTrustedDevices(response.data?.results);
       }
@@ -510,6 +460,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 };

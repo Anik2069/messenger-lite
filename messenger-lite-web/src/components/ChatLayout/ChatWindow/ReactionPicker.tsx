@@ -1,4 +1,4 @@
-const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "😡"];
+const REACTION_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '😡'];
 
 interface ReactionPickerProps {
   isOwnMessage: boolean;
@@ -17,7 +17,7 @@ const ReactionPicker = ({
     <div
       onClick={(e) => e.stopPropagation()}
       className={`absolute -top-8 ${
-        isOwnMessage ? "-left-15" : "-right-15"
+        isOwnMessage ? '-left-15' : '-right-15'
       } bg-white dark:bg-gray-700 border dark:border-gray-500 rounded-lg shadow-lg p-1 flex  z-50`}
     >
       {REACTION_EMOJIS.map((emoji) => (

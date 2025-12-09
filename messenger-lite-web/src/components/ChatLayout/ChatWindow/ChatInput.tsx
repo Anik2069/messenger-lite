@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import { useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { CircleStop, Mic, Paperclip, Send, X } from "lucide-react";
-import { ForwardedData } from "@/types/MessageType";
-import { useChatInputContext } from "@/context/useChatInputContext";
-import SendVoiceMessageComponents from "./SendVoiceMessageComponents";
-import UniversalFilePreview from "@/components/reusable/UniversalFilePreview";
-import { toast } from "react-toastify";
+import { useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { CircleStop, Mic, Paperclip, Send, X } from 'lucide-react';
+import { ForwardedData } from '@/types/MessageType';
+import { useChatInputContext } from '@/context/useChatInputContext';
+import SendVoiceMessageComponents from './SendVoiceMessageComponents';
+import UniversalFilePreview from '@/components/reusable/UniversalFilePreview';
+import { toast } from 'react-toastify';
 
 interface ChatInputProps {
   onSendMessage: (
     text: string,
-    type?: "TEXT" | "FILE" | "forwarded" | "VOICE",
+    type?: 'TEXT' | 'FILE' | 'forwarded' | 'VOICE',
     fileData?: object,
     voiceUrl?: string,
     forwardedFrom?: ForwardedData
@@ -22,10 +22,7 @@ interface ChatInputProps {
   onTypingStop: () => void;
 }
 
-export default function ChatInput({
-  onSendMessage,
-  onTypingStop,
-}: ChatInputProps) {
+export default function ChatInput({ onSendMessage, onTypingStop }: ChatInputProps) {
   const {
     isRecording,
     recordedURL,
@@ -35,7 +32,7 @@ export default function ChatInput({
     setRecordedURL,
   } = useChatInputContext();
 
-  const [message, setMessage] = useState<string>("");
+  const [message, setMessage] = useState<string>('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -44,12 +41,11 @@ export default function ChatInput({
     const files = Array.from(e.target.files || []);
 
     const filtered = files.filter(
-      (f) =>
-        !selectedFiles.some((sf) => sf.name === f.name && sf.size === f.size)
+      (f) => !selectedFiles.some((sf) => sf.name === f.name && sf.size === f.size)
     );
     if (files.length > 5) {
-      toast.error("You can upload a maximum of 5 files.");
-      e.target.value = ""; // clear input
+      toast.error('You can upload a maximum of 5 files.');
+      e.target.value = ''; // clear input
       return;
     }
 
@@ -58,7 +54,7 @@ export default function ChatInput({
     }
 
     // Reset input so same file can be selected again
-    if (fileRef.current) fileRef.current.value = "";
+    if (fileRef.current) fileRef.current.value = '';
   };
 
   // Remove a file from selection
@@ -75,8 +71,8 @@ export default function ChatInput({
     // If we have a voice recording, send it
     if (recordedURL) {
       onSendMessage(
-        "Voice message", // or you can keep this empty
-        "VOICE",
+        'Voice message', // or you can keep this empty
+        'VOICE',
         undefined,
         recordedURL
       );
@@ -84,14 +80,10 @@ export default function ChatInput({
     }
     // If we have text or files, send them
     else if (message.trim() || selectedFiles.length > 0) {
-      onSendMessage(
-        message.trim(),
-        selectedFiles.length ? "FILE" : "TEXT",
-        selectedFiles
-      );
+      onSendMessage(message.trim(), selectedFiles.length ? 'FILE' : 'TEXT', selectedFiles);
     }
 
-    setMessage("");
+    setMessage('');
     setSelectedFiles([]);
     onTypingStop();
   };
@@ -136,10 +128,7 @@ export default function ChatInput({
               </div>
               <div className="flex items-center gap-1">
                 <span className="truncate max-w-[100px]">{f.name}</span>
-                <X
-                  className="h-3 w-3 cursor-pointer"
-                  onClick={() => removeFile(i)}
-                />
+                <X className="h-3 w-3 cursor-pointer" onClick={() => removeFile(i)} />
               </div>
             </div>
           ))}
@@ -176,9 +165,7 @@ export default function ChatInput({
         {/* Voice recording components */}
         {showVoiceComponents && (
           <div className="flex-1">
-            <SendVoiceMessageComponents
-              onDeleteRecording={handleDeleteRecording}
-            />
+            <SendVoiceMessageComponents onDeleteRecording={handleDeleteRecording} />
           </div>
         )}
 
@@ -197,17 +184,14 @@ export default function ChatInput({
 
         {/* Send/Mic Button */}
         {message.trim() || selectedFiles.length > 0 || recordedURL ? (
-          <Button
-            type="submit"
-            className="bg-blue-500 hover:bg-blue-600 text-white"
-          >
+          <Button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white">
             <Send className="w-4 h-4" />
           </Button>
         ) : isRecording ? (
           <Button
             onClick={handleMicClick}
             type="button"
-            className={`${"bg-red-500 hover:bg-red-600"} text-white`}
+            className={`${'bg-red-500 hover:bg-red-600'} text-white`}
           >
             <CircleStop className="w-4 h-4" />
           </Button>
@@ -215,7 +199,7 @@ export default function ChatInput({
           <Button
             onClick={handleMicClick}
             type="button"
-            className={`${"bg-blue-500 hover:bg-blue-600"} text-white`}
+            className={`${'bg-blue-500 hover:bg-blue-600'} text-white`}
           >
             <Mic className="w-4 h-4" />
           </Button>

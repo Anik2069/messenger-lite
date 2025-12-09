@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useEffect, useRef } from "react";
-import { XIcon } from "lucide-react";
+import React, { useEffect, useRef } from 'react';
+import { XIcon } from 'lucide-react';
 
 interface ModalProps {
   open: boolean;
@@ -11,31 +11,21 @@ interface ModalProps {
   children: React.ReactNode;
   showCloseIcon?: boolean;
   className?: string;
-  maxWidth?:
-    | "sm"
-    | "md"
-    | "lg"
-    | "xl"
-    | "2xl"
-    | "3xl"
-    | "4xl"
-    | "5xl"
-    | "6xl"
-    | "7xl";
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl';
   overflowAuto?: boolean;
 }
 
 const maxWidthClasses: Record<string, string> = {
-  sm: "sm:max-w-sm",
-  md: "sm:max-w-md",
-  lg: "sm:max-w-lg",
-  xl: "sm:max-w-xl",
-  "2xl": "sm:max-w-2xl",
-  "3xl": "sm:max-w-3xl",
-  "4xl": "sm:max-w-4xl",
-  "5xl": "sm:max-w-5xl",
-  "6xl": "sm:max-w-6xl",
-  "7xl": "sm:max-w-7xl",
+  sm: 'sm:max-w-sm',
+  md: 'sm:max-w-md',
+  lg: 'sm:max-w-lg',
+  xl: 'sm:max-w-xl',
+  '2xl': 'sm:max-w-2xl',
+  '3xl': 'sm:max-w-3xl',
+  '4xl': 'sm:max-w-4xl',
+  '5xl': 'sm:max-w-5xl',
+  '6xl': 'sm:max-w-6xl',
+  '7xl': 'sm:max-w-7xl',
 };
 
 export default function Modal({
@@ -46,7 +36,7 @@ export default function Modal({
   description,
   children,
   showCloseIcon = true,
-  maxWidth = "lg",
+  maxWidth = 'lg',
   className,
 }: ModalProps) {
   const modalRef = useRef<HTMLDivElement | null>(null);
@@ -75,13 +65,9 @@ export default function Modal({
         {title && (
           <div className="sticky top-0 z-10 flex justify-between items-center border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-white dark:bg-gray-900 rounded-t-lg">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {title}
-              </h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>
               {description && (
-                <h4 className="text-sm text-[#64748B] dark:text-gray-400">
-                  {description}
-                </h4>
+                <h4 className="text-sm text-[#64748B] dark:text-gray-400">{description}</h4>
               )}
             </div>
             {showCloseIcon && (
@@ -99,7 +85,7 @@ export default function Modal({
         {/* Scrollable Content */}
         <div
           className={`${className} px-6 py-4  ${
-            overflowAuto ? "overflow-y-auto flex-grow" : ""
+            overflowAuto ? 'overflow-y-auto flex-grow' : ''
           } text-gray-900 dark:text-gray-100`}
         >
           {children}

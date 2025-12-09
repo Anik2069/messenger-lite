@@ -1,56 +1,36 @@
-import { useChatStore } from "@/store/useChatStore";
-import React, { useEffect, useState } from "react";
-import { X } from "lucide-react";
-import AvatarImage from "../reusable/AvatarImage";
-import { MEDIA_HOST } from "@/constant";
-import { DummyAvatar } from "@/assets/image";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../ui/tabs";
-import ShowFiles from "./SelectedChatProfile/ShowFiles";
-import ShowMedia from "./SelectedChatProfile/ShowMedia";
-import ShowLinksa from "./SelectedChatProfile/ShowLinksa";
-import ShowInfo from "./SelectedChatProfile/ShowInfo";
+import { useChatStore } from '@/store/useChatStore';
+import React, { useEffect, useState } from 'react';
+import { X } from 'lucide-react';
+import AvatarImage from '../reusable/AvatarImage';
+import { MEDIA_HOST } from '@/constant';
+import { DummyAvatar } from '@/assets/image';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import ShowFiles from './SelectedChatProfile/ShowFiles';
+import ShowMedia from './SelectedChatProfile/ShowMedia';
+import ShowLinksa from './SelectedChatProfile/ShowLinksa';
+import ShowInfo from './SelectedChatProfile/ShowInfo';
 
 interface SelectedChatProfileProps {
   id: string;
   onClose?: () => void;
 }
 
-const SelectedChatProfile: React.FC<SelectedChatProfileProps> = ({
-  id,
-  onClose,
-}) => {
-  const [activeTab, setActiveTab] = useState("media");
-  const {
-    handleFetchUsersInfo,
-    selectedUserInfo,
-    selectedChat,
-  } = useChatStore();
+const SelectedChatProfile: React.FC<SelectedChatProfileProps> = ({ id, onClose }) => {
+  const [activeTab, setActiveTab] = useState('media');
+  const { handleFetchUsersInfo, selectedUserInfo, selectedChat } = useChatStore();
 
   useEffect(() => {
     if (id) handleFetchUsersInfo(id);
   }, [id, handleFetchUsersInfo]);
 
-  if (!selectedUserInfo)
-    return <div className="p-4">Loading user info...</div>;
+  if (!selectedUserInfo) return <div className="p-4">Loading user info...</div>;
 
-  const {
-    avatar,
-    username,
-    email,
-  } = selectedUserInfo;
+  const { avatar, username, email } = selectedUserInfo;
 
-  const displayAvatar = avatar
-    ? `${MEDIA_HOST}/${avatar}`
-    : DummyAvatar.src;
+  const displayAvatar = avatar ? `${MEDIA_HOST}/${avatar}` : DummyAvatar.src;
 
   return (
     <div className="w-full h-full flex flex-col bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 p-4 overflow-hidden">
-
       {/* Header */}
       <div className="flex items-center justify-between mb-4 shrink-0">
         {onClose && (
@@ -73,9 +53,7 @@ const SelectedChatProfile: React.FC<SelectedChatProfileProps> = ({
 
       {/* User Info */}
       <div className="text-center mb-4 shrink-0">
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-          {username}
-        </h3>
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white">{username}</h3>
         <p className="text-gray-600 dark:text-gray-400">{email}</p>
       </div>
 
@@ -94,31 +72,19 @@ const SelectedChatProfile: React.FC<SelectedChatProfileProps> = ({
           </TabsList>
 
           <div className="flex-1 overflow-hidden">
-            <TabsContent
-              value="media"
-              className="h-full overflow-y-auto scrollbar-none px-2"
-            >
+            <TabsContent value="media" className="h-full overflow-y-auto scrollbar-none px-2">
               <ShowMedia selectedChat={selectedChat} />
             </TabsContent>
 
-            <TabsContent
-              value="files"
-              className="h-full overflow-y-auto px-2"
-            >
+            <TabsContent value="files" className="h-full overflow-y-auto px-2">
               <ShowFiles />
             </TabsContent>
 
-            <TabsContent
-              value="links"
-              className="h-full overflow-y-auto px-2"
-            >
+            <TabsContent value="links" className="h-full overflow-y-auto px-2">
               <ShowLinksa />
             </TabsContent>
 
-            <TabsContent
-              value="info"
-              className="h-full overflow-y-auto px-2"
-            >
+            <TabsContent value="info" className="h-full overflow-y-auto px-2">
               <ShowInfo selectedUserInfo={selectedUserInfo} />
             </TabsContent>
           </div>

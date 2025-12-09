@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   LogOut,
   MailPlus,
@@ -8,17 +8,17 @@ import {
   UserRoundPlus,
   Wifi,
   WifiOff,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { getInitials } from "@/lib/utils";
-import { useGlobalContext } from "@/provider/GlobalContextProvider";
-import { useAuth } from "@/context/useAuth";
-import { useSettings } from "@/context/SettingsContext";
-import { APP_NAME, MEDIA_HOST } from "@/constant";
-import { User } from "@/types/UserType";
-import Image from "next/image";
-import { DummyAvatar } from "@/assets/image";
-import AvatarImage from "../../reusable/AvatarImage";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { getInitials } from '@/lib/utils';
+import { useGlobalContext } from '@/provider/GlobalContextProvider';
+import { useAuth } from '@/context/useAuth';
+import { useSettings } from '@/context/SettingsContext';
+import { APP_NAME, MEDIA_HOST } from '@/constant';
+import { User } from '@/types/UserType';
+import Image from 'next/image';
+import { DummyAvatar } from '@/assets/image';
+import AvatarImage from '../../reusable/AvatarImage';
 
 interface NavbarProps {
   user: User | null;
@@ -27,13 +27,8 @@ interface NavbarProps {
 }
 
 const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
-  const {
-    newDrawerOpen,
-    settingModalOpen,
-    isSidebarOpen,
-    setIsSidebarOpen,
-    addFriendModalOpen,
-  } = useGlobalContext();
+  const { newDrawerOpen, settingModalOpen, isSidebarOpen, setIsSidebarOpen, addFriendModalOpen } =
+    useGlobalContext();
   const { logout, currentUserDetails } = useAuth();
   const { settings, activeStatus } = useSettings();
 
@@ -45,10 +40,10 @@ const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
   const isOnline = activeStatus?.isOnline ?? settings?.activeStatus ?? false;
 
   const presenceClasses = isOnline
-    ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-    : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300";
+    ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+    : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300';
 
-  const presenceText = isOnline ? "Online" : "Offline";
+  const presenceText = isOnline ? 'Online' : 'Offline';
 
   const onIconClick = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -75,9 +70,7 @@ const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
           <h1 className="text-sm lg:text-lg font-semibold text-gray-900 dark:text-white">
             {APP_NAME}
           </h1>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            {user?.username}
-          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{user?.username}</p>
         </div>
       </div>
 
@@ -87,11 +80,7 @@ const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
         <div
           className={`px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${presenceClasses}`}
         >
-          {isConnected ? (
-            <Wifi className="w-3 h-3" />
-          ) : (
-            <WifiOff className="w-3 h-3" />
-          )}
+          {isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
           <span>{presenceText}</span>
         </div>
 
@@ -122,7 +111,7 @@ const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
           </div>
           <span
             className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-gray-800 ${
-              isOnline ? "bg-green-500" : "bg-red-500"
+              isOnline ? 'bg-green-500' : 'bg-red-500'
             }`}
           />
         </div>

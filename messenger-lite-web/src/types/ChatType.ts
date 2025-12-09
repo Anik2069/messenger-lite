@@ -1,5 +1,5 @@
 export interface Chat {
-  type: "user" | "group";
+  type: 'user' | 'group';
   id: string;
   name: string;
   avatar?: string;

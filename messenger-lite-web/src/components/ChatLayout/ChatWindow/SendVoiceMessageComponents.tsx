@@ -1,18 +1,16 @@
-"use client";
+'use client';
 
-import React from "react";
-import { Trash2, Mic, Pause, Play } from "lucide-react";
-import { useChatInputContext } from "@/context/useChatInputContext";
-import { Button } from "@/components/ui/button";
-import AudioPlayer from "@/components/reusable/AudioPlayer";
+import React from 'react';
+import { Trash2, Mic, Pause, Play } from 'lucide-react';
+import { useChatInputContext } from '@/context/useChatInputContext';
+import { Button } from '@/components/ui/button';
+import AudioPlayer from '@/components/reusable/AudioPlayer';
 
 interface SendVoiceMessageComponentsProps {
   onDeleteRecording?: () => void;
 }
 
-const SendVoiceMessageComponents = ({
-  onDeleteRecording,
-}: SendVoiceMessageComponentsProps) => {
+const SendVoiceMessageComponents = ({ onDeleteRecording }: SendVoiceMessageComponentsProps) => {
   const {
     isRecording,
     isPaused,
@@ -61,10 +59,7 @@ const SendVoiceMessageComponents = ({
         {/* Recording Waveform */}
         {isRecording && (
           <div className="flex items-center gap-2 flex-1">
-            <canvas
-              ref={canvasRef}
-              className="h-6  w-[200px] lg:w-[300px] bg-transparent"
-            />
+            <canvas ref={canvasRef} className="h-6  w-[200px] lg:w-[300px] bg-transparent" />
             <span className="text-xs dark:text-white w-10 text-right font-medium">
               {formatTime(seconds)}
             </span>
@@ -103,13 +98,9 @@ const SendVoiceMessageComponents = ({
               size="sm"
               variant="ghost"
               className="cursor-pointer p-0 dark:text-white hover:text-yellow-500 transition-colors"
-              title={isPaused ? "Resume Recording" : "Pause Recording"}
+              title={isPaused ? 'Resume Recording' : 'Pause Recording'}
             >
-              {isPaused ? (
-                <Play className="w-4 h-4" />
-              ) : (
-                <Pause className="w-4 h-4" />
-              )}
+              {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
             </Button>
           </>
         )}

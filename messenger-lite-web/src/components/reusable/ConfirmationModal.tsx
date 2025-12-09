@@ -1,8 +1,8 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import { Button } from '@/components/ui/button';
 
-import { Trash, X } from "lucide-react";
-import Modal from "./Modal";
+import { Trash, X } from 'lucide-react';
+import Modal from './Modal';
 
 interface ConfirmationModalProps {
   open: boolean;
@@ -11,17 +11,17 @@ interface ConfirmationModalProps {
   loading?: boolean;
   title?: string;
   description?: string;
-  variant?: "default" | "destructive" | "submit";
+  variant?: 'default' | 'destructive' | 'submit';
 }
 
 const ConfirmationModal = ({
-  variant = "destructive",
+  variant = 'destructive',
   open,
   onClose,
   onConfirm,
   loading,
-  title = "Are you sure you want to proceed?",
-  description = "This action will permanently remove the task from the system. You won’t be able to recover it later.",
+  title = 'Are you sure you want to proceed?',
+  description = 'This action will permanently remove the task from the system. You won’t be able to recover it later.',
 }: ConfirmationModalProps) => {
   return (
     <Modal open={open} onClose={onClose}>
@@ -39,13 +39,13 @@ const ConfirmationModal = ({
           </Button>
           <Button
             className={`${
-              variant === "destructive" ? `bg-destructive/70` : "bg-blue-500"
+              variant === 'destructive' ? `bg-destructive/70` : 'bg-blue-500'
             }   flex items-center gap-2`}
             onClick={onConfirm}
             disabled={loading}
           >
             <Trash />
-            {loading ? "Processing..." : "Yes, confirm"}
+            {loading ? 'Processing...' : 'Yes, confirm'}
           </Button>
         </div>
       </div>

@@ -1,7 +1,7 @@
-import { useEffect, useRef } from "react";
-import { format, isToday, isYesterday } from "date-fns";
-import { Message } from "../../../types/MessageType";
-import MessageItem from "./MessageItem";
+import { useEffect, useRef } from 'react';
+import { format, isToday, isYesterday } from 'date-fns';
+import { Message } from '../../../types/MessageType';
+import MessageItem from './MessageItem';
 
 interface MessageListProps {
   messages: Message[];
@@ -35,7 +35,7 @@ const MessageList = ({
 
   // Scroll to bottom on new messages or typing
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, otherUserTyping]);
 
   // Handle infinite scroll / load older messages
@@ -61,27 +61,24 @@ const MessageList = ({
   useEffect(() => {
     const el = containerRef.current;
     if (el) {
-      el.addEventListener("scroll", handleScroll);
-      return () => el.removeEventListener("scroll", handleScroll);
+      el.addEventListener('scroll', handleScroll);
+      return () => el.removeEventListener('scroll', handleScroll);
     }
   }, [hasMoreMessages, isLoadingMessages, onLoadMoreMessages]);
 
   // Function to get date label
   const getDateLabel = (dateStr: string) => {
     const date = new Date(dateStr);
-    if (isToday(date)) return "Today";
-    if (isYesterday(date)) return "Yesterday";
-    return format(date, "dd/MM/yyyy");
+    if (isToday(date)) return 'Today';
+    if (isYesterday(date)) return 'Yesterday';
+    return format(date, 'dd/MM/yyyy');
   };
 
   // Group messages by date while iterating
-  let lastDateLabel = "";
+  let lastDateLabel = '';
 
   return (
-    <div
-      ref={containerRef}
-      className="flex-1 overflow-y-auto scrollbar-none p-4 "
-    >
+    <div ref={containerRef} className="flex-1 overflow-y-auto scrollbar-none p-4 ">
       <div className="flex flex-col min-h-full justify-end space-y-2">
         {/* Loading indicator at top */}
         {isLoadingMessages && (
@@ -92,12 +89,9 @@ const MessageList = ({
 
         {messages?.length > 0 ? (
           messages?.map((msg) => {
-            const dateLabel = getDateLabel(
-              (msg?.createdAt as string) ?? msg?.timestamp
-            );
+            const dateLabel = getDateLabel((msg?.createdAt as string) ?? msg?.timestamp);
             const isOwnMessage =
-              msg?.from?.id === currentUserId ||
-              msg?.author?.id === currentUserId;
+              msg?.from?.id === currentUserId || msg?.author?.id === currentUserId;
 
             const showDateHeader = dateLabel !== lastDateLabel;
             lastDateLabel = dateLabel;
@@ -123,9 +117,7 @@ const MessageList = ({
             );
           })
         ) : (
-          <div className="text-center text-gray-400 text-sm my-auto">
-            No messages yet
-          </div>
+          <div className="text-center text-gray-400 text-sm my-auto">No messages yet</div>
         )}
 
         {/* Typing indicator */}

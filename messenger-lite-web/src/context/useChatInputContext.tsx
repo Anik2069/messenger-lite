@@ -1,11 +1,4 @@
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 
 interface ChatInputContextType {
   isRecording: boolean;
@@ -37,11 +30,7 @@ interface ChatInputContextType {
 
 const ChatInputContext = createContext<ChatInputContextType | null>(null);
 
-export const ChatInputContextProvider = ({
-  children,
-}: {
-  children: ReactNode;
-}) => {
+export const ChatInputContextProvider = ({ children }: { children: ReactNode }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [recordedURL, setRecordedURL] = useState<string | null>(null);
@@ -85,7 +74,7 @@ export const ChatInputContextProvider = ({
     if (!canvasRef.current || !isRecording || isPaused) return;
 
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     // Fixed dimensions
@@ -135,7 +124,7 @@ export const ChatInputContextProvider = ({
           const x = i * barWidth;
           const y = (height - barHeight) / 2;
 
-          ctx.fillStyle = "#1877F2"; // Blue color
+          ctx.fillStyle = '#1877F2'; // Blue color
           ctx.beginPath();
           ctx.roundRect(x, y, barWidth - 1, barHeight, 1);
           ctx.fill();
@@ -145,7 +134,7 @@ export const ChatInputContextProvider = ({
           const y = height / 2;
           const dotRadius = 1;
 
-          ctx.fillStyle = "#9CA3AF"; // Gray color
+          ctx.fillStyle = '#9CA3AF'; // Gray color
           ctx.beginPath();
           ctx.arc(x, y, dotRadius, 0, 2 * Math.PI);
           ctx.fill();
@@ -153,7 +142,7 @@ export const ChatInputContextProvider = ({
       }
 
       // Draw center line (optional - remove if you don't want it)
-      ctx.strokeStyle = "#374151";
+      ctx.strokeStyle = '#374151';
       ctx.setLineDash([2, 2]);
       ctx.beginPath();
       ctx.moveTo(0, height / 2);
@@ -177,11 +166,8 @@ export const ChatInputContextProvider = ({
     };
   }, [isRecording, isPaused]);
   const startRecording = async () => {
-    if (
-      typeof window === "undefined" ||
-      !navigator.mediaDevices?.getUserMedia
-    ) {
-      alert("Your browser does not support audio recording.");
+    if (typeof window === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+      alert('Your browser does not support audio recording.');
       return;
     }
 
@@ -213,7 +199,7 @@ export const ChatInputContextProvider = ({
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunks.current, { type: "audio/webm" });
+        const blob = new Blob(chunks.current, { type: 'audio/webm' });
         const url = URL.createObjectURL(blob);
         setRecordedURL(url);
         chunks.current = [];
@@ -224,13 +210,13 @@ export const ChatInputContextProvider = ({
       setIsPaused(false);
       setSeconds(0);
     } catch (error) {
-      console.error("Error accessing microphone:", error);
-      alert("Cannot access microphone. Please check your permissions.");
+      console.error('Error accessing microphone:', error);
+      alert('Cannot access microphone. Please check your permissions.');
     }
   };
 
   const pauseRecording = () => {
-    if (mediaRecorder.current && mediaRecorder.current.state === "recording") {
+    if (mediaRecorder.current && mediaRecorder.current.state === 'recording') {
       mediaRecorder.current.pause();
       setIsPaused(true);
 
@@ -242,7 +228,7 @@ export const ChatInputContextProvider = ({
   };
 
   const resumeRecording = () => {
-    if (mediaRecorder.current && mediaRecorder.current.state === "paused") {
+    if (mediaRecorder.current && mediaRecorder.current.state === 'paused') {
       mediaRecorder.current.resume();
       setIsPaused(false);
 
@@ -254,7 +240,7 @@ export const ChatInputContextProvider = ({
   };
 
   const stopRecording = async () => {
-    if (mediaRecorder.current && mediaRecorder.current.state !== "inactive") {
+    if (mediaRecorder.current && mediaRecorder.current.state !== 'inactive') {
       mediaRecorder.current.stop();
     }
     if (mediaStream.current) {
@@ -279,7 +265,7 @@ export const ChatInputContextProvider = ({
 
   const sendRecording = () => {
     if (recordedURL) {
-      console.log("Sending recording:", recordedURL);
+      console.log('Sending recording:', recordedURL);
       // You can implement the actual sending logic here
       setRecordedURL(null);
       setSeconds(0);
@@ -291,10 +277,7 @@ export const ChatInputContextProvider = ({
   const formatTime = (totalSeconds: number) => {
     const minutes = Math.floor(totalSeconds / 60);
     const secs = totalSeconds % 60;
-    return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(
-      2,
-      "0"
-    )}`;
+    return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
   return (
@@ -335,9 +318,7 @@ export const ChatInputContextProvider = ({
 export const useChatInputContext = () => {
   const context = useContext(ChatInputContext);
   if (!context) {
-    throw new Error(
-      "useChatInputContext must be used within ChatInputContextProvider"
-    );
+    throw new Error('useChatInputContext must be used within ChatInputContextProvider');
   }
   return context;
 };

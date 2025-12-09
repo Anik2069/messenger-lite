@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import axiosInstance from "@/config/axiosInstance";
-import { socket } from "@/lib/socket";
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { useAuth } from "./useAuth";
+import axiosInstance from '@/config/axiosInstance';
+import { socket } from '@/lib/socket';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { useAuth } from './useAuth';
 
 export type Settings = {
   id: string;
   userId: string;
-  theme: "DARK" | "LIGHT";
+  theme: 'DARK' | 'LIGHT';
   soundNotifications: boolean;
   activeStatus: boolean;
   createdAt: string;
@@ -30,28 +30,18 @@ type SettingsContextType = {
   otherStatuses: Record<string, Status>;
   setSettings: (settings: Settings) => void;
   setActiveStatus: (status: Status | null) => void;
-  setOtherStatuses: React.Dispatch<
-    React.SetStateAction<Record<string, Status>>
-  >;
+  setOtherStatuses: React.Dispatch<React.SetStateAction<Record<string, Status>>>;
   fetchSettings: () => void;
 };
 
-const SettingsContext = createContext<SettingsContextType | undefined>(
-  undefined
-);
+const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
-export const SettingsProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+export const SettingsProvider = ({ children }: { children: React.ReactNode }) => {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [activeStatus, setActiveStatus] = useState<Status | null>(null);
-  const [otherStatuses, setOtherStatuses] = useState<Record<string, Status>>(
-    {}
-  );
+  const [otherStatuses, setOtherStatuses] = useState<Record<string, Status>>({});
   const { user } = useAuth();
-  const userId = user?.id || "";
+  const userId = user?.id || '';
 
   useEffect(() => {
     if (!userId || !socket) return;
@@ -65,7 +55,7 @@ export const SettingsProvider = ({
 
     // Handle presence updates of other users
     const handlePresenceUpdate = (status: Status) => {
-      console.log("update other presence");
+      console.log('update other presence');
       if (status.userId !== userId) {
         setOtherStatuses((prev) => ({
           ...prev,
@@ -75,63 +65,60 @@ export const SettingsProvider = ({
     };
 
     // Register listeners
-    socket.on("presence_self", handleSelfPresence);
-    socket.on("presence_update", handlePresenceUpdate);
+    socket.on('presence_self', handleSelfPresence);
+    socket.on('presence_update', handlePresenceUpdate);
 
     // Set initial status from settings
     if (settings) {
       const initialStatus = { userId, isOnline: settings.activeStatus };
       setActiveStatus(initialStatus);
-      socket.emit("set_status", { isOnline: settings.activeStatus });
+      socket.emit('set_status', { isOnline: settings.activeStatus });
     }
 
     // Cleanup
     return () => {
-      socket.off("presence_self", handleSelfPresence);
-      socket.off("presence_update", handlePresenceUpdate);
+      socket.off('presence_self', handleSelfPresence);
+      socket.off('presence_update', handlePresenceUpdate);
     };
   }, [userId, settings]);
 
-  const applyTheme = (theme: "DARK" | "LIGHT") => {
-    if (typeof window !== "undefined") {
-      document.documentElement.classList.toggle("dark", theme === "DARK");
+  const applyTheme = (theme: 'DARK' | 'LIGHT') => {
+    if (typeof window !== 'undefined') {
+      document.documentElement.classList.toggle('dark', theme === 'DARK');
     }
   };
 
   const persistSettings = useCallback((updated: Settings) => {
     setSettings(updated);
-    localStorage.setItem("settings", JSON.stringify(updated));
+    localStorage.setItem('settings', JSON.stringify(updated));
     applyTheme(updated.theme);
   }, []);
 
   const updateSettings = async (updated: Partial<Settings>) => {
     try {
-      const response = await axiosInstance.patch(
-        "settings/update-my-settings",
-        updated
-      );
+      const response = await axiosInstance.patch('settings/update-my-settings', updated);
 
       const newSettings = response.data?.results as Settings | undefined;
       if (newSettings) {
         persistSettings(newSettings);
         return newSettings;
       } else {
-        console.warn("updateSettings: Missing results in response");
+        console.warn('updateSettings: Missing results in response');
       }
     } catch (error) {
-      console.error("Failed to update settings:", error);
+      console.error('Failed to update settings:', error);
     }
   };
 
   const fetchSettings = useCallback(async () => {
     try {
-      const response = await axiosInstance.get("settings/my-settings");
+      const response = await axiosInstance.get('settings/my-settings');
       const s = response.data?.results as Settings | undefined;
 
       if (s) {
         const normalized: Settings = {
           ...s,
-          theme: s.theme?.toUpperCase() as "DARK" | "LIGHT",
+          theme: s.theme?.toUpperCase() as 'DARK' | 'LIGHT',
         };
         persistSettings(normalized);
 
@@ -141,16 +128,16 @@ export const SettingsProvider = ({
           isOnline: normalized.activeStatus,
         });
       } else {
-        console.warn("fetchSettings: No results found");
+        console.warn('fetchSettings: No results found');
       }
     } catch (error) {
-      console.error("Failed to fetch settings:", error);
+      console.error('Failed to fetch settings:', error);
     }
   }, [persistSettings, userId]);
 
   const toggleTheme = () => {
     if (!settings) return;
-    const newTheme = settings.theme === "DARK" ? "LIGHT" : "DARK";
+    const newTheme = settings.theme === 'DARK' ? 'LIGHT' : 'DARK';
     updateSettings({ theme: newTheme });
   };
 
@@ -182,12 +169,12 @@ export const SettingsProvider = ({
 
   const saveActiveStatus = async (active: boolean) => {
     try {
-      await axiosInstance.post("auth/user/activeStatus", {
+      await axiosInstance.post('auth/user/activeStatus', {
         activeStatus: active,
       });
-      socket.emit("set_status", { isOnline: active, updateMode: true });
+      socket.emit('set_status', { isOnline: active, updateMode: true });
     } catch (error) {
-      console.error("Failed to save activeStatus:", error);
+      console.error('Failed to save activeStatus:', error);
     }
   };
 
@@ -213,7 +200,6 @@ export const SettingsProvider = ({
 
 export const useSettings = () => {
   const context = useContext(SettingsContext);
-  if (!context)
-    throw new Error("useSettings must be used inside SettingsProvider");
+  if (!context) throw new Error('useSettings must be used inside SettingsProvider');
   return context;
 };

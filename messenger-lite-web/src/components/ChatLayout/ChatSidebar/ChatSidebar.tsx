@@ -1,19 +1,19 @@
-"use client";
-import React, { useState, useEffect } from "react";
-import { Group } from "../../../types/GroupType";
-import { Chat } from "../../../types/ChatType";
-import { MessageCircle } from "lucide-react";
-import Image from "next/image";
-import { DummyAvatar, dummyGroupAvatar } from "@/assets/image";
-import ReusableSearchInput from "@/components/reusable/ReusableSearchInput";
-import { useConversationStore } from "@/store/useConversationStore";
-import { useAuth } from "@/context/useAuth";
-import { Status, useSettings } from "@/context/SettingsContext";
-import { formatLocalTime } from "@/types/MessageType";
-import { format, isToday, parseISO } from "date-fns";
-import { SOCKET_HOST } from "@/constant";
-import AvatarImage from "@/components/reusable/AvatarImage";
-import { Spinner } from "@/components/ui/Spinner";
+'use client';
+import React, { useState, useEffect } from 'react';
+import { Group } from '../../../types/GroupType';
+import { Chat } from '../../../types/ChatType';
+import { MessageCircle } from 'lucide-react';
+import Image from 'next/image';
+import { DummyAvatar, dummyGroupAvatar } from '@/assets/image';
+import ReusableSearchInput from '@/components/reusable/ReusableSearchInput';
+import { useConversationStore } from '@/store/useConversationStore';
+import { useAuth } from '@/context/useAuth';
+import { Status, useSettings } from '@/context/SettingsContext';
+import { formatLocalTime } from '@/types/MessageType';
+import { format, isToday, parseISO } from 'date-fns';
+import { SOCKET_HOST } from '@/constant';
+import AvatarImage from '@/components/reusable/AvatarImage';
+import { Spinner } from '@/components/ui/Spinner';
 
 interface ChatSidebarProps {
   groups: Group[];
@@ -28,7 +28,7 @@ const ChatSidebar = ({
   onChatSelect,
   sidebarMode = false,
 }: ChatSidebarProps) => {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const { conversations, fetchConversations, isLoadingConversation } = useConversationStore();
   const { user } = useAuth();
   const { activeStatus, otherStatuses } = useSettings();
@@ -37,11 +37,9 @@ const ChatSidebar = ({
   //   console.log(selectedChat, "selectedChat");
   // }, [selectedChat]);
 
-
   useEffect(() => {
     fetchConversations(searchQuery);
   }, [searchQuery, fetchConversations]);
-
 
   const getStatusForUser = (userId: string): Status => {
     if (userId === user?.id) {
@@ -77,7 +75,7 @@ const ChatSidebar = ({
             </div>
           ) : (
             conversations?.map((conv) => {
-              const isGroup = conv.type === "GROUP";
+              const isGroup = conv.type === 'GROUP';
 
               // ✅ FIX: Safe access to participants
               const participants = conv.participants || [];
@@ -86,8 +84,8 @@ const ChatSidebar = ({
                 : null;
 
               const displayName = isGroup
-                ? conv.name || "Unknown Group"
-                : otherParticipant?.username || "Unknown";
+                ? conv.name || 'Unknown Group'
+                : otherParticipant?.username || 'Unknown';
 
               const displayAvatar = isGroup
                 ? conv.avatar
@@ -96,7 +94,7 @@ const ChatSidebar = ({
                   : DummyAvatar.src;
 
               const participantUserId = otherParticipant?.id;
-              const status = getStatusForUser(participantUserId || "");
+              const status = getStatusForUser(participantUserId || '');
               const isOnline = status?.isOnline || false;
 
               // ✅ FIX: Safe access to messages
@@ -107,33 +105,31 @@ const ChatSidebar = ({
                 <div
                   key={conv.id}
                   onClick={() => {
-
                     onChatSelect({
-                      type: isGroup ? "group" : "user",
+                      type: isGroup ? 'group' : 'user',
                       id: conv.id,
                       name: displayName,
                       avatar: displayAvatar || undefined,
                       isOnline,
-                      userId: otherParticipant?.id || "",
-                    })
+                      userId: otherParticipant?.id || '',
+                    });
                   }}
-                  className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${selectedChat?.id === conv.id ||
-                    (selectedChat?.userId &&
-                      otherParticipant?.id === selectedChat.userId)
-                    ? "bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500"
-                    : ""
-                    }`}
+                  className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
+                    selectedChat?.id === conv.id ||
+                    (selectedChat?.userId && otherParticipant?.id === selectedChat.userId)
+                      ? 'bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500'
+                      : ''
+                  }`}
                 >
                   {/* Avatar */}
                   <div className="relative w-8 h-8 overflow-hidden">
-                    {displayAvatar && (
-                      <AvatarImage src={displayAvatar} alt="Profile" />
-                    )}
+                    {displayAvatar && <AvatarImage src={displayAvatar} alt="Profile" />}
 
                     {!isGroup && (
                       <div
-                        className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${isOnline ? "bg-green-400" : "bg-gray-400"
-                          }`}
+                        className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${
+                          isOnline ? 'bg-green-400' : 'bg-gray-400'
+                        }`}
                       />
                     )}
                   </div>
@@ -147,12 +143,10 @@ const ChatSidebar = ({
                       {lastMessage?.createdAt && (
                         <p className="text-xs text-gray-500 dark:text-gray-400 ml-2">
                           {(() => {
-                            const localDate = parseISO(
-                              lastMessage.createdAt as string
-                            );
+                            const localDate = parseISO(lastMessage.createdAt as string);
                             return isToday(localDate)
                               ? formatLocalTime(localDate)
-                              : format(localDate, "dd-MM-yyyy");
+                              : format(localDate, 'dd-MM-yyyy');
                           })()}
                         </p>
                       )}
@@ -162,20 +156,20 @@ const ChatSidebar = ({
                       <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                         {isGroup
                           ? `${participants.length} members`
-                          : `${lastMessage?.author?.username === user?.username
-                            ? "You"
-                            : lastMessage?.author?.username || "Unknown"
-                          }: ${lastMessage?.message || "No message"}`}
+                          : `${
+                              lastMessage?.author?.username === user?.username
+                                ? 'You'
+                                : lastMessage?.author?.username || 'Unknown'
+                            }: ${lastMessage?.message || 'No message'}`}
                       </p>
                     ) : (
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        No messages yet
-                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">No messages yet</p>
                     )}
                   </div>
                 </div>
               );
-            }))}
+            })
+          )}
         </div>
 
         {/* Empty State */}
@@ -183,13 +177,11 @@ const ChatSidebar = ({
           <div className="flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400">
             <MessageCircle className="w-12 h-12 mb-3 opacity-50" />
             <p className="text-sm">No conversations found</p>
-            {searchQuery && (
-              <p className="text-xs mt-1">Try a different search term</p>
-            )}
+            {searchQuery && <p className="text-xs mt-1">Try a different search term</p>}
           </div>
         )}
       </div>
-    </div >
+    </div>
   );
 };
 

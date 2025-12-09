@@ -1,9 +1,9 @@
-import { Message } from "./MessageType";
-import { User } from "./UserType";
+import { Message } from './MessageType';
+import { User } from './UserType';
 
 export type Conversation = {
   id: string;
-  type: "DIRECT" | "GROUP" | string;
+  type: 'DIRECT' | 'GROUP' | string;
   name: string | null;
   avatar: string | null;
   createdAt: string;

@@ -1,20 +1,15 @@
-"use client";
+'use client';
 
-import React, { useEffect } from "react";
+import React, { useEffect } from 'react';
 // import { useDevices, Device } from "@/hooks/useDevices";
 // import { Laptop, Smartphone, Globe, LogOut } from "lucide-react";
-import { DeviceCardSkeleton } from "./DeviceCardSkeleton";
-import { DeviceCard } from "./DeviceCard";
-import { useAuth } from "@/context/useAuth";
+import { DeviceCardSkeleton } from './DeviceCardSkeleton';
+import { DeviceCard } from './DeviceCard';
+import { useAuth } from '@/context/useAuth';
 
 const LoggedInDevices = () => {
   // const { devices, logoutDevice } = useDevices();
-  const {
-    user,
-    userTrustedDevices,
-    isLoadingUserTrustedDevices,
-    fetchTrustedDevices,
-  } = useAuth();
+  const { user, userTrustedDevices, isLoadingUserTrustedDevices, fetchTrustedDevices } = useAuth();
 
   useEffect(() => {
     if (user) fetchTrustedDevices(user.id);
@@ -38,16 +33,14 @@ const LoggedInDevices = () => {
                 {...device}
                 last_active={device.last_active.toString()}
                 isCurrent={false}
-              // onTerminate={handleDeleteSession} // Uncomment when ready
+                // onTerminate={handleDeleteSession} // Uncomment when ready
               />
             ))}
           </div>
         </div>
       ) : (
         // Empty state
-        <p className="text-gray-400 text-sm px-4 py-2 text-center">
-          No trusted devices yet.
-        </p>
+        <p className="text-gray-400 text-sm px-4 py-2 text-center">No trusted devices yet.</p>
       )}
     </div>
   );

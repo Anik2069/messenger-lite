@@ -1,9 +1,6 @@
 let typingTimeout: NodeJS.Timeout | null = null;
 
-export const startTyping = (
-  setTyping: (username: string | null) => void,
-  username: string
-) => {
+export const startTyping = (setTyping: (username: string | null) => void, username: string) => {
   setTyping(username);
 
   if (typingTimeout) {

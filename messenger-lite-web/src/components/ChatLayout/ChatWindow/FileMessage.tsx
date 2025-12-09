@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import { Download, FileText } from "lucide-react";
-import { formatFileSize } from "@/lib/utils";
-import { MEDIA_HOST } from "@/constant";
-import AudioPlayer from "@/components/reusable/AudioPlayer";
+import Image from 'next/image';
+import { Download, FileText } from 'lucide-react';
+import { formatFileSize } from '@/lib/utils';
+import { MEDIA_HOST } from '@/constant';
+import AudioPlayer from '@/components/reusable/AudioPlayer';
 
 export type FileMessageType = {
   url?: string;
@@ -29,36 +29,37 @@ const FileMessage = ({ file, className }: FileMessageProps) => {
     ? `${MEDIA_HOST}${file.url}`
     : file.fileUrl
       ? `${MEDIA_HOST}${file.fileUrl}`
-      : "";
-  const filename = file.originalName || file.fileName || "File";
-  const mimetype = file.mimetype || file.fileMime || "";
+      : '';
+  const filename = file.originalName || file.fileName || 'File';
+  const mimetype = file.mimetype || file.fileMime || '';
   const size = file.size || file.fileSize || 0;
 
   // Detect file type
-  const isImage = mimetype.startsWith("image/");
-  const isVideo = mimetype.startsWith("video/");
-  const isAudio = mimetype.startsWith("audio/");
+  const isImage = mimetype.startsWith('image/');
+  const isVideo = mimetype.startsWith('video/');
+  const isAudio = mimetype.startsWith('audio/');
 
   // Allowed document types
   const allowedDocs = [
-    "application/pdf",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "text/csv",
-    "application/vnd.ms-excel",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/csv',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   ];
 
   // Check if file is allowed
-  const isAllowed =
-    isImage || isVideo || allowedDocs.includes(mimetype) || isAudio;
+  const isAllowed = isImage || isVideo || allowedDocs.includes(mimetype) || isAudio;
   if (!isAllowed) return null; // skip unsupported files
 
   return (
     <div className="mt-2">
       {/* Image preview */}
       {isImage && (
-        <div className={`${className} relative group w-40 h-40 rounded-lg overflow-hidden shadow-sm hover:scale-105 transition-transform`}>
+        <div
+          className={`${className} relative group w-40 h-40 rounded-lg overflow-hidden shadow-sm hover:scale-105 transition-transform`}
+        >
           <Image src={url} alt={filename} fill className="object-cover" />
           <a
             href={url}
@@ -97,9 +98,7 @@ const FileMessage = ({ file, className }: FileMessageProps) => {
           <FileText className="w-8 h-8 text-blue-500 flex-shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">{filename}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {formatFileSize(size)}
-            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{formatFileSize(size)}</p>
           </div>
           <a
             href={url}

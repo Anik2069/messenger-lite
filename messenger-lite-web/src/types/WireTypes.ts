@@ -1,4 +1,4 @@
-import { Message } from "./MessageType";
+import { Message } from './MessageType';
 
 export interface ReactionWire {
   emoji: string;
@@ -11,8 +11,7 @@ export interface ReadReceiptWire {
   timestamp: string | Date;
 }
 
-export interface MessageWire
-  extends Omit<Message, "timestamp" | "reactions" | "readBy"> {
+export interface MessageWire extends Omit<Message, 'timestamp' | 'reactions' | 'readBy'> {
   timestamp: string | Date;
   reactions?: ReactionWire[];
   readBy?: ReadReceiptWire[];
@@ -20,5 +19,5 @@ export interface MessageWire
 
 export type MessageWireServer = MessageWire & {
   conversationId?: string;
-  conversationType?: "DIRECT" | "GROUP";
+  conversationType?: 'DIRECT' | 'GROUP';
 };

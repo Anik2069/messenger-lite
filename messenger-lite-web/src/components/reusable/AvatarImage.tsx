@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import Image from "next/image";
-import { DummyAvatar } from "@/assets/image";
+import React, { useState } from 'react';
+import Image from 'next/image';
+import { DummyAvatar } from '@/assets/image';
 
 const AvatarImage = ({ src, alt }: { src: string; alt: string }) => {
   const [imgSrc] = useState(src || DummyAvatar.src);

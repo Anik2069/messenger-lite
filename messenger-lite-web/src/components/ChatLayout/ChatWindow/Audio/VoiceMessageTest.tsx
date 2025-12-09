@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useRef, useState, useEffect } from "react";
-import { CircleStop, Mic, Trash2, Send } from "lucide-react";
+import React, { useRef, useState, useEffect } from 'react';
+import { CircleStop, Mic, Trash2, Send } from 'lucide-react';
 
 const VoiceMessageTest = () => {
   const [isRecording, setIsRecording] = useState(false);
@@ -46,7 +46,7 @@ const VoiceMessageTest = () => {
     if (!canvasRef.current || !isRecording) return;
 
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     // Fixed dimensions
@@ -82,14 +82,14 @@ const VoiceMessageTest = () => {
       ctx.clearRect(0, 0, width, height);
 
       // Draw background
-      ctx.fillStyle = "#1f2937";
+      ctx.fillStyle = '#1f2937';
       ctx.fillRect(0, 0, width, height);
 
       // Draw waveform from right to left
       const barWidth = width / maxDataPoints;
       const maxBarHeight = height * 1.5;
 
-      ctx.fillStyle = "#1877F2"; // Facebook blue
+      ctx.fillStyle = '#1877F2'; // Facebook blue
 
       for (let i = 0; i < waveformData.current.length; i++) {
         const data = waveformData.current[i];
@@ -108,7 +108,7 @@ const VoiceMessageTest = () => {
       }
 
       // Draw center line
-      ctx.strokeStyle = "#374151";
+      ctx.strokeStyle = '#374151';
       ctx.setLineDash([2, 2]);
       ctx.beginPath();
       ctx.moveTo(0, height / 2);
@@ -131,11 +131,8 @@ const VoiceMessageTest = () => {
   }, [isRecording]);
 
   const startRecording = async () => {
-    if (
-      typeof window === "undefined" ||
-      !navigator.mediaDevices?.getUserMedia
-    ) {
-      alert("Your browser does not support audio recording.");
+    if (typeof window === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+      alert('Your browser does not support audio recording.');
       return;
     }
 
@@ -167,7 +164,7 @@ const VoiceMessageTest = () => {
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunks.current, { type: "audio/webm" });
+        const blob = new Blob(chunks.current, { type: 'audio/webm' });
         const url = URL.createObjectURL(blob);
         setRecordedURL(url);
         chunks.current = [];
@@ -177,13 +174,13 @@ const VoiceMessageTest = () => {
       setIsRecording(true);
       setSeconds(0);
     } catch (error) {
-      console.error("Error accessing microphone:", error);
-      alert("Cannot access microphone. Please check your permissions.");
+      console.error('Error accessing microphone:', error);
+      alert('Cannot access microphone. Please check your permissions.');
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorder.current && mediaRecorder.current.state !== "inactive") {
+    if (mediaRecorder.current && mediaRecorder.current.state !== 'inactive') {
       mediaRecorder.current.stop();
     }
     if (mediaStream.current) {
@@ -202,8 +199,8 @@ const VoiceMessageTest = () => {
 
   const sendRecording = () => {
     if (recordedURL) {
-      console.log("Sending recording:", recordedURL);
-      alert("Voice message sent!");
+      console.log('Sending recording:', recordedURL);
+      alert('Voice message sent!');
       setRecordedURL(null);
       setSeconds(0);
     }
@@ -212,18 +209,13 @@ const VoiceMessageTest = () => {
   const formatTime = (totalSeconds: number) => {
     const minutes = Math.floor(totalSeconds / 60);
     const secs = totalSeconds % 60;
-    return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(
-      2,
-      "0"
-    )}`;
+    return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
   return (
     <div className="w-full h-screen flex flex-col items-center justify-center gap-6 bg-gray-900 p-4">
       {/* Timer Display */}
-      <div className="text-white text-6xl font-mono mb-8">
-        {formatTime(seconds)}
-      </div>
+      <div className="text-white text-6xl font-mono mb-8">{formatTime(seconds)}</div>
 
       {/* Main Recording UI */}
       <div className="flex flex-col items-center gap-8 w-full max-w-md">
@@ -236,10 +228,8 @@ const VoiceMessageTest = () => {
               </div>
             </div>
             <div className="text-center text-gray-400 mt-4 text-sm">
-              Recording...{" "}
-              {waveformData.current.some((val) => val > 0)
-                ? "Sound detected"
-                : "No sound"}
+              Recording...{' '}
+              {waveformData.current.some((val) => val > 0) ? 'Sound detected' : 'No sound'}
             </div>
           </div>
         )}
@@ -294,9 +284,7 @@ const VoiceMessageTest = () => {
 
         {/* Instruction Text */}
         {!isRecording && !recordedURL && (
-          <div className="text-gray-400 text-center text-sm">
-            Tap to record voice message
-          </div>
+          <div className="text-gray-400 text-center text-sm">Tap to record voice message</div>
         )}
       </div>
 

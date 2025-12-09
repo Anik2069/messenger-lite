@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Check, Copy } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState } from 'react';
+import { Check, Copy } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type SecretCopyProps = {
   secret: string;
@@ -17,7 +17,7 @@ export function SecretCopy({ secret }: SecretCopyProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error("Failed to copy:", error);
+      console.error('Failed to copy:', error);
     }
   };
 

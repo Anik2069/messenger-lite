@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useModal } from "@/hooks/useModal";
-import React, { createContext, useContext } from "react";
+import { useModal } from '@/hooks/useModal';
+import React, { createContext, useContext } from 'react';
 
 interface GlobalContextType {
   newDrawerOpen: () => void;
@@ -39,11 +39,7 @@ interface GlobalContextType {
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 
-export const GlobalContextProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+export const GlobalContextProvider = ({ children }: { children: React.ReactNode }) => {
   const {
     open: newDrawerOpen,
     close: newDrawerClose,
@@ -133,9 +129,7 @@ export const GlobalContextProvider = ({
 export const useGlobalContext = () => {
   const context = useContext(GlobalContext);
   if (!context) {
-    throw new Error(
-      "useGlobalContext must be used within GlobalContextProvider"
-    );
+    throw new Error('useGlobalContext must be used within GlobalContextProvider');
   }
   return context;
 };

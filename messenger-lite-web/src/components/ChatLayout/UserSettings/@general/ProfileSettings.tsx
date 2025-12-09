@@ -1,36 +1,34 @@
-import React, { useEffect, useState } from "react";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/context/useAuth";
-import Image from "next/image";
-import { DummyAvatar } from "@/assets/image";
+import React, { useEffect, useState } from 'react';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/useAuth';
+import Image from 'next/image';
+import { DummyAvatar } from '@/assets/image';
 
-import AnimatedWrapper from "@/components/animations/AnimatedWrapper";
-import { SOCKET_HOST } from "@/constant";
-import { Check, X } from "lucide-react";
-import { ProfileImage } from "./ProfileImage";
+import AnimatedWrapper from '@/components/animations/AnimatedWrapper';
+import { SOCKET_HOST } from '@/constant';
+import { Check, X } from 'lucide-react';
+import { ProfileImage } from './ProfileImage';
 
 const ProfileSettings = () => {
   const { currentUserDetails, updateProfilePicture } = useAuth();
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(
-    currentUserDetails?.avatar
-      ? `${SOCKET_HOST}/${currentUserDetails.avatar}`
-      : null
+    currentUserDetails?.avatar ? `${SOCKET_HOST}/${currentUserDetails.avatar}` : null
   );
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState({
-    username: "",
-    email: "",
-    avatar: "",
+    username: '',
+    email: '',
+    avatar: '',
   });
 
   useEffect(() => {
     if (currentUserDetails) {
       setProfileData({
-        username: currentUserDetails.username || "",
-        email: currentUserDetails.email || "",
-        avatar: currentUserDetails.avatar || "",
+        username: currentUserDetails.username || '',
+        email: currentUserDetails.email || '',
+        avatar: currentUserDetails.avatar || '',
       });
     }
   }, [currentUserDetails]);
@@ -45,7 +43,7 @@ const ProfileSettings = () => {
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Updating profile:", profileData);
+    console.log('Updating profile:', profileData);
   };
 
   const discardProfile = () => {
@@ -62,7 +60,7 @@ const ProfileSettings = () => {
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append("profile_pic", profileImageFile);
+      formData.append('profile_pic', profileImageFile);
       await updateProfilePicture(formData);
     } catch (error) {
       console.log(error);
@@ -160,10 +158,7 @@ const ProfileSettings = () => {
             />
           </div>
 
-          <Button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-          >
+          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white">
             Update Profile
           </Button>
         </form>

@@ -1,18 +1,16 @@
-import { Button } from "@/components/ui/button";
-import { Chat } from "../../../types/ChatType";
-import ChatHeaderActions from "./ChatHeaderActions";
-import { Phone, Video } from "lucide-react";
-import { MEDIA_HOST } from "@/constant";
-import { DummyAvatar } from "@/assets/image";
-import AvatarImage from "../../reusable/AvatarImage";
-import { Tooltip } from "@/components/ui/tooltip";
+import { Button } from '@/components/ui/button';
+import { Chat } from '../../../types/ChatType';
+import ChatHeaderActions from './ChatHeaderActions';
+import { Phone, Video } from 'lucide-react';
+import { MEDIA_HOST } from '@/constant';
+import { DummyAvatar } from '@/assets/image';
+import AvatarImage from '../../reusable/AvatarImage';
+import { Tooltip } from '@/components/ui/tooltip';
 
 const ChatHeader = ({ selectedChat }: { selectedChat: Chat }) => {
   // const image = `${selectedChat.avatar}`;
 
-  const image = selectedChat.avatar
-    ? `${MEDIA_HOST}/${selectedChat.avatar}`
-    : DummyAvatar.src;
+  const image = selectedChat.avatar ? `${MEDIA_HOST}/${selectedChat.avatar}` : DummyAvatar.src;
   // console.log(selectedChat, ")))))))))))))))))");
   // console.log(image, ")))))))))))))))))");
 
@@ -28,27 +26,24 @@ const ChatHeader = ({ selectedChat }: { selectedChat: Chat }) => {
           </div>
         }
         <div>
-          <h2 className="font-semibold text-gray-900 dark:text-white">
-            {selectedChat.name}
-          </h2>
+          <h2 className="font-semibold text-gray-900 dark:text-white">{selectedChat.name}</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {selectedChat.type === "group"
-              ? "Group chat"
+            {selectedChat.type === 'group'
+              ? 'Group chat'
               : selectedChat.isOnline
-                ? "Online"
-                : "Offline"}
+                ? 'Online'
+                : 'Offline'}
           </p>
         </div>
       </div>
       <div className="flex items-center">
         <div className="flex items-center">
           <Tooltip>
-
             <Button
               variant="ghost"
               size="icon"
               className="hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-            // onClick={handleVideoCall}
+              // onClick={handleVideoCall}
             >
               <Video className="w-5 h-5 text-gray-700 dark:text-gray-300" />
             </Button>
@@ -59,7 +54,7 @@ const ChatHeader = ({ selectedChat }: { selectedChat: Chat }) => {
               variant="ghost"
               size="icon"
               className="hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-            // onClick={handleAudioCall}
+              // onClick={handleAudioCall}
             >
               <Phone className="w-5 h-5 text-gray-700 dark:text-gray-300" />
             </Button>

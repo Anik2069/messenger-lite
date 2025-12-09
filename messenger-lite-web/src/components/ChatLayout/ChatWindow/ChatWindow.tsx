@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { Chat } from "../../../types/ChatType";
-import { Message, ForwardedData } from "../../../types/MessageType";
-import { User } from "../../../types/UserType";
-import ChatHeader from "./ChatHeader";
-import MessageList from "./MessageList";
-import ChatInput from "./ChatInput";
+import { useState } from 'react';
+import { Chat } from '../../../types/ChatType';
+import { Message, ForwardedData } from '../../../types/MessageType';
+import { User } from '../../../types/UserType';
+import ChatHeader from './ChatHeader';
+import MessageList from './MessageList';
+import ChatInput from './ChatInput';
 
 interface ChatWindowProps {
   currentUser: User | null;
@@ -13,7 +13,7 @@ interface ChatWindowProps {
   otherUserTyping: string | null;
   onSendMessage: (
     text: string,
-    type?: "TEXT" | "FILE" | "forwarded" | "VOICE",
+    type?: 'TEXT' | 'FILE' | 'forwarded' | 'VOICE',
     fileData?: object,
     voiceUrl?: string | undefined,
     forwardedFrom?: ForwardedData,
@@ -56,21 +56,21 @@ const ChatWindow = ({
       <MessageList
         messages={messages}
         currentUserId={currentUser?.id}
-        isGroupChat={selectedChat.type === "group"}
+        isGroupChat={selectedChat.type === 'group'}
         otherUserTyping={otherUserTyping}
         showReactions={showReactions}
         setShowReactions={setShowReactions}
         onForward={(msg) =>
           onSendMessage(
             msg.message,
-            "forwarded",
+            'forwarded',
             undefined,
             undefined,
             {
-              originalSender: msg?.from?.username || "Unknown",
+              originalSender: msg?.from?.username || 'Unknown',
               originalTimestamp: new Date(msg.timestamp || msg.timestamp),
             },
-            { username: msg?.from?.username || "Unknown", id: msg?.from?.id }
+            { username: msg?.from?.username || 'Unknown', id: msg?.from?.id }
           )
         }
         onAddReaction={onAddReaction}

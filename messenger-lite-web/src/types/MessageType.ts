@@ -1,7 +1,7 @@
-import { format, isValid } from "date-fns";
-import { User } from "./UserType";
+import { format, isValid } from 'date-fns';
+import { User } from './UserType';
 
-export type MessageKind = "TEXT" | "FILE" | "forwarded" | "VOICE";
+export type MessageKind = 'TEXT' | 'FILE' | 'forwarded' | 'VOICE';
 
 export interface MiniUserRef {
   id: string;
@@ -29,23 +29,23 @@ export interface Reaction {
 }
 
 export function formatLocalDateTime(timestamp?: string | Date | null): string {
-  if (!timestamp) return "-";
+  if (!timestamp) return '-';
 
   const date = new Date(timestamp);
 
-  if (!isValid(date)) return "-";
+  if (!isValid(date)) return '-';
 
-  return format(date, "MMM d, yyyy, hh:mm a");
+  return format(date, 'MMM d, yyyy, hh:mm a');
 }
 
 export function formatLocalTime(timestamp?: string | Date | null): string {
-  if (!timestamp) return "-"; // or "N/A"
+  if (!timestamp) return '-'; // or "N/A"
 
   const date = new Date(timestamp);
 
-  if (!isValid(date)) return "-"; // avoid crashing
+  if (!isValid(date)) return '-'; // avoid crashing
 
-  return format(date, "hh:mm a");
+  return format(date, 'hh:mm a');
 }
 
 export interface ReadReceipt {

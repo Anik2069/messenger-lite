@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React from "react";
-import { useAuth } from "@/context/useAuth";
-import { AuthForm } from "./AuthForm";
-import { Spinner } from "../ui/Spinner";
+import React from 'react';
+import { useAuth } from '@/context/useAuth';
+import { AuthForm } from './AuthForm';
+import { Spinner } from '../ui/Spinner';
 
 export const AuthPageComponents = () => {
   const { initialLoading } = useAuth();
