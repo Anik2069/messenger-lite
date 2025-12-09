@@ -5,6 +5,7 @@ import { Phone, Video } from "lucide-react";
 import { MEDIA_HOST } from "@/constant";
 import { DummyAvatar } from "@/assets/image";
 import AvatarImage from "../../reusable/AvatarImage";
+import { Tooltip } from "@/components/ui/tooltip";
 
 const ChatHeader = ({ selectedChat }: { selectedChat: Chat }) => {
   // const image = `${selectedChat.avatar}`;
@@ -41,12 +42,28 @@ const ChatHeader = ({ selectedChat }: { selectedChat: Chat }) => {
       </div>
       <div className="flex items-center">
         <div className="flex items-center">
-          <Button title="Video Call - Coming Soon" className="cursor-pointer" variant={"ghost"} size={"icon"}>
-            <Video className="w-5 h-5" />
-          </Button>
-          <Button title="Phone Call - Coming Soon" className="cursor-pointer" variant={"ghost"} size={"icon"}>
-            <Phone className="w-5 h-5" />
-          </Button>
+          <Tooltip>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+            // onClick={handleVideoCall}
+            >
+              <Video className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            </Button>
+          </Tooltip>
+
+          <Tooltip>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+            // onClick={handleAudioCall}
+            >
+              <Phone className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            </Button>
+          </Tooltip>
         </div>
         <ChatHeaderActions conversationId={selectedChat.id} />
       </div>
