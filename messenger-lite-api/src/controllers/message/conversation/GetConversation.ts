@@ -19,17 +19,21 @@ export function getConversations(
 
       const conversations = await prisma.conversation.findMany({
         where: {
-          participants: {
-            some: {
-              userId,
-              user: {
-                username: {
-                  contains: searchTerm,
-                  mode: "insensitive",
+          AND: [
+            {
+              participants: {
+                some: {
+                  userId,
+                  user: {
+                    username: {
+                      contains: searchTerm,
+                      mode: "insensitive",
+                    },
+                  },
                 },
               },
             },
-          },
+          ],
         },
         include: {
           participants: {
@@ -58,13 +62,28 @@ export function getConversations(
         },
       });
 
-      // console.log("Fetched conversations for user:", userId, conversations);
+      const conversationWithVerifiedMessages = conversations.map((conversation) => {
+        const participant = conversation.participants.find(
+          (p) => p.userId === userId
+        );
+
+        if (participant?.clearedAt && conversation.messages.length > 0) {
+          const filteredMessages = conversation.messages.filter(
+            (msg) => msg.createdAt > participant.clearedAt!
+          );
+          return {
+            ...conversation,
+            messages: filteredMessages,
+          };
+        }
+        return conversation;
+      });
 
       return sendResponse({
         res,
         statusCode: StatusCodes.OK,
         message: "Fetched conversations successfully",
-        data: conversations,
+        data: conversationWithVerifiedMessages,
       });
     } catch (error) {
       console.error("Error fetching conversations:", error);
