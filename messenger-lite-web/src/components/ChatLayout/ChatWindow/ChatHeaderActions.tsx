@@ -1,24 +1,26 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/button';
-import { EllipsisVertical } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { EllipsisVertical } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
-import { toast } from 'react-toastify';
-import { useChatStore } from '@/store/useChatStore';
-import { useGlobalContext } from '@/provider/GlobalContextProvider';
+} from "@/components/ui/dropdown-menu";
+import { toast } from "react-toastify";
+import { useChatStore } from "@/store/useChatStore";
+import { useGlobalContext } from "@/provider/GlobalContextProvider";
 const ChatHeaderActions = ({ conversationId }: { conversationId: string }) => {
   const { handleClearConversation } = useChatStore();
-  const { openSelectedChatProfile } = useGlobalContext();
+  const {
+    openSelectedChatProfile,
+  } = useGlobalContext();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button className="cursor-pointer" variant="ghost" size={'icon'}>
+        <Button className="cursor-pointer" variant="ghost" size={"icon"}>
           <EllipsisVertical className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
@@ -27,22 +29,20 @@ const ChatHeaderActions = ({ conversationId }: { conversationId: string }) => {
         <DropdownMenuItem
           onClick={() => {
             openSelectedChatProfile();
-            console.log('Profile');
+            console.log("Profile");
           }}
         >
-          View profile{' '}
+          View profile{" "}
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
         {/* <DropdownMenuItem onClick={() => console.log("Profile")}>
           New group
         </DropdownMenuItem> */}
-        <DropdownMenuItem
-          onClick={() => {
-            openSelectedChatProfile();
-            console.log('Media, link and docs');
-          }}
-        >
+        <DropdownMenuItem onClick={() => {
+          openSelectedChatProfile();
+          console.log("Media, link and docs");
+        }}>
           Media, link and docs
         </DropdownMenuItem>
         {/* <DropdownMenuItem onClick={() => console.log("Logout")}>
@@ -53,8 +53,8 @@ const ChatHeaderActions = ({ conversationId }: { conversationId: string }) => {
         <DropdownMenuItem
           variant="destructive"
           onClick={() => {
-            toast.success('Reported');
-            console.log('this is a demo action!');
+            toast.success("Reported");
+            console.log("this is a demo action!");
           }}
         >
           Report
