@@ -81,9 +81,8 @@ export function OtpInput({ name, length, setupError }: OtpInputProps) {
           key={i}
           type="text"
           maxLength={1}
-          className={`w-12 h-12 text-center border rounded-lg text-lg focus:outline-none focus:border-blue-500 ${
-            setupError ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-12 h-12 text-center border rounded-lg text-lg focus:outline-none focus:border-blue-500 ${setupError ? 'border-red-500' : 'border-gray-300'
+            }`}
           value={valueArray[i] || ''}
           onChange={(e) => handleChange(e, i)}
           onKeyDown={(e) => handleBackspace(e, i)}

@@ -57,3 +57,18 @@ export function uuidv4(): string {
     `${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}${hex()}`
   );
 }
+
+
+
+export const base64UrlEncode = (obj: any) => {
+  const json = JSON.stringify(obj);
+  let base64 = Buffer.from(json).toString('base64');
+  base64 = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return base64;
+};
+
+export const base64UrlDecode = (str: string) => {
+  str = str.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = str + '==='.slice((str.length + 3) % 4);
+  return JSON.parse(Buffer.from(padded, 'base64').toString('utf-8'));
+};

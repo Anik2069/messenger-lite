@@ -60,7 +60,7 @@ function SubmitOtpFormInner() {
   return (
     <div className=" flex items-center justify-center">
       <div className="w-full max-w-md">
-        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm dark:bg-gray-800/80">
+        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm bg-white dark:bg-gray-800/80">
           <CardHeader className="text-center pb-4">
             <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white">
               Enter Verification Code

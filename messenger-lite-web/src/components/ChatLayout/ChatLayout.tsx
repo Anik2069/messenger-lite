@@ -70,7 +70,7 @@ const ChatLayout = () => {
 
   useEffect(() => {
     if (user) getMyself();
-  }, [user, getMyself]);
+  }, [user]);
 
   const onChatSelect = useCallback(
     (chat: Chat) => {
@@ -153,9 +153,13 @@ const ChatLayout = () => {
         </AnimatedWrapper>
         {/* </div> */}
 
-        {/* Right Drawer → Profile */}
-        <AnimatedWrapper isOpen={isOpenSelectedChatProfile} fixedRight className="w-80 h-full">
-          <div className="relative h-[calc(100vh-64px)] w-full">
+        <AnimatedWrapper
+          type="fadeFromRight"
+          duration={0.3}
+          isOpen={isOpenSelectedChatProfile}
+          className={`${isOpenSelectedChatProfile ? 'w-80' : 'w-0'} border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-all duration-300 ease-in-out overflow-hidden`}
+        >
+          <div className="h-full w-80">
             <SelectedChatProfile
               onClose={closeSelectedChatProfile}
               id={selectedChat?.userId ?? ''}
@@ -232,7 +236,6 @@ const ChatLayout = () => {
 
       <SearchModal />
 
-      <IncomingCallPopup />
     </div>
   );
 };

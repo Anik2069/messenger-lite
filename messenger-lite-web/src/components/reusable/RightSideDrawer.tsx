@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils'; // Optional Tailwind merge utility
 
 interface RightSideDrawerProps {
   isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange?: (open: boolean) => void;
   title?: string;
   description?: string;
   children: ReactNode;

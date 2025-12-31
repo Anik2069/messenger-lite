@@ -18,7 +18,7 @@ if (typeof window !== 'undefined') {
   }
 }
 
-export const socket = io(SOCKET_HOST, {
+export const socket = io(`${SOCKET_HOST}/chat`, {
   withCredentials: true,
   autoConnect: true,
   auth: {

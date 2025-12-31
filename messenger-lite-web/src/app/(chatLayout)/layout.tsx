@@ -1,10 +1,12 @@
 'use client';
+// import { CallProvider } from '@/context/CallContext';
 import { SettingsProvider } from '@/context/SettingsContext';
 import { AuthProvider } from '@/context/useAuth';
 import { ChatInputContextProvider } from '@/context/useChatInputContext';
 import { SocketContextProvider } from '@/context/useSocket';
 import { GlobalContextProvider } from '@/provider/GlobalContextProvider';
 import React from 'react';
+import IncomingCallPopup from '@/components/ChatLayout/IncomingCallPopup';
 
 const layout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -14,7 +16,10 @@ const layout = ({ children }: { children: React.ReactNode }) => {
           <SettingsProvider>
             {' '}
             <GlobalContextProvider>
-              <ChatInputContextProvider>{children}</ChatInputContextProvider>
+              <ChatInputContextProvider>
+                {children}
+                <IncomingCallPopup />
+              </ChatInputContextProvider>
             </GlobalContextProvider>
           </SettingsProvider>
         </SocketContextProvider>

@@ -1,109 +1,175 @@
-"use client";
-import { Phone, PhoneOff, Video, Mic } from "lucide-react";
-import { useEffect, useState } from "react";
+'use client';
 
-const IncomingCallPopup = () => {
+import { useEffect, useState, useRef } from 'react';
+import { Phone, PhoneOff, Video, Mic } from 'lucide-react';
+// import { useCall } from '@/context/CallContext'; // No longer used here
+import { socket } from '@/lib/socket'; // Chat Socket
+import { useAuth } from '@/context/useAuth';
+import { CALL_SECRET, MEDIA_HOST } from '@/constant';
+import { base64UrlEncode } from '@/lib/utils';
+
+export default function IncomingCallPopup() {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
     const [showPopup, setShowPopup] = useState(false);
+    const [popupData, setPopupData] = useState<{
+        callId: string;
+        callType: 'audio' | 'video';
+        fromUserId: string;
+        timestamp: number;
+        user?: {
+            name: string;
+            avatar?: string;
+        }
+    } | null>(null);
 
-    if (!showPopup) return <></>;
-    const { callerName, callerAvatar, callType, onAccept, onReject, autoDismiss } = {
-        callerName: "Unknown Caller",
-        callerAvatar: "",
-        callType: "audio", // "audio" | "video"
-        onAccept: () => { },
-        onReject: () => { },
-        autoDismiss: 30000,
-    }
+    // Audio ref for ringtone
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
     useEffect(() => {
-        const timer = setTimeout(() => onReject?.(), autoDismiss);
-        return () => clearTimeout(timer);
-    }, [autoDismiss, onReject]);
+        // Initialize ringtone
+        audioRef.current = new Audio('/sounds/ringtone.mp3'); // Ensure this file exists or use a default
+        audioRef.current.loop = true;
 
+        // Listen for generic notifications that are calls
+        socket.on('notification', (data: any) => {
+            if (data.type === 'incoming_call') {
+                console.log("Incoming call received via chat notification:", data);
+                setPopupData({
+                    callId: data.callId,
+                    callType: data.callType,
+                    fromUserId: data.fromUserId,
+                    timestamp: data.timestamp,
+                    user: { name: 'User' } // Ideally fetch user info here
+                });
+                setShowPopup(true);
+                audioRef.current?.play().catch(e => console.log("Audio play failed", e));
+            } else if (data.type === 'call_ended') {
+                if (popupData && popupData.callId === data.callId) {
+                    setShowPopup(false);
+                    setPopupData(null);
+                    audioRef.current?.pause();
+                    if (audioRef.current) audioRef.current.currentTime = 0;
+                }
+            }
+        });
+
+        // Also listen to direct rejection (if we are logged in on multiple tabs)
+        // actually rejection should probably come via notification type 'call_rejected' if needed? 
+        // For now, relies on call_ended.
+
+        return () => {
+            socket.off('notification');
+            audioRef.current?.pause();
+        };
+    }, [popupData]);
+
+    const handleAccept = () => {
+        if (popupData) {
+            audioRef.current?.pause();
+            if (audioRef.current) audioRef.current.currentTime = 0;
+            console.log(popupData, "popupData")
+
+            const payload = {
+                callId: popupData.callId,
+                type: popupData.callType,
+                toUserIds: popupData.fromUserId,
+                token,
+                CALL_SECRET
+            }
+            const base64Payload = base64UrlEncode(payload);
+
+            const url = `/call/${popupData.callId}?payload=${base64Payload}`;
+            // We don't need 'to' param here because we are the Callee, we just join.
+            // But we might want 'to' parameter to identify the Caller?
+            // "to" usually implies "I am calling these people".
+            // Since we are accepting, we are joining. The Call Page logic checks 'toUserIds.length'. 
+            // If empty, it assumes joining (answering).
+
+            window.open(url, '_blank', 'width=1280,height=720');
+            setShowPopup(false);
+            setPopupData(null);
+        }
+    };
+
+    const handleReject = () => {
+        if (popupData) {
+            audioRef.current?.pause();
+            if (audioRef.current) audioRef.current.currentTime = 0;
+
+            // Emit rejection to CHAT socket
+            socket.emit('call_rejected', {
+                callId: popupData.callId,
+                reason: 'User declined'
+            });
+
+            setShowPopup(false);
+            setPopupData(null);
+        }
+    };
+
+    if (!showPopup || !popupData) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-end md:items-center justify-center z-[999999] animate-fadeIn">
-
-            {/* Main Card */}
-            <div className="w-full md:w-[380px] bg-white/10 backdrop-blur-2xl p-8 rounded-t-3xl md:rounded-3xl border border-white/20 shadow-[0_8px_40px_rgba(0,0,0,0.4)] animate-slideUp">
-
-                {/* Avatar */}
-                <div className="relative w-28 h-28 mx-auto">
-                    <img
-                        src={callerAvatar}
-                        className="w-28 h-28 rounded-full object-cover border-4 border-cyan-400 shadow-xl"
-                    />
-                    <div className="absolute inset-0 rounded-full border-4 border-cyan-400 animate-ping opacity-40"></div>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9999] animate-fadeIn">
+            <div className="bg-gray-900/90 backdrop-blur-xl rounded-2xl p-8 max-w-md w-full mx-4 border border-gray-700 shadow-2xl animate-slideUp">
+                {/* Caller Info */}
+                <div className="text-center mb-6">
+                    <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 border-4 border-blue-500">
+                        {/* Placeholder Avatar */}
+                        <div className="w-full h-full bg-blue-600 flex items-center justify-center">
+                            <span className="text-2xl font-bold text-white">C</span>
+                        </div>
+                    </div>
+                    <h2 className="text-xl font-semibold text-white mb-1">
+                        Incoming Call
+                    </h2>
+                    <p className="text-gray-300">
+                        {popupData.callType === 'video' ? 'Video Call' : 'Audio Call'}
+                    </p>
                 </div>
 
-
-                {/* Caller Name */}
-                <h1 className="text-white text-3xl font-semibold text-center mt-5 tracking-wide">
-                    {callerName}
-                </h1>
-
-                {/* Call Type */}
-                <p className="text-cyan-300 text-lg mt-1 flex items-center justify-center gap-2">
-                    {callType === "video" ? (
-                        <>
-                            <Video size={20} /> Incoming Video Call
-                        </>
-                    ) : (
-                        <>
-                            <Mic size={20} /> Incoming Audio Call
-                        </>
-                    )}
-                </p>
-
-                {/* Buttons Row */}
-                <div className="mt-10 flex justify-center gap-12">
-
-                    {/* Decline */}
+                {/* Controls */}
+                <div className="flex justify-center gap-6">
+                    {/* Reject */}
                     <button
-                        onClick={onReject}
-                        className="w-15 h-15 rounded-full bg-red-600 shadow-xl flex items-center justify-center text-white hover:bg-red-700 active:scale-90 transition-all relative"
+                        onClick={handleReject}
+                        className="w-14 h-14 rounded-full bg-red-600 flex items-center justify-center hover:bg-red-700 transition-colors"
+                        aria-label="Reject call"
                     >
-                        <PhoneOff size={24} />
-                        <span className="absolute inset-0 rounded-full bg-red-600 opacity-30 hover:animate-ping"></span>
+                        <PhoneOff className="w-6 h-6 text-white" />
                     </button>
 
                     {/* Accept */}
                     <button
-                        onClick={onAccept}
-                        className="w-15 h-15 rounded-full bg-green-600 shadow-xl flex items-center justify-center text-white hover:bg-green-700 active:scale-90 transition-all relative"
+                        onClick={handleAccept}
+                        className="w-14 h-14 rounded-full bg-green-600 flex items-center justify-center hover:bg-green-700 transition-colors"
+                        aria-label="Accept call"
                     >
-                        {callType === "video" ? (
-                            <Video size={24} />
+                        {popupData.callType === 'video' ? (
+                            <Video className="w-6 h-6 text-white" />
                         ) : (
-                            <Phone size={24} />
+                            <Phone className="w-6 h-6 text-white" />
                         )}
-                        <span className="absolute inset-0 rounded-full bg-green-600 opacity-30 hover:animate-ping"></span>
                     </button>
                 </div>
             </div>
-
-            {/* Custom Animations */}
-            <style>{`
-        .animate-fadeIn {
-          animation: fadeIn 0.4s ease-out;
-        }
+            <style jsx>{`
         @keyframes fadeIn {
-          0% { opacity: 0 }
-          100% { opacity: 1 }
-        }
-
-        .animate-slideUp {
-          animation: slideUp .35s cubic-bezier(0.16, 1, 0.3, 1);
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
         @keyframes slideUp {
-          0% { transform: translateY(100px); opacity: 0; }
-          100% { transform: translateY(0); opacity: 1; }
+          from { transform: translateY(20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out;
+        }
+        .animate-slideUp {
+          animation: slideUp 0.4s ease-out;
         }
       `}</style>
-
         </div>
     );
 }
-
-export default IncomingCallPopup;
-
