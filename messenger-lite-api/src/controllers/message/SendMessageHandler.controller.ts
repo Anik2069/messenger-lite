@@ -239,7 +239,7 @@ export default function createSendMessageController(
       });
 
       // Join only the message sender to the conversation room (if they have an active socket)
-      const sockets = await io.fetchSockets();
+      const sockets = await io.of("/chat").fetchSockets();
       for (const socket of sockets) {
         if (socket.data.userId === userId) {
           const roomName = conversationRoom(createdMessages[0].conversationId);
@@ -252,7 +252,7 @@ export default function createSendMessageController(
 
       // Broadcast messages to conversation room
       for (const msg of createdMessages) {
-        io.to(conversationRoom(msg.conversationId)).emit(
+        io.of("/chat").to(conversationRoom(msg.conversationId)).emit(
           "receive_message",
           msg
         );
@@ -266,7 +266,7 @@ export default function createSendMessageController(
 
       for (const p of participants) {
         const updatedList = await getUserConversationsSorted(prisma, p.userId);
-        io.to(p.userId).emit("conversations_updated", updatedList);
+        io.of("/chat").to(p.userId).emit("conversations_updated", updatedList);
       }
 
       return sendResponse({

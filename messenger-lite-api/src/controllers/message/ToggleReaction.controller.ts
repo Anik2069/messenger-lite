@@ -57,7 +57,7 @@ export default function ToggleReaction(
       }
 
       const payload = { messageId, userId, emoji, action };
-      io.to(convRoomR(msg.conversationId)).emit("message_reaction", payload);
+      io.of("/chat").to(convRoomR(msg.conversationId)).emit("message_reaction", payload);
 
       return sendResponse({
         res,

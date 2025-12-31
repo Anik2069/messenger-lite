@@ -76,7 +76,7 @@ const AcceptOrRejectRequest = (
               prisma,
               p.userId
             );
-            io.to(p.userId).emit("conversations_updated", updatedList);
+            io.of("/chat").to(p.userId).emit("conversations_updated", updatedList);
           }
         }
         //here i want to emit socket event
@@ -87,10 +87,10 @@ const AcceptOrRejectRequest = (
       }
 
       // Emit update
-      io.to(request.senderId).emit("friend_request_update", {
+      io.of("/chat").to(request.senderId).emit("friend_request_update", {
         request: updatedRequest,
       });
-      io.to(request.receiverId).emit("friend_request_update", {
+      io.of("/chat").to(request.receiverId).emit("friend_request_update", {
         request: updatedRequest,
       });
 
@@ -99,7 +99,7 @@ const AcceptOrRejectRequest = (
         prisma,
         request.senderId
       );
-      io.to(request.senderId).emit(
+      io.of("/chat").to(request.senderId).emit(
         "conversations_updated",
         updatedConversations
       );
@@ -109,7 +109,7 @@ const AcceptOrRejectRequest = (
         prisma,
         request.receiverId
       );
-      io.to(request.receiverId).emit(
+      io.of("/chat").to(request.receiverId).emit(
         "conversations_updated",
         updatedConversations2
       );

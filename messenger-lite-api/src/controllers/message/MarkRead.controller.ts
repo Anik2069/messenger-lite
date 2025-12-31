@@ -47,7 +47,7 @@ export default function MarkRead(
       });
 
       const payload = { messageId, userId, readAt: receipt.readAt };
-      io.to(convRoomM(msg.conversationId)).emit("message_read", payload);
+      io.of("/chat").to(convRoomM(msg.conversationId)).emit("message_read", payload);
 
       return sendResponse({
         res,
