@@ -12,7 +12,7 @@ export const AudioCallView = ({ callId }: { callId: string }) => {
         toggleMute,
     } = useCall();
 
-    const { isMuted, callStatus, remoteStreams, localStream } = callState;
+    const { isMuted, callStatus, remoteStreams, localStream, endReason } = callState;
     const remoteAudioRefs = useRef<{ [key: string]: HTMLAudioElement }>({});
 
     // Handle remote audio streams
@@ -69,8 +69,19 @@ export const AudioCallView = ({ callId }: { callId: string }) => {
 
                 <div className="text-center">
                     <h3 className="text-3xl font-bold text-white mb-2">
-                        {Object.keys(remoteStreams).length > 0 ? "In Call" : "Waiting for Answer"}
+                        {callStatus === 'ended'
+                            ? "Disconnected"
+                            : Object.keys(remoteStreams).length > 0
+                                ? "In Call"
+                                : "Waiting for Answer"}
                     </h3>
+                    {callStatus === 'ended' && (
+                        <p className="text-blue-200 text-sm mt-2 opacity-80">
+                            {endReason === 'network_unstable' ? 'The network is unstable.' :
+                             endReason === 'rejected' ? 'The call was rejected.' :
+                             'The user left.'}
+                        </p>
+                    )}
                 </div>
 
             </div>

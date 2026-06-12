@@ -12,6 +12,7 @@ export interface CallState {
     callId: string | null;
     callType: CallType;
     callStatus: CallStatus;
+    endReason?: 'user_left' | 'network_unstable' | 'rejected' | null;
     localStream: MediaStream | null;
     remoteStream: MediaStream | null; // Deprecated, keep for backward compat or remove if possible
     remoteStreams: Record<string, MediaStream>; // Added for group calls

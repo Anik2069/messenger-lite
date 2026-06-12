@@ -14,7 +14,7 @@ export const VideoCallView = ({ callId }: { callId: string }) => {
         toggleScreenShare,
     } = useCall();
 
-    const { localStream, remoteStreams, isMuted, isCameraOff, isScreenSharing, callStatus } = callState;
+    const { localStream, remoteStreams, isMuted, isCameraOff, isScreenSharing, callStatus, endReason } = callState;
     const localVideoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
@@ -41,6 +41,17 @@ export const VideoCallView = ({ callId }: { callId: string }) => {
                 <div className="flex flex-wrap items-center justify-center w-full h-full gap-4 p-4">
                     {Object.entries(remoteStreams).length === 0 && callStatus === 'connected' && (
                         <div className="text-gray-400">Waiting for others to join...</div>
+                    )}
+
+                    {callStatus === 'ended' && (
+                        <div className="flex flex-col items-center text-center bg-gray-900/80 p-8 rounded-2xl border border-gray-700 backdrop-blur-md z-20 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                            <h3 className="text-2xl font-bold text-white mb-2">Disconnected</h3>
+                            <p className="text-gray-400 text-sm">
+                                {endReason === 'network_unstable' ? 'The network is unstable.' :
+                                 endReason === 'rejected' ? 'The call was rejected.' :
+                                 'The user left.'}
+                            </p>
+                        </div>
                     )}
 
                     {Object.entries(remoteStreams).map(([userId, stream]) => (

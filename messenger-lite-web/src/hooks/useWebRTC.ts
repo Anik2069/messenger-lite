@@ -75,6 +75,8 @@ export function useWebRTC(callState: CallState, dispatch: React.Dispatch<any>, s
                 dispatch({ type: 'SET_CALL_STATUS', payload: 'connected' });
             }
             if (peer.connectionState === 'disconnected' || peer.connectionState === 'failed') {
+                dispatch({ type: 'SET_END_REASON', payload: 'network_unstable' });
+                dispatch({ type: 'SET_CALL_STATUS', payload: 'ended' });
                 dispatch({ type: 'REMOVE_REMOTE_STREAM', payload: { userId: peerId } });
                 peersRef.current.delete(peerId);
             }

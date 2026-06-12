@@ -59,6 +59,8 @@ function callReducer(state: CallState, action: any): CallState {
       return { ...state, callDuration: action.payload };
     case 'SET_CALLER':
       return { ...state, caller: action.payload };
+    case 'SET_END_REASON':
+      return { ...state, endReason: action.payload };
     case 'RESET_CALL':
       return { ...initialState, localStream: state.localStream };
     default:
@@ -148,6 +150,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       console.log('Call ended by', fromUserId, 'callId:', callId);
       closePeerConnection();
       dispatch({ type: 'RESET_CALL' });
+      dispatch({ type: 'SET_END_REASON', payload: 'user_left' });
       dispatch({ type: 'SET_CALL_STATUS', payload: 'ended' });
 
       const channel = new BroadcastChannel('messenger_call_state');
@@ -159,6 +162,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
     socket.on('call_rejected', ({ fromUserId }) => {
       console.log('Call rejected by', fromUserId);
+      dispatch({ type: 'SET_END_REASON', payload: 'rejected' });
       dispatch({ type: 'SET_CALL_STATUS', payload: 'ended' });
       setTimeout(() => window.close(), 2000);
     });
