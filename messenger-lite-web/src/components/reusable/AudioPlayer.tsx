@@ -61,7 +61,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, width = 300, height = 40
       setCurrentTime(0);
     });
 
-    // ✅ load audio safely
+    //  load audio safely
     ws.load(src).catch((err) => {
       if (err.name !== 'AbortError') {
         console.error('Audio load failed:', err);
@@ -70,7 +70,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, width = 300, height = 40
 
     return () => {
       isUnmounted = true;
-      // ✅ destroy without throwing abort error
+      // destroy without throwing abort error
       try {
         ws.unAll();
         ws.destroy();

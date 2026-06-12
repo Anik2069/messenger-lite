@@ -3,6 +3,7 @@ import { useCall } from "@/context/CallContext";
 import { Button } from "../ui/button";
 import { Mic, MicOff, PhoneOff, User } from "lucide-react";
 import { useEffect, useRef } from "react";
+import LiveVoiceVisualizer from "../reusable/LiveVoiceVisualizer";
 
 export const AudioCallView = ({ callId }: { callId: string }) => {
     const {
@@ -52,7 +53,7 @@ export const AudioCallView = ({ callId }: { callId: string }) => {
 
             {/* Main Content Area - Avatar Focus */}
             <div className="flex-1 flex flex-col items-center justify-center relative z-10 gap-8">
-                
+
                 {/* Avatar container with ripple effect based on state */}
                 <div className="relative flex items-center justify-center">
                     {callStatus === 'connected' && (
@@ -72,6 +73,18 @@ export const AudioCallView = ({ callId }: { callId: string }) => {
                     </h3>
                 </div>
 
+            </div>
+            <div className="w-full max-w-xs md:max-w-md mx-auto h-[60px] flex items-center justify-center mb-8 transition-all duration-300">
+                {!isMuted && localStream && (
+                    <div className="w-full opacity-80">
+                        <LiveVoiceVisualizer
+                            stream={localStream}
+                            type="chat"
+                            height={50}
+                            waveColor="#60a5fa"
+                        />
+                    </div>
+                )}
             </div>
 
             {/* Controls */}
