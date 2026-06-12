@@ -51,7 +51,7 @@ const ChangePassword = () => {
   };
 
   return (
-    <div className="border rounded-xl p-4 border-gray-200 dark:border-gray-700 pb-4">
+    <div className="border rounded-xl p-4 border-gray-200 dark:border-gray-700 pb-4  bg-white/70 dark:bg-gray-800/70">
       <h2 className="text-xl font-semibold mb-4">Change Password</h2>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

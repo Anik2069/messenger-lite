@@ -225,7 +225,7 @@ const ChatLayout = () => {
       </Modal>
 
       <Modal
-        maxWidth="7xl"
+        maxWidth="5xl"
         className="!p-0"
         title="Privacy Settings"
         open={isPrivacySettingModalOpen}

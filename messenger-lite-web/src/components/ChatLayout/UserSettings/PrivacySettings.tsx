@@ -41,19 +41,6 @@ const PrivacySettings = () => {
           sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         )}
       >
-        {/* Sidebar Header */}
-        {/* <CardHeader className="z-99 flex justify-between items-center  border-b dark:border-gray-700 md:hidden">
-          <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Privacy Settings
-          </CardTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSidebarOpen(false)}
-          >
-            ✕
-          </Button>
-        </CardHeader> */}
 
         {/* Sidebar Menu */}
         <div className="flex flex-col">
@@ -67,7 +54,7 @@ const PrivacySettings = () => {
               className={cn(
                 'flex items-center gap-3 px-6 py-3 text-sm font-medium transition-all text-gray-700 dark:text-gray-300 hover:bg-blue-100/60 dark:hover:bg-blue-900/30',
                 activeTab === id &&
-                  'bg-blue-600/10 text-blue-700 dark:text-blue-400 border-l-4 border-blue-600'
+                'bg-blue-600/10 text-blue-700 dark:text-blue-400 border-l-4 border-blue-600'
               )}
             >
               <Icon className="w-4 h-4" />
@@ -79,33 +66,13 @@ const PrivacySettings = () => {
 
       {/* ===== Main Content ===== */}
       <main className="flex-1 p-4 overflow-y-auto">
-        {/* Mobile Header */}
-        {/* <div className="flex items-center justify-between mb-4 md:hidden">
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            Privacy Settings
-          </h1>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu className="w-5 h-5" />
-          </Button>
-        </div> */}
-
         {/* Content Container */}
         <div className="w-full  md:h-auto overflow-y-auto   backdrop-blur-sm">
           {activeTab === 'password' && <ChangePassword />}
           {activeTab === '2fa' && <TwoFactorAuth />}
           {activeTab === 'devices' && <LoggedInDevices />}
         </div>
-        {/* <ConfirmationModal
-          open={removeModalIsOpen}
-          onClose={removeModalClose}
-          onConfirm={remove2FA}
-          title="Remove 2FA"
-          description="Are you sure you want to remove 2FA?"
-        /> */}
+
         <VerifyModal
           open={removeModalIsOpen}
           onClose={() => {
