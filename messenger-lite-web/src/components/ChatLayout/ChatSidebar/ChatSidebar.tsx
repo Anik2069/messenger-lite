@@ -116,7 +116,7 @@ const ChatSidebar = ({
                       userId: otherParticipant?.id || '',
                     });
                   }}
-                  className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${selectedChat?.id === conv.id ||
+                  className={`flex items-center px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${selectedChat?.id === conv.id ||
                     (selectedChat?.userId && otherParticipant?.id === selectedChat.userId)
                     ? 'bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500'
                     : ''
