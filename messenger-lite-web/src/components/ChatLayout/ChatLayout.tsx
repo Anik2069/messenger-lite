@@ -118,7 +118,7 @@ const ChatLayout = () => {
   return (
     <div className="w-screen h-screen flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden">
       <div className="shrink-0">
-        <Navbar user={user} isConnected={isConnected} onSearchClick={() => setShowSearch(true)} />
+        <Navbar isConnected={isConnected} onSearchClick={() => setShowSearch(true)} />
       </div>
 
       <div className="flex-1 flex overflow-hidden">

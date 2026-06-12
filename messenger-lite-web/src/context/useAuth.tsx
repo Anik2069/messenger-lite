@@ -65,6 +65,10 @@ interface AuthContextType {
   fetchTrustedDevices: (userId: string) => void;
   initialLoading: boolean;
   updateProfilePicture: (formData: FormData) => void;
+  updateProfile: (payload: { username: string }) => Promise<void>;
+  isOpenUpdateUsernameModal: boolean;
+  setIsOpenUpdateUsernameModal: (isOpenUpdateUsernameModal: boolean) => void;
+
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -72,7 +76,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [currentUserDetails, setCurrentUserDetails] = useState<User | null>(null);
-
+  const [isOpenUpdateUsernameModal, setIsOpenUpdateUsernameModal] = useState<boolean>(false)
   const [is2FAEnabled, setIs2FAEnabled] = useState<boolean>(false);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -205,7 +209,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     setIsLogoutLoading(true);
     try {
-      await axiosInstance.post('auth/user/logout').catch(() => {});
+      await axiosInstance.post('auth/user/logout').catch(() => { });
 
       setUser(null);
       setToken(null);
@@ -266,7 +270,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           localStorage.setItem('user', JSON.stringify(u));
         }
       }
-    } catch {}
+    } catch { }
   };
 
   const remove2FA = async (code?: string) => {
@@ -412,6 +416,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
+  const updateProfile = async (payload: { username: string }) => {
+    try {
+      const response = await axiosInstance.patch(`auth/update/profile`, payload);
+      if (response.status === 200) {
+        toast.success('Profile updated successfully');
+        await getMyself();
+      }
+    } catch (error) {
+      console.error(error);
+      const message = error as unknown as {
+        response: { data: { message: string } };
+      };
+      toast.error(message?.response?.data?.message || 'Profile update failed');
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -451,6 +471,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         userTrustedDevices,
         initialLoading,
         updateProfilePicture,
+        updateProfile,
+        isOpenUpdateUsernameModal,
+        setIsOpenUpdateUsernameModal,
       }}
     >
       {children}

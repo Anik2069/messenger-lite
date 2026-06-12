@@ -12,6 +12,7 @@ interface ConfirmationModalProps {
   title?: string;
   description?: string;
   variant?: 'default' | 'destructive' | 'submit';
+  haveBackDrop?: boolean;
 }
 
 const ConfirmationModal = ({
@@ -20,11 +21,12 @@ const ConfirmationModal = ({
   onClose,
   onConfirm,
   loading,
+  haveBackDrop = true,
   title = 'Are you sure you want to proceed?',
   description = 'This action will permanently remove the task from the system. You won’t be able to recover it later.',
 }: ConfirmationModalProps) => {
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal open={open} onClose={onClose} haveBackDrop={haveBackDrop}>
       <div className="">
         <h2 className="text-lg font-semibold">{title}</h2>
         <p className="text-sm text-gray-600 mt-2">{description}</p>
@@ -38,9 +40,8 @@ const ConfirmationModal = ({
             Cancel
           </Button>
           <Button
-            className={`${
-              variant === 'destructive' ? `bg-destructive/70` : 'bg-blue-500'
-            }   flex items-center gap-2`}
+            className={`${variant === 'destructive' ? `bg-destructive/70` : 'bg-blue-500'
+              }   flex items-center gap-2`}
             onClick={onConfirm}
             disabled={loading}
           >

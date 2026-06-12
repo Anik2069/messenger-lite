@@ -21,12 +21,11 @@ import { DummyAvatar } from '@/assets/image';
 import AvatarImage from '../../reusable/AvatarImage';
 
 interface NavbarProps {
-  user: User | null;
   isConnected: boolean;
   onSearchClick: () => void;
 }
 
-const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
+const Navbar = ({ isConnected, onSearchClick }: NavbarProps) => {
   const { newDrawerOpen, settingModalOpen, isSidebarOpen, setIsSidebarOpen, addFriendModalOpen } =
     useGlobalContext();
   const { logout, currentUserDetails } = useAuth();
@@ -72,7 +71,7 @@ const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
           <h1 className="text-sm lg:text-lg font-semibold text-gray-900 dark:text-white">
             {APP_NAME}
           </h1>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{user?.username}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{currentUserDetails?.username}</p>
         </div>
       </div>
 

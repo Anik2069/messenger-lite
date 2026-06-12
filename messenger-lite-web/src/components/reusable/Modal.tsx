@@ -13,6 +13,7 @@ interface ModalProps {
   className?: string;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl';
   overflowAuto?: boolean;
+  haveBackDrop?: boolean;
 }
 
 const maxWidthClasses: Record<string, string> = {
@@ -38,6 +39,7 @@ export default function Modal({
   showCloseIcon = true,
   maxWidth = 'lg',
   className,
+  haveBackDrop = true
 }: ModalProps) {
   const modalRef = useRef<HTMLDivElement | null>(null);
 
@@ -53,13 +55,13 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 dark:bg-black/40 "
+      className={`fixed inset-0 z-50 flex items-center justify-center ${haveBackDrop ? ' bg-black/20 dark:bg-black/40 ' : ''}`}
       role="dialog"
       aria-modal="true"
     >
       <div
         ref={modalRef}
-        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white dark:bg-gray-900 rounded-lg shadow-lg focus:outline-none max-h-[90vh]  overflow-auto scrollbar-none flex flex-col`}
+        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white dark:bg-gray-900 rounded-lg  focus:outline-none max-h-[90vh]  overflow-auto scrollbar-none flex flex-col ${haveBackDrop ? 'shadow-lg' : 'shadow-2xl backdrop-blur-sm bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700'} `}
       >
         {/* Header */}
         {title && (
@@ -84,9 +86,8 @@ export default function Modal({
 
         {/* Scrollable Content */}
         <div
-          className={`${className} px-6 py-4  ${
-            overflowAuto ? 'overflow-y-auto flex-grow' : ''
-          } text-gray-900 dark:text-gray-100`}
+          className={`${className} px-6 py-4  ${overflowAuto ? 'overflow-y-auto flex-grow' : ''
+            } text-gray-900 dark:text-gray-100`}
         >
           {children}
         </div>

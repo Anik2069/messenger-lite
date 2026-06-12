@@ -9,9 +9,11 @@ import AnimatedWrapper from '@/components/animations/AnimatedWrapper';
 import { SOCKET_HOST } from '@/constant';
 import { Check, X } from 'lucide-react';
 import { ProfileImage } from './ProfileImage';
+import ConfirmationModal from '@/components/reusable/ConfirmationModal';
 
 const ProfileSettings = () => {
-  const { currentUserDetails, updateProfilePicture } = useAuth();
+  const { currentUserDetails, updateProfilePicture, updateProfile, isOpenUpdateUsernameModal, setIsOpenUpdateUsernameModal } = useAuth();
+
   const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(
     currentUserDetails?.avatar ? `${SOCKET_HOST}/${currentUserDetails.avatar}` : null
@@ -41,9 +43,13 @@ const ProfileSettings = () => {
     }
   }, [currentUserDetails]);
 
-  const handleProfileUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleProfileUpdate = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     console.log('Updating profile:', profileData);
+    const payload = {
+      username: profileData.username,
+    }
+    await updateProfile(payload);
   };
 
   const discardProfile = () => {
@@ -71,99 +77,131 @@ const ProfileSettings = () => {
   };
 
   return (
-    <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-800/80">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
-          Profile Settings
-        </CardTitle>
-      </CardHeader>
-      <div className="p-6 pt-0 space-y-6">
-        {/* Avatar Section */}
-        <div className="flex flex-col items-center gap-2">
-          <div className="relative">
-            {currentUserDetails ? (
-              <div className="mx-auto relative">
-                <ProfileImage
-                  className="w-32 h-32"
-                  loading={loading}
-                  currentImage={profileImagePreview}
-                  onImageChange={(file, preview) => {
-                    setProfileImageFile(file);
-                    setProfileImagePreview(preview);
-                  }}
-                />
+    <>
+      <Card className="backdrop-blur-sm bg-white/80 dark:bg-gray-800/80">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
+            Profile Settings
+          </CardTitle>
+        </CardHeader>
+        <div className="p-6 pt-0 space-y-6">
+          {/* Avatar Section */}
+          <div className="flex flex-col items-center gap-2">
+            <div className="relative">
+              {currentUserDetails ? (
+                <div className="mx-auto relative">
+                  <ProfileImage
+                    className="w-32 h-32"
+                    loading={loading}
+                    currentImage={profileImagePreview}
+                    onImageChange={(file, preview) => {
+                      setProfileImageFile(file);
+                      setProfileImagePreview(preview);
+                    }}
+                  />
 
-                {profileImageFile && (
-                  <AnimatedWrapper
-                    type="fade"
-                    duration={200}
-                    className="flex justify-center gap-2 mt-2"
-                  >
-                    <button
-                      onClick={discardProfile}
-                      className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
-                      title="Discard"
+                  {profileImageFile && (
+                    <AnimatedWrapper
+                      type="fade"
+                      duration={200}
+                      className="flex justify-center gap-2 mt-2"
                     >
-                      <X className="w-4 h-4 text-gray-700" />
-                    </button>
-                    <button
-                      onClick={saveProfile}
-                      className="p-2 rounded-full bg-green-200 hover:bg-green-300 transition-colors"
-                      title="Save"
-                    >
-                      <Check className="w-4 h-4 text-green-700" />
-                    </button>
-                  </AnimatedWrapper>
-                )}
-              </div>
-            ) : (
-              <div className="mx-auto ring-2 ring-muted rounded-full overflow-hidden">
-                <Image
-                  width={120}
-                  height={120}
-                  src={DummyAvatar.src}
-                  alt="Profile"
-                  className="object-cover w-full h-full"
-                  onError={(e) => {
-                    e.currentTarget.src = DummyAvatar.src;
-                    e.currentTarget.onerror = null;
-                  }}
-                />
-              </div>
-            )}
+                      <button
+                        onClick={discardProfile}
+                        className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
+                        title="Discard"
+                      >
+                        <X className="w-4 h-4 text-gray-700" />
+                      </button>
+                      <button
+                        onClick={saveProfile}
+                        className="p-2 rounded-full bg-green-200 hover:bg-green-300 transition-colors"
+                        title="Save"
+                      >
+                        <Check className="w-4 h-4 text-green-700" />
+                      </button>
+                    </AnimatedWrapper>
+                  )}
+                </div>
+              ) : (
+                <div className="mx-auto ring-2 ring-muted rounded-full overflow-hidden">
+                  <Image
+                    width={120}
+                    height={120}
+                    src={DummyAvatar.src}
+                    alt="Profile"
+                    className="object-cover w-full h-full"
+                    onError={(e) => {
+                      e.currentTarget.src = DummyAvatar.src;
+                      e.currentTarget.onerror = null;
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+            {/* <div>
+              <h3 className="font-medium text-gray-900 dark:text-white">
+                {currentUserDetails?.email}
+              </h3>
+            </div> */}
           </div>
-          <div>
-            <h3 className="font-medium text-gray-900 dark:text-white">
-              {currentUserDetails?.email}
-            </h3>
-          </div>
+
+          {/* Profile Form */}
+          <form onSubmit={handleProfileUpdate} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Email
+              </label>
+              <input
+                type="text"
+                value={profileData.email}
+                disabled
+                className="cursor-not-allowed w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Username
+              </label>
+              <input
+                type="text"
+                value={profileData.username}
+                onChange={(e) =>
+                  setProfileData({
+                    ...profileData,
+                    username: e.target.value,
+                  })
+                }
+                className=" w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <Button onClick={() => setIsOpenUpdateUsernameModal(true)} type='button' className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+              Update Profile
+            </Button>
+
+          </form>
         </div>
+        <ConfirmationModal
+          haveBackDrop={false}
+          title={`Are you sure you want to update username to "${profileData.username}"?`}
+          variant='submit'
+          description='This action will update your username.'
+          onConfirm={() => {
+            handleProfileUpdate();
+            setIsOpenUpdateUsernameModal(false);
+          }}
 
-        {/* Profile Form */}
-        <form onSubmit={handleProfileUpdate} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Username
-            </label>
-            <input
-              type="text"
-              value={profileData.username}
-              onChange={(e) =>
-                setProfileData({
-                  ...profileData,
-                  username: e.target.value,
-                })
-              }
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+          open={isOpenUpdateUsernameModal}
+          onClose={() => {
+            setIsOpenUpdateUsernameModal(false);
 
-          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-            Update Profile
-          </Button>
-        </form>
-      </div>
-    </Card>
+          }}
+        />
+
+      </Card>
+
+    </>
   );
 };
 
