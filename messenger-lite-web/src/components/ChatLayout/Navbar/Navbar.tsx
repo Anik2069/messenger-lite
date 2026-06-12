@@ -53,7 +53,9 @@ const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
     ? `${MEDIA_HOST}/${currentUserDetails.avatar}`
     : DummyAvatar.src;
 
-  // console.log(image, "--------------");
+
+
+  // console.log(image, "sssssssssssss--------------");
 
   return (
     <div className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 flex items-center justify-between">
@@ -110,9 +112,8 @@ const Navbar = ({ user, isConnected, onSearchClick }: NavbarProps) => {
             <AvatarImage src={image} alt="Profile" />
           </div>
           <span
-            className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-gray-800 ${
-              isOnline ? 'bg-green-500' : 'bg-red-500'
-            }`}
+            className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-gray-800 ${isOnline ? 'bg-green-500' : 'bg-red-500'
+              }`}
           />
         </div>
       </div>

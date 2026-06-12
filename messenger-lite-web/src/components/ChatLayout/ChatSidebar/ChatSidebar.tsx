@@ -11,7 +11,7 @@ import { useAuth } from '@/context/useAuth';
 import { Status, useSettings } from '@/context/SettingsContext';
 import { formatLocalTime } from '@/types/MessageType';
 import { format, isToday, parseISO } from 'date-fns';
-import { SOCKET_HOST } from '@/constant';
+import { MEDIA_HOST, SOCKET_HOST } from '@/constant';
 import AvatarImage from '@/components/reusable/AvatarImage';
 import { Spinner } from '@/components/ui/Spinner';
 
@@ -90,8 +90,10 @@ const ChatSidebar = ({
               const displayAvatar = isGroup
                 ? conv.avatar
                 : otherParticipant?.avatar
-                  ? `${SOCKET_HOST}/${otherParticipant.avatar}`
+                  ? `${MEDIA_HOST}/${otherParticipant.avatar}`
                   : DummyAvatar.src;
+
+              // console.log(displayAvatar, 'displayAvatar')
 
               const participantUserId = otherParticipant?.id;
               const status = getStatusForUser(participantUserId || '');
@@ -114,12 +116,11 @@ const ChatSidebar = ({
                       userId: otherParticipant?.id || '',
                     });
                   }}
-                  className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${
-                    selectedChat?.id === conv.id ||
+                  className={`flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${selectedChat?.id === conv.id ||
                     (selectedChat?.userId && otherParticipant?.id === selectedChat.userId)
-                      ? 'bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500'
-                      : ''
-                  }`}
+                    ? 'bg-blue-50 dark:bg-blue-900/30 border-r-2 border-blue-500'
+                    : ''
+                    }`}
                 >
                   {/* Avatar */}
                   <div className="relative w-8 h-8 overflow-hidden">
@@ -127,9 +128,8 @@ const ChatSidebar = ({
 
                     {!isGroup && (
                       <div
-                        className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${
-                          isOnline ? 'bg-green-400' : 'bg-gray-400'
-                        }`}
+                        className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white dark:border-gray-800 rounded-full ${isOnline ? 'bg-green-400' : 'bg-gray-400'
+                          }`}
                       />
                     )}
                   </div>
@@ -156,11 +156,10 @@ const ChatSidebar = ({
                       <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                         {isGroup
                           ? `${participants.length} members`
-                          : `${
-                              lastMessage?.author?.username === user?.username
-                                ? 'You'
-                                : lastMessage?.author?.username || 'Unknown'
-                            }: ${lastMessage?.message || 'No message'}`}
+                          : `${lastMessage?.author?.username === user?.username
+                            ? 'You'
+                            : lastMessage?.author?.username || 'Unknown'
+                          }: ${lastMessage?.message || 'No message'}`}
                       </p>
                     ) : (
                       <p className="text-sm text-gray-500 dark:text-gray-400">No messages yet</p>

@@ -32,7 +32,7 @@ const ChatHeader = ({ selectedChat }: ChatHeaderProps) => {
   // console.log(selectedChat, "selectedChat")
 
   const image = selectedChat.avatar
-    ? `${MEDIA_HOST}/${selectedChat.avatar}`
+    ? selectedChat.avatar
     : DummyAvatar.src;
 
   const isDirectChat = selectedChat.type === 'user';
