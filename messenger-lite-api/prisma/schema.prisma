@@ -28,7 +28,7 @@ model User {
   reactions              MessageReaction[]
   reads                  MessageRead[]
   UserDevice             UserDevice[]
-  settings               UserSettings? 
+  settings               UserSettings?
 }
 
 model UserDevice {
@@ -81,7 +81,7 @@ model ConversationParticipant {
   conversationId String
   role           ParticipantRole @default(MEMBER)
   joinedAt       DateTime        @default(now())
-  clearedAt      DateTime? 
+  clearedAt      DateTime?
   conversation   Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -139,7 +139,7 @@ model MessageRead {
 }
 
 model UserSettings {
-   id                 String    @id @default(cuid())
+  id                 String    @id @default(cuid())
   activeStatus       Boolean   @default(false)
   soundNotifications Boolean   @default(false)
   theme              ThemeType @default(LIGHT)
@@ -147,8 +147,7 @@ model UserSettings {
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
- 
-  user               User      @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }

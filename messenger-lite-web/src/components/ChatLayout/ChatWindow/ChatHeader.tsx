@@ -14,6 +14,7 @@ import { useAuth } from '@/context/useAuth';
 import { base64UrlEncode } from '@/lib/utils';
 import { useBroadcastCall } from '@/hooks/useBroadcastCall';
 import { CallConfirmationModal } from '@/components/Call/CallConfirmationModal';
+import { Status, useSettings } from '@/context/SettingsContext';
 
 interface ChatHeaderProps {
   selectedChat: any;
@@ -25,6 +26,7 @@ interface ChatHeaderProps {
 const ChatHeader = ({ selectedChat }: ChatHeaderProps) => {
   // const { startCall } = useCall(); // CallProvider is no longer global
   const { user } = useAuth();
+  const { activeStatus, otherStatuses } = useSettings();
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
@@ -36,7 +38,14 @@ const ChatHeader = ({ selectedChat }: ChatHeaderProps) => {
     : DummyAvatar.src;
 
   const isDirectChat = selectedChat.type === 'user';
-  const isOnline = selectedChat.isOnline || false;
+
+  const getStatusForUser = (userId: string): Status => {
+    if (userId === user?.id) {
+      return activeStatus || { userId, isOnline: false };
+    }
+    return otherStatuses[userId] || { userId, isOnline: false };
+  };
+  const isOnline = getStatusForUser(selectedChat.userId).isOnline;
 
   // Prevent calling yourself
   const isCurrentUser = selectedChat.userId === user?.id;

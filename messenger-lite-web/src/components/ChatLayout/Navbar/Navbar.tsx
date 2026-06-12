@@ -78,12 +78,12 @@ const Navbar = ({ isConnected, onSearchClick }: NavbarProps) => {
       {/* Right side - Actions */}
       <div className="flex items-center space-x-2">
         {/* Presence */}
-        <div
+        {/* <div
           className={`px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${presenceClasses}`}
         >
           {isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
           <span>{presenceText}</span>
-        </div>
+        </div> */}
 
         {/* Action Buttons */}
         <Button variant="ghost" size="sm" onClick={onSearchClick}>
@@ -107,13 +107,13 @@ const Navbar = ({ isConnected, onSearchClick }: NavbarProps) => {
 
         {/* Avatar with presence dot */}
         <div className="relative">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-500 text-white text-sm font-medium">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-500 text-white text-sm font-medium">
             <AvatarImage src={image} alt="Profile" />
           </div>
-          <span
-            className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-gray-800 ${isOnline ? 'bg-green-500' : 'bg-red-500'
+          {isOnline && <span
+            className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-gray-800 ${isOnline ? 'bg-green-500' : 'bg-red-500'
               }`}
-          />
+          />}
         </div>
       </div>
     </div>
