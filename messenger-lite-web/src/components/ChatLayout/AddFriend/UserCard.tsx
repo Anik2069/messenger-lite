@@ -6,6 +6,7 @@ import React from 'react';
 interface UserCardProps {
   user: any;
   actionContent?: React.ReactNode;
+
 }
 
 export const UserCardSkeleton = () => {
@@ -24,7 +25,7 @@ export const UserCardSkeleton = () => {
 
 export const UserCard: React.FC<UserCardProps> = ({ user, actionContent }) => {
   return (
-    <div className="flex items-center justify-between px-4 py-3 mb-2 rounded-md bg-gray-600/10 dark:bg-gray-800/40 backdrop-blur-md border border-white/50 dark:border-gray-700/50 shadow-sm hover:bg-gray-600/20 dark:hover:bg-gray-700/60 transition-all duration-400">
+    <div className="flex items-center justify-between px-4 py-3 mb-2 rounded-md bg-gray-600/10 dark:bg-gray-800/40 backdrop-blur-xl hover:shadow-md hover:bg-gray-600/20 dark:hover:bg-gray-700/40 transition-all duration-400">
       <div className="flex items-center gap-3 min-w-0 flex-1">
         <Image
           src={user?.avatar ? MEDIA_HOST + '/' + user?.avatar : DummyAvatar}
@@ -37,9 +38,7 @@ export const UserCard: React.FC<UserCardProps> = ({ user, actionContent }) => {
           <h3 className="font-medium text-gray-900 dark:text-white truncate">
             {user?.username}
           </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-            10 mutual friends
-          </p>
+
         </div>
       </div>
 

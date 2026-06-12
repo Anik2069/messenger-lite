@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 import { useChatStore } from "@/store/useChatStore";
 import { useGlobalContext } from "@/provider/GlobalContextProvider";
 const ChatHeaderActions = ({ conversationId }: { conversationId: string }) => {
-  const { handleClearConversation } = useChatStore();
+  const { handleClearConversation, handleCloseChat } = useChatStore();
   const {
     openSelectedChatProfile,
   } = useGlobalContext();
@@ -70,6 +70,12 @@ const ChatHeaderActions = ({ conversationId }: { conversationId: string }) => {
           onClick={() => handleClearConversation(conversationId)}
         >
           Clear Chat
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          variant="destructive"
+          onClick={() => handleCloseChat()}
+        >
+          Close
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

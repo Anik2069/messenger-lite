@@ -62,12 +62,12 @@ function mapServerMessage(m: ServerMessage): Message {
 
     fileData: m.fileUrl
       ? {
-          url: m.fileUrl,
-          filename: m.fileName ?? '',
-          originalName: m.fileName ?? '',
-          mimetype: m.fileMime ?? '',
-          size: m.fileSize ?? 0,
-        }
+        url: m.fileUrl,
+        filename: m.fileName ?? '',
+        originalName: m.fileName ?? '',
+        mimetype: m.fileMime ?? '',
+        size: m.fileSize ?? 0,
+      }
       : undefined,
 
     forwardedFrom: m.forwardedFrom ? { originalSender: m.forwardedFrom } : undefined,
@@ -136,6 +136,7 @@ export type ChatState = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   selectedMedia: any[];
   isLoadingMedia: boolean;
+  handleCloseChat: () => void;
 };
 
 let listenersInitialized = false;
@@ -196,7 +197,7 @@ export const useChatStore = create<ChatState>((set, get) => {
             return {
               messages: state.messages.map((m) =>
                 m.clientTempId === msg.clientTempId &&
-                (m.fileData as FileData)?.url === (msg.fileData as FileData)?.url
+                  (m.fileData as FileData)?.url === (msg.fileData as FileData)?.url
                   ? msg
                   : m
               ),
@@ -269,7 +270,7 @@ export const useChatStore = create<ChatState>((set, get) => {
     messageCursor: null,
     hasMoreMessages: false,
     isLoadingMessages: false,
-
+    handleCloseChat: () => set({ selectedChat: null }),
     setSelectedChat: (chat) => set({ selectedChat: chat }),
     setSelectedUserInfo: () => set({ selectedChat: null }),
     setMessages: (messages) => set({ messages }),
