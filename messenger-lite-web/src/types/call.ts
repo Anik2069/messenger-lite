@@ -1,5 +1,5 @@
 export type CallType = 'audio' | 'video';
-export type CallStatus = 'idle' | 'ringing' | 'connected' | 'ended';
+export type CallStatus = 'idle' | 'ringing' | 'connecting' | 'connected' | 'ended';
 
 export interface CallUser {
     id: string;

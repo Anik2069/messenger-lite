@@ -194,8 +194,19 @@ export function initCallSocket(io: Server) {
         socket.on("disconnect", () => {
             const fromUserId = socket.data.userId || userId;
             console.log(`[CallSocket] Disconnected: ${fromUserId}`);
-            // Handle cleanup if user was in active call
-            // Simple approach: if user disconnects, emit 'call_ended' or 'peer_disconnected' to their active calls
+            
+            // Clean up active calls ONLY if the caller drops
+            for (const [callId, call] of activeCalls.entries()) {
+                if (call.callerId === fromUserId) {
+                    activeCalls.delete(callId);
+                    callNamespace.to(callId).emit("call_ended", { fromUserId, callId });
+                    
+                    io.of("/chat").to(call.recipients).emit("notification", {
+                        type: "call_ended",
+                        callId
+                    });
+                }
+            }
         });
     });
 }

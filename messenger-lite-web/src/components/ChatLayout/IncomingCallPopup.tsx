@@ -7,6 +7,8 @@ import { socket } from '@/lib/socket'; // Chat Socket
 import { useAuth } from '@/context/useAuth';
 import { CALL_SECRET, MEDIA_HOST } from '@/constant';
 import { base64UrlEncode } from '@/lib/utils';
+import { useBroadcastCall } from '@/hooks/useBroadcastCall';
+import { CallConfirmationModal } from '@/components/Call/CallConfirmationModal';
 
 export default function IncomingCallPopup() {
     const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
@@ -25,86 +27,117 @@ export default function IncomingCallPopup() {
 
     // Audio ref for ringtone
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const { activeCallId, postMessage } = useBroadcastCall();
+    const [showConfirm, setShowConfirm] = useState(false);
+    const { user } = useAuth();
 
     useEffect(() => {
         // Initialize ringtone
-        audioRef.current = new Audio('/sounds/ringtone.mp3'); // Ensure this file exists or use a default
+        audioRef.current = new Audio('/sounds/ringtone.mp3');
         audioRef.current.loop = true;
 
         // Listen for generic notifications that are calls
         socket.on('notification', (data: any) => {
             if (data.type === 'incoming_call') {
                 console.log("Incoming call received via chat notification:", data);
+
+                // If we are the caller (e.g. testing with self), ignore? No, we might be calling ourselves?
+
                 setPopupData({
                     callId: data.callId,
                     callType: data.callType,
                     fromUserId: data.fromUserId,
                     timestamp: data.timestamp,
-                    user: { name: 'User' } // Ideally fetch user info here
+                    user: { name: 'User' }
                 });
                 setShowPopup(true);
-                audioRef.current?.play().catch(e => console.log("Audio play failed", e));
+
+                // Sound logic
+                if (activeCallId) {
+                    // Short alert if busy
+                    const alertSound = new Audio('/sounds/interaction.mp3');
+                    alertSound.play().catch(() => { });
+                } else {
+                    audioRef.current?.play().catch(e => console.log("Audio play failed", e));
+                }
+
             } else if (data.type === 'call_ended') {
                 if (popupData && popupData.callId === data.callId) {
-                    setShowPopup(false);
-                    setPopupData(null);
-                    audioRef.current?.pause();
-                    if (audioRef.current) audioRef.current.currentTime = 0;
+                    closePopup();
                 }
             }
         });
-
-        // Also listen to direct rejection (if we are logged in on multiple tabs)
-        // actually rejection should probably come via notification type 'call_rejected' if needed? 
-        // For now, relies on call_ended.
 
         return () => {
             socket.off('notification');
             audioRef.current?.pause();
         };
+    }, [popupData, activeCallId]);
+
+    // Auto-close if this specific call is answered in another tab
+    useEffect(() => {
+        const channel = new BroadcastChannel('messenger_call_state');
+        channel.onmessage = (event) => {
+            if (event.data.type === 'CALL_STARTED' && popupData && event.data.callId === popupData.callId) {
+                closePopup();
+            }
+        };
+        return () => channel.close();
     }, [popupData]);
 
-    const handleAccept = () => {
+    const closePopup = () => {
+        setShowPopup(false);
+        setShowConfirm(false);
+        setPopupData(null);
+        audioRef.current?.pause();
+        if (audioRef.current) audioRef.current.currentTime = 0;
+    };
+
+    const handleAcceptClick = () => {
+        if (activeCallId) {
+            setShowConfirm(true);
+        } else {
+            proceedAccept();
+        }
+    };
+
+    const proceedAccept = () => {
         if (popupData) {
-            audioRef.current?.pause();
-            if (audioRef.current) audioRef.current.currentTime = 0;
-            console.log(popupData, "popupData")
+            closePopup();
+
+            // Force close any existing (if we confirmed)
+            if (activeCallId) {
+                postMessage({ type: 'FORCE_CLOSE_CALL', userId: user?.id });
+            }
 
             const payload = {
                 callId: popupData.callId,
                 type: popupData.callType,
                 toUserIds: popupData.fromUserId,
                 token,
-                CALL_SECRET
+                CALL_SECRET,
+                isCaller: false
             }
             const base64Payload = base64UrlEncode(payload);
 
             const url = `/call/${popupData.callId}?payload=${base64Payload}`;
-            // We don't need 'to' param here because we are the Callee, we just join.
-            // But we might want 'to' parameter to identify the Caller?
-            // "to" usually implies "I am calling these people".
-            // Since we are accepting, we are joining. The Call Page logic checks 'toUserIds.length'. 
-            // If empty, it assumes joining (answering).
 
-            window.open(url, '_blank', 'width=1280,height=720');
-            setShowPopup(false);
-            setPopupData(null);
+            // Use same window name to reuse tab
+            // Short timeout to allow force close to propagate if needed?
+            setTimeout(() => {
+                window.open(url, 'MessengerCall', 'width=1280,height=720');
+            }, 100);
         }
     };
 
     const handleReject = () => {
         if (popupData) {
-            audioRef.current?.pause();
-            if (audioRef.current) audioRef.current.currentTime = 0;
-
             // Emit rejection to CHAT socket
             socket.emit('call_rejected', {
                 callId: popupData.callId,
                 reason: 'User declined'
             });
-
-            setShowPopup(false);
-            setPopupData(null);
+            closePopup();
         }
     };
 
@@ -142,7 +175,7 @@ export default function IncomingCallPopup() {
 
                     {/* Accept */}
                     <button
-                        onClick={handleAccept}
+                        onClick={handleAcceptClick}
                         className="w-14 h-14 rounded-full bg-green-600 flex items-center justify-center hover:bg-green-700 transition-colors"
                         aria-label="Accept call"
                     >
@@ -170,6 +203,12 @@ export default function IncomingCallPopup() {
           animation: slideUp 0.4s ease-out;
         }
       `}</style>
+
+            <CallConfirmationModal
+                isOpen={showConfirm}
+                onClose={() => setShowConfirm(false)}
+                onConfirm={proceedAccept}
+            />
         </div>
     );
 }

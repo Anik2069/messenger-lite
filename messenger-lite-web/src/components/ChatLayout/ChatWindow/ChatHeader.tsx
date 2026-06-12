@@ -12,6 +12,8 @@ import { Tooltip } from '@/components/ui/tooltip';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/useAuth';
 import { base64UrlEncode } from '@/lib/utils';
+import { useBroadcastCall } from '@/hooks/useBroadcastCall';
+import { CallConfirmationModal } from '@/components/Call/CallConfirmationModal';
 
 interface ChatHeaderProps {
   selectedChat: any;
@@ -39,23 +41,52 @@ const ChatHeader = ({ selectedChat }: ChatHeaderProps) => {
   // Prevent calling yourself
   const isCurrentUser = selectedChat.userId === user?.id;
 
+  const [showCallConfirm, setShowCallConfirm] = useState(false);
+  const [pendingCall, setPendingCall] = useState<{ type: 'audio' | 'video', userIds: string[] } | null>(null);
+  const { activeCallId, postMessage } = useBroadcastCall();
+
   const initiateCall = (type: 'audio' | 'video', toUserIds: string[]) => {
+    // Check if call is already active
+    if (activeCallId) {
+      setPendingCall({ type, userIds: toUserIds });
+      setShowCallConfirm(true);
+      return;
+    }
+    performCallInitiation(type, toUserIds);
+  };
+
+  const performCallInitiation = (type: 'audio' | 'video', toUserIds: string[]) => {
     const callId = `call_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
-    // Open new tab
-    // URL: /call/[callId]?type=...&to=...
     const toParam = toUserIds.join(',');
     const payload = {
       callId,
       type,
       toUserIds,
       token,
-      CALL_SECRET
+      CALL_SECRET,
+      isCaller: true
     }
     const base64Payload = base64UrlEncode(payload);
 
     const url = `/call/${callId}?payload=${base64Payload}`;
-    window.open(url, '_blank', 'width=1280,height=720');
-    // We don't need to do anything else here. The new tab will connect to socket and emit 'call_user'
+    window.open(url, 'MessengerCall', 'width=1280,height=720');
+  };
+
+  const handleConfirmSwitchCall = () => {
+    // Force close existing call
+    postMessage({ type: 'FORCE_CLOSE_CALL' });
+
+    // Wait a bit? Or just open new window (which reuses same window name)
+    // If we use same window name 'MessengerCall', it should overwrite.
+    // But purely relying on window name might not kill the socket cleanly if we don't 'force close' first.
+
+    if (pendingCall) {
+      setTimeout(() => {
+        performCallInitiation(pendingCall.type, pendingCall.userIds);
+        setShowCallConfirm(false);
+        setPendingCall(null);
+      }, 500);
+    }
   };
 
   const handleVideoCall = () => {
@@ -152,6 +183,12 @@ const ChatHeader = ({ selectedChat }: ChatHeaderProps) => {
         {/* Other actions */}
         <ChatHeaderActions conversationId={selectedChat.id} />
       </div>
+
+      <CallConfirmationModal
+        isOpen={showCallConfirm}
+        onClose={() => setShowCallConfirm(false)}
+        onConfirm={handleConfirmSwitchCall}
+      />
     </div>
   );
 };

@@ -108,35 +108,36 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
   // Socket event handlers
   useEffect(() => {
+    return () => {
+      disconnectCallSocket();
+    };
+  }, []);
+
+  useEffect(() => {
     if (!socket.connected) socket.connect();
 
     if (state.callId && user?.id) {
-      // Join the room for signaling
       socket.emit("join_call", { callId: state.callId, userId: user.id });
     }
 
-    socket.on('call_initiated', ({ callId, recipients, callType }) => {
+    socket.on('call_initiated', ({ callId }) => {
       console.log("Call initiated confirmed:", callId);
       dispatch({ type: 'SET_CALL_STATUS', payload: 'ringing' });
     });
 
-    socket.on('call_answered', async ({ fromUserId, callId }) => {
+    socket.on('call_answered', async ({ fromUserId }) => {
       console.log('Call answered by', fromUserId);
-      dispatch({ type: 'SET_CALL_STATUS', payload: 'connected' });
+      dispatch({ type: 'SET_CALL_STATUS', payload: 'connecting' });
 
       const peer = createPeerConnection(fromUserId);
-      if (peer) {
-        // As per convention: Caller creates offer.
-        if (state.caller?.id === user?.id) {
-          console.log("I am caller, creating offer for", fromUserId);
-          await createOffer(fromUserId);
-        }
+      if (peer && state.caller?.id === user?.id) {
+        console.log("I am caller, creating offer for", fromUserId);
+        await createOffer(fromUserId);
       }
     });
 
     socket.on('user_joined_call', async ({ userId: newUserId }) => {
       console.log('User joined call:', newUserId);
-      // If I am callers, I assume I'm responsible for offering to new joiners?
       if (state.caller?.id === user?.id && newUserId !== user?.id) {
         const peer = createPeerConnection(newUserId);
         if (peer) await createOffer(newUserId);
@@ -148,6 +149,11 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       closePeerConnection();
       dispatch({ type: 'RESET_CALL' });
       dispatch({ type: 'SET_CALL_STATUS', payload: 'ended' });
+
+      const channel = new BroadcastChannel('messenger_call_state');
+      channel.postMessage({ type: 'CALL_ENDED', userId: user?.id });
+      channel.close();
+
       setTimeout(() => window.close(), 2000);
     });
 
@@ -158,7 +164,6 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     });
 
     socket.on('webrtc_offer', async ({ sdp, fromUserId }) => {
-      console.log("Received offer from", fromUserId);
       const peer = createPeerConnection(fromUserId);
       if (peer) {
         await handleOffer(sdp, fromUserId);
@@ -166,7 +171,6 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     });
 
     socket.on('webrtc_answer', async ({ sdp, fromUserId }) => {
-      console.log("Received answer from", fromUserId);
       await handleAnswer(sdp, fromUserId);
     });
 
@@ -183,22 +187,8 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       socket.off('webrtc_offer');
       socket.off('webrtc_answer');
       socket.off('webrtc_ice_candidate');
-      disconnectCallSocket();
     };
-  }, [state.callId, user?.id, createPeerConnection, createOffer, handleOffer, handleAnswer, handleIceCandidate, closePeerConnection]);
-
-  // Call timer
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (state.callStatus === 'connected') {
-      timer = setInterval(() => {
-        dispatch({ type: 'SET_CALL_DURATION', payload: state.callDuration + 1 });
-      }, 1000);
-    }
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [state.callStatus, state.callDuration]);
+  }, [state.callId, user?.id, createPeerConnection, createOffer, handleOffer, handleAnswer, handleIceCandidate, closePeerConnection, state.caller?.id]);
 
   // Use useCallback to keep reference stable
   const startCall = useCallback(async (toUserId: string | string[], type: CallType, callId: string) => {
@@ -214,6 +204,9 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       callType: type,
       callId,
     });
+    const channel = new BroadcastChannel('messenger_call_state');
+    channel.postMessage({ type: 'CALL_STARTED', callId, userId: user?.id });
+    channel.close();
   }, [initMedia, user?.id]);
 
   const answerCall = useCallback(async (callId: string, type: CallType) => {
@@ -223,7 +216,11 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
     dispatch({ type: 'SET_CALL_ID', payload: callId });
     dispatch({ type: 'SET_CALL_TYPE', payload: type });
-    dispatch({ type: 'SET_CALL_STATUS', payload: 'connected' }); // Optimistic
+    dispatch({ type: 'SET_CALL_STATUS', payload: 'connecting' }); // Optimistic
+
+    const channel = new BroadcastChannel('messenger_call_state');
+    channel.postMessage({ type: 'CALL_STARTED', callId, userId: user?.id });
+    channel.close();
 
     socket.emit('call_answered', { callId });
   }, [initMedia]);
@@ -237,13 +234,62 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     }
     closePeerConnection();
     dispatch({ type: 'RESET_CALL' });
+    
+    const channel = new BroadcastChannel('messenger_call_state');
+    channel.postMessage({ type: 'CALL_ENDED', userId: user?.id });
+    channel.close();
+    
     window.close();
-  }, [state.callId, state.localStream, closePeerConnection]);
+  }, [state.callId, state.localStream, closePeerConnection, user?.id]);
+
+  // Handle unload to clean up
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      endCall();
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [endCall]);
+
+  // Broadcast Channel Listener for Status Checks and Force Close
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = new BroadcastChannel('messenger_call_state');
+    channel.onmessage = (event) => {
+      if (event.data.userId && event.data.userId !== user.id) return;
+
+      if (event.data.type === 'CHECK_CALL_STATUS' && state.callStatus === 'connected') {
+        channel.postMessage({ type: 'CALL_STATUS_RESPONSE', callId: state.callId, userId: user.id });
+      }
+      if (event.data.type === 'FORCE_CLOSE_CALL') {
+        console.log("Force closing call from other tab");
+        endCall();
+      }
+    };
+    // Also announce presence on mount if connected
+    if (state.callStatus === 'connected' && state.callId) {
+      channel.postMessage({ type: 'CALL_STARTED', callId: state.callId, userId: user.id });
+    }
+    return () => channel.close();
+  }, [state.callStatus, state.callId, endCall, user?.id]);
+
+  // Call timer
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (state.callStatus === 'connected') {
+      timer = setInterval(() => {
+        dispatch({ type: 'SET_CALL_DURATION', payload: state.callDuration + 1 });
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [state.callStatus, state.callDuration]);
 
   const toggleMute = useCallback(() => {
     if (state.localStream) {
       state.localStream.getAudioTracks().forEach(track => {
-        track.enabled = !state.isMuted;
+        track.enabled = state.isMuted;
       });
     }
     dispatch({ type: 'TOGGLE_MUTE' });
@@ -262,9 +308,18 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     try {
       if (state.isScreenSharing) {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
+          video: state.callType === 'video' ? {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: 'user',
+          } : false,
           audio: true,
         });
+        
+        // Respect current mute and camera states
+        stream.getAudioTracks().forEach(track => track.enabled = !state.isMuted);
+        stream.getVideoTracks().forEach(track => track.enabled = !state.isCameraOff);
+        
         dispatch({ type: 'SET_LOCAL_STREAM', payload: stream });
       } else {
         const stream = await navigator.mediaDevices.getDisplayMedia({

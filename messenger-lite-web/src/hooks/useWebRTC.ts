@@ -71,6 +71,9 @@ export function useWebRTC(callState: CallState, dispatch: React.Dispatch<any>, s
 
         peer.onconnectionstatechange = () => {
             console.log(`Connection state with ${peerId}:`, peer.connectionState);
+            if (peer.connectionState === 'connected') {
+                dispatch({ type: 'SET_CALL_STATUS', payload: 'connected' });
+            }
             if (peer.connectionState === 'disconnected' || peer.connectionState === 'failed') {
                 dispatch({ type: 'REMOVE_REMOTE_STREAM', payload: { userId: peerId } });
                 peersRef.current.delete(peerId);
