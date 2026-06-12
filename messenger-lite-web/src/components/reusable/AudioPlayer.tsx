@@ -8,9 +8,10 @@ interface AudioPlayerProps {
   src: string;
   width?: number | string;
   height?: number;
+  type?: 'input' | 'chat';
 }
 
-const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, width = 300, height = 40 }) => {
+const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, width = 300, height = 40, type = 'chat' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
 
@@ -98,9 +99,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, width = 300, height = 40
     <div className="flex items-center gap-3" style={{ width }}>
       <button type="button" className="cursor-pointer" onClick={handleToggle}>
         {isPlaying ? (
-          <Pause className="w-4 h-4 text-white fill-white" />
+          <Pause className={`w-4 h-4 ${type === 'input' ? 'text-blue-500 fill-blue-500 dark:text-blue-500 dark:fill-blue-500' : 'text-white fill-blue-500 dark:text-white dark:fill-blue-500'}`} />
         ) : (
-          <Play className="w-4 h-4 text-white fill-white" />
+          <Play className={`w-4 h-4 ${type === 'input' ? 'text-blue-500 fill-blue-500 dark:text-blue-500 dark:fill-blue-500' : 'text-white fill-blue-500 dark:text-white dark:fill-blue-500'}`} />
         )}
       </button>
 

@@ -69,7 +69,7 @@ const SendVoiceMessageComponents = ({ onDeleteRecording }: SendVoiceMessageCompo
         {/* Audio playback after recording */}
         {recordedURL && !isRecording && (
           <div className="flex items-center gap-2 flex-1">
-            <AudioPlayer src={recordedURL} width={300} height={30} />
+            <AudioPlayer src={recordedURL} width={300} height={30} type="input" />
             {/* <span className="text-xs dark:text-white w-10 text-right">
               {formatTime(seconds)}
             </span> */}
