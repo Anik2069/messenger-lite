@@ -52,7 +52,7 @@ const ChatSidebar = ({
     <div className="h-full flex flex-col max-h-[100vh]">
       {/* Search */}
       {!sidebarMode && (
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="p-4 pb-2">
           <ReusableSearchInput
             placeholder="Search Conversations"
             onDebouncedChange={setSearchQuery}
@@ -64,7 +64,7 @@ const ChatSidebar = ({
       <div className="flex-1 overflow-y-auto scrollbar-none">
         <div>
           {!sidebarMode && (
-            <div className="px-4 py-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide bg-gray-50 dark:bg-gray-800">
+            <div className="px-4 pb-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide bg-gray-50 dark:bg-gray-800">
               Conversations
             </div>
           )}

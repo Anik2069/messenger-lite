@@ -16,6 +16,7 @@ export function getConversations(
 
     try {
       const searchTerm = typeof search === "string" ? search : "";
+      console.log(searchTerm, "searchTerm")
 
       const conversations = await prisma.conversation.findMany({
         where: {
@@ -24,15 +25,36 @@ export function getConversations(
               participants: {
                 some: {
                   userId,
-                  user: {
-                    username: {
-                      contains: searchTerm,
-                      mode: "insensitive",
-                    },
-                  },
                 },
               },
             },
+            searchTerm
+              ? {
+                  OR: [
+                    {
+                      name: {
+                        contains: searchTerm,
+                        mode: "insensitive",
+                      },
+                    },
+                    {
+                      participants: {
+                        some: {
+                          userId: {
+                            not: userId,
+                          },
+                          user: {
+                            username: {
+                              contains: searchTerm,
+                              mode: "insensitive",
+                            },
+                          },
+                        },
+                      },
+                    },
+                  ],
+                }
+              : {},
           ],
         },
         include: {
