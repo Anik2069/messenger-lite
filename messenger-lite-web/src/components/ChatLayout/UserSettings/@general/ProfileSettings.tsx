@@ -139,11 +139,6 @@ const ProfileSettings = () => {
                 </div>
               )}
             </div>
-            {/* <div>
-              <h3 className="font-medium text-gray-900 dark:text-white">
-                {currentUserDetails?.email}
-              </h3>
-            </div> */}
           </div>
 
           {/* Profile Form */}
