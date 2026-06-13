@@ -1,20 +1,18 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Chat } from '../../../types/ChatType';
-import ChatHeaderActions from './ChatHeaderActions';
-import { Phone, Video } from 'lucide-react';
-import { CALL_SECRET, MEDIA_HOST } from '@/constant';
 import { DummyAvatar } from '@/assets/image';
+import { Button } from '@/components/ui/button';
+import { CALL_SECRET } from '@/constant';
+import { Phone, Video } from 'lucide-react';
 import AvatarImage from '../../reusable/AvatarImage';
-import { Tooltip } from '@/components/ui/tooltip';
+import ChatHeaderActions from './ChatHeaderActions';
 // import { useCall } from '@/context/CallContext';
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/useAuth';
-import { base64UrlEncode } from '@/lib/utils';
-import { useBroadcastCall } from '@/hooks/useBroadcastCall';
 import { CallConfirmationModal } from '@/components/Call/CallConfirmationModal';
 import { Status, useSettings } from '@/context/SettingsContext';
+import { useAuth } from '@/context/useAuth';
+import { useBroadcastCall } from '@/hooks/useBroadcastCall';
+import { base64UrlEncode } from '@/lib/utils';
+import { useState } from 'react';
 
 interface ChatHeaderProps {
   selectedChat: any;
