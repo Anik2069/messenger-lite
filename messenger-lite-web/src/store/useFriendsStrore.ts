@@ -13,6 +13,7 @@ export interface FriendsState {
   Allfriends: User[] | null;
   friendLoading: boolean;
   error: string | null;
+  selectedUsers: User[];
 
   suggestedFriends: User[];
   suggestedFriendsLoading: boolean;
@@ -40,7 +41,9 @@ export interface FriendsState {
   onSendRequest: (userId: string) => Promise<void>;
   onAcceptRequest: (userId: string) => Promise<void>;
   onDeclineFriendRequest: (userId: string) => Promise<void>;
-
+  onAddGroupMember: (user: User) => void;
+  onRemoveGroupMember: (userId: string) => void;
+  clearSelectedUsers: () => void;
   // socket
   setupSocketListeners: (socket: Socket, userId: string) => () => void;
 }
@@ -52,7 +55,7 @@ export const useFriendsStore = create<FriendsState>()(
       Allfriends: null,
       friendLoading: false,
       error: null,
-
+      selectedUsers: [],
       suggestedFriends: [],
       suggestedFriendsLoading: false,
 
@@ -231,7 +234,7 @@ export const useFriendsStore = create<FriendsState>()(
 
       // ---------- SOCKET LISTENERS ----------
       setupSocketListeners: (socket: Socket, userId: string) => {
-        if (!userId) return () => {};
+        if (!userId) return () => { };
 
         // Someone sent you a friend request
         const onFriendRequestReceived = ({ request }: FriendRequestPayload) => {
@@ -274,6 +277,23 @@ export const useFriendsStore = create<FriendsState>()(
           socket.off('friend_request_update', onFriendRequestUpdated);
         };
       },
+
+      onAddGroupMember: (user: User) => {
+        set((state) => ({
+          selectedUsers: [...state.selectedUsers, user],
+        }));
+      },
+      onRemoveGroupMember: (userId: string) => {
+        set((state) => ({
+          selectedUsers: state.selectedUsers.filter((u) => u.id !== userId),
+        }));
+      },
+      clearSelectedUsers: () => {
+        set({
+          selectedUsers: [],
+        });
+      }
+
     }),
     {
       name: 'friend-storage',

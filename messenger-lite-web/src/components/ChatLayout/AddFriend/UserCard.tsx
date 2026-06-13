@@ -6,7 +6,8 @@ import React from 'react';
 interface UserCardProps {
   user: any;
   actionContent?: React.ReactNode;
-
+  onClick?: () => void;
+  className?: string;
 }
 
 export const UserCardSkeleton = () => {
@@ -23,9 +24,11 @@ export const UserCardSkeleton = () => {
   );
 };
 
-export const UserCard: React.FC<UserCardProps> = ({ user, actionContent }) => {
+export const UserCard: React.FC<UserCardProps> = ({ user, actionContent, onClick, className }) => {
   return (
-    <div className="flex items-center justify-between px-4 py-3 mb-2 rounded-md bg-gray-600/10 dark:bg-gray-800/40 backdrop-blur-xl hover:shadow-md hover:bg-gray-600/20 dark:hover:bg-gray-700/40 transition-all duration-400">
+    <div
+      onClick={onClick}
+      className={`flex items-center justify-between px-4 py-3 mb-2 rounded-md bg-gray-600/10 dark:bg-gray-800/40 backdrop-blur-xl hover:shadow-md hover:bg-gray-600/20 dark:hover:bg-gray-700/40 transition-all duration-400 ${onClick ? '' : ''} ${className}`}>
       <div className="flex items-center gap-3 min-w-0 flex-1">
         <Image
           src={user?.avatar ? MEDIA_HOST + '/' + user?.avatar : DummyAvatar}

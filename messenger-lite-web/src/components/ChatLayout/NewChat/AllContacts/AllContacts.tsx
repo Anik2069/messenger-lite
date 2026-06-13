@@ -11,6 +11,7 @@ import { Chat } from '@/types/ChatType';
 import { useGlobalContext } from '@/provider/GlobalContextProvider';
 import { MEDIA_HOST } from '@/constant';
 import { useChatStore } from '@/store/useChatStore';
+import { UserCardSkeleton } from '../../AddFriend/UserCard';
 
 interface AllContactsProps {
   searchText: string;
@@ -61,6 +62,16 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
     newDrawerClose();
   };
 
+  if (friendLoading) {
+    return (
+      <div className="space-y-2 mt-2">
+        <UserCardSkeleton />
+        <UserCardSkeleton />
+        <UserCardSkeleton />
+      </div>
+    );
+  }
+
 
   return (
     <div>
@@ -75,6 +86,10 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
 
         const isOnline = !!status?.isOnline;
 
+        const displayAvatar = userInfo?.avatar
+          ? `${MEDIA_HOST}/${userInfo.avatar}`
+          : DummyAvatar.src;
+
         return (
           <div
             key={userInfo.id}
@@ -83,7 +98,7 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
                 'user',
                 userInfo.id,
                 userInfo.username || 'Unknown',
-                userInfo.avatar,
+                displayAvatar,
                 isOnline
               );
             }}

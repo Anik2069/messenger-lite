@@ -23,6 +23,8 @@ import SelectedChatProfile from './SelectedChatProfile';
 import { Conversation } from '@/types/coversations.type';
 import SearchModal from './SearchModal/SearchModal';
 import IncomingCallPopup from './IncomingCallPopup';
+import CreateGroup from './CreateGroup/CreateGroup';
+import { useFriendsStore } from '@/store/useFriendsStrore';
 
 const ChatLayout = () => {
   const { user, getMyself } = useAuth();
@@ -59,7 +61,12 @@ const ChatLayout = () => {
     privacySettingModalClose,
     isOpenSelectedChatProfile,
     closeSelectedChatProfile,
+    createGroupModalClose,
+    isCreateGroupModalOpen,
+    setIsCreateGroupModalOpen,
   } = useGlobalContext();
+
+  const { clearSelectedUsers } = useFriendsStore()
 
   useEffect(() => {
     if (user) setIsConnected(true);
@@ -232,6 +239,19 @@ const ChatLayout = () => {
         onClose={privacySettingModalClose}
       >
         <PrivacySettings />
+      </Modal>
+      <Modal
+        maxWidth="md"
+        className="min-h-[60vh] !p-0"
+        title="Create Group"
+        open={isCreateGroupModalOpen}
+        onClose={() => {
+          createGroupModalClose()
+          clearSelectedUsers()
+        }}
+
+      >
+        <CreateGroup />
       </Modal>
 
       <SearchModal />

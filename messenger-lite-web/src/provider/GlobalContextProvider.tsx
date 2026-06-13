@@ -35,6 +35,12 @@ interface GlobalContextType {
   closeSelectedChatProfile: () => void;
   isOpenSelectedChatProfile: boolean;
   setIsOpenSelectedChatProfile: (isOpen: boolean) => void;
+
+
+  createGroupModalOpen: () => void;
+  createGroupModalClose: () => void;
+  isCreateGroupModalOpen: boolean;
+  setIsCreateGroupModalOpen: (isOpen: boolean) => void;
 }
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
@@ -82,6 +88,12 @@ export const GlobalContextProvider = ({ children }: { children: React.ReactNode 
     isOpen: isOpenSelectedChatProfile,
     setIsOpen: setIsOpenSelectedChatProfile,
   } = useModal();
+  const {
+    open: createGroupModalOpen,
+    close: createGroupModalClose,
+    isOpen: isCreateGroupModalOpen,
+    setIsOpen: setIsCreateGroupModalOpen,
+  } = useModal();
 
   return (
     <GlobalContext.Provider
@@ -119,6 +131,11 @@ export const GlobalContextProvider = ({ children }: { children: React.ReactNode 
         closeSelectedChatProfile,
         isOpenSelectedChatProfile,
         setIsOpenSelectedChatProfile,
+
+        createGroupModalOpen,
+        createGroupModalClose,
+        isCreateGroupModalOpen,
+        setIsCreateGroupModalOpen,
       }}
     >
       {children}

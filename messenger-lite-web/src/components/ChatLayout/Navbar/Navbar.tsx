@@ -6,6 +6,7 @@ import {
   Search,
   Settings,
   UserRoundPlus,
+  UsersRound,
   Wifi,
   WifiOff,
 } from 'lucide-react';
@@ -26,7 +27,7 @@ interface NavbarProps {
 }
 
 const Navbar = ({ isConnected, onSearchClick }: NavbarProps) => {
-  const { newDrawerOpen, settingModalOpen, isSidebarOpen, setIsSidebarOpen, addFriendModalOpen } =
+  const { newDrawerOpen, settingModalOpen, isSidebarOpen, setIsSidebarOpen, addFriendModalOpen, createGroupModalOpen } =
     useGlobalContext();
   const { logout, currentUserDetails } = useAuth();
   const { settings, activeStatus } = useSettings();
@@ -52,7 +53,7 @@ const Navbar = ({ isConnected, onSearchClick }: NavbarProps) => {
     ? `${MEDIA_HOST}/${currentUserDetails.avatar}`
     : DummyAvatar.src;
 
-
+  const handleCreateGroup = () => createGroupModalOpen()
 
   // console.log(image, "sssssssssssss--------------");
 
@@ -76,7 +77,7 @@ const Navbar = ({ isConnected, onSearchClick }: NavbarProps) => {
       </div>
 
       {/* Right side - Actions */}
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-1">
         {/* Presence */}
         {/* <div
           className={`px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${presenceClasses}`}
@@ -86,22 +87,25 @@ const Navbar = ({ isConnected, onSearchClick }: NavbarProps) => {
         </div> */}
 
         {/* Action Buttons */}
-        <Button variant="ghost" size="sm" onClick={onSearchClick}>
+        {/* <Button variant="ghost" size="sm" onClick={onSearchClick}>
           <Search className="w-4 h-4" />
-        </Button>
+        </Button> */}
 
-        <Button variant="ghost" size="sm" onClick={handleClickNew}>
+        <Button title='New Message' variant="ghost" size="sm" onClick={handleClickNew}>
           <MailPlus className="w-4 h-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={handleClickAddFriend}>
+        <Button title='Add Friend' variant="ghost" size="sm" onClick={handleClickAddFriend}>
           <UserRoundPlus className="w-4 h-4" />
         </Button>
+        <Button title='Create Group' variant="ghost" size="sm" onClick={handleCreateGroup}>
+          <UsersRound className="w-4 h-4" />
+        </Button>
 
-        <Button variant="ghost" size="sm" onClick={settingModalOpen}>
+        <Button title='Setting' variant="ghost" size="sm" onClick={settingModalOpen}>
           <Settings className="w-4 h-4" />
         </Button>
 
-        <Button variant="ghost" size="sm" onClick={handleLogout}>
+        <Button title='Logout' variant="ghost" size="sm" onClick={handleLogout}>
           <LogOut className="w-4 h-4" />
         </Button>
 
