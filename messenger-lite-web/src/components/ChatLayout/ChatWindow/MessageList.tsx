@@ -106,7 +106,7 @@ const MessageList = ({
 
         {messages?.length > 0 ? (
           messages?.map((msg) => {
-            console.log(msg, "ppppppppppppppppppppppppppppppppp")
+            // console.log(msg, "ppppppppppppppppppppppppppppppppp")
             const dateLabel = getDateLabel((msg?.createdAt as string) ?? msg?.timestamp);
             const isOwnMessage =
               msg?.from?.id === currentUserId || msg?.author?.id === currentUserId;

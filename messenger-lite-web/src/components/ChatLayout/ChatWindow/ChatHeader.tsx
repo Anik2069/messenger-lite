@@ -101,10 +101,10 @@ const ChatHeader = ({ selectedChat }: ChatHeaderProps) => {
   const handleVideoCall = () => {
     if (isDirectChat) {
       initiateCall('video', [selectedChat.userId || selectedChat.id]);
-    } else if (selectedChat.participants) {
+    } else if (selectedChat.memberIds) {
       // Group call logic
-      const participantIds = selectedChat.participants
-        .map((p: any) => p.id || p.userId)
+      const participantIds = selectedChat.memberIds
+        .map((p: any) => p)
         .filter((id: string) => id !== user?.id);
 
       if (participantIds.length > 0) {
@@ -118,16 +118,19 @@ const ChatHeader = ({ selectedChat }: ChatHeaderProps) => {
   const handleAudioCall = () => {
     if (isDirectChat) {
       initiateCall('audio', [selectedChat.userId || selectedChat.id]);
-    } else if (selectedChat.participants) {
-      // Group call logic
-      const participantIds = selectedChat.participants
-        .map((p: any) => p.id || p.userId)
-        .filter((id: string) => id !== user?.id);
+    } else if (selectedChat.memberIds) {
 
+      // console.log(selectedChat)
+      // Group call logic
+      const participantIds = selectedChat.memberIds
+        .map((p: any) => p)
+        .filter((id: string) => id !== user?.id);
+      // console.log(participantIds)
       if (participantIds.length > 0) {
         initiateCall('audio', participantIds);
       }
     }
+
   };
 
   console.log(selectedChat, "selectedChat")
