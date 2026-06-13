@@ -12,7 +12,7 @@ export const AudioCallView = ({ callId }: { callId: string }) => {
         toggleMute,
     } = useCall();
 
-    const { isMuted, callStatus, remoteStreams, localStream, endReason } = callState;
+    const { isMuted, callStatus, remoteStreams, localStream, endReason, callDuration } = callState;
     const remoteAudioRefs = useRef<{ [key: string]: HTMLAudioElement }>({});
 
     // Handle remote audio streams
@@ -37,15 +37,15 @@ export const AudioCallView = ({ callId }: { callId: string }) => {
             </div>
 
             {/* Header / Info */}
-            <div className="absolute top-0 w-full p-8 z-10 bg-transparent text-center">
-                <h2 className="text-2xl font-semibold tracking-wide text-blue-100">
+            <div className=" w-full py-6 z-10 bg-transparent text-center">
+                <h2 className="text-xl font-semibold tracking-wide text-blue-100">
                     {callStatus === 'ringing' ? 'Ringing...' :
                         callStatus === 'connecting' ? 'Connecting...' :
                             callStatus === 'connected' ? 'Connected' :
                                 callStatus === 'ended' ? 'Call Ended' : 'Calling...'}
                 </h2>
                 {callStatus === 'connected' && (
-                    <p className="text-blue-200 mt-2 text-sm font-mono opacity-80">
+                    <p className="text-blue-200 mt-2 text-xs font-mono opacity-80">
                         Secure Audio Connection
                     </p>
                 )}
@@ -62,13 +62,13 @@ export const AudioCallView = ({ callId }: { callId: string }) => {
                             <div className="absolute inset-[-20px] border border-blue-500/30 rounded-full animate-[spin_4s_linear_infinite]"></div>
                         </>
                     )}
-                    <div className="w-40 h-40 bg-gradient-to-br from-blue-600 to-indigo-800 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(37,99,235,0.3)] border-4 border-slate-800 z-10 relative">
-                        <User className="w-20 h-20 text-white opacity-80" />
+                    <div className="w-32 h-32 bg-gradient-to-br from-blue-600 to-indigo-800 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(37,99,235,0.3)] border-4 border-slate-800 z-10 relative">
+                        <User className="w-14 h-14 text-white opacity-80" />
                     </div>
                 </div>
 
                 <div className="text-center">
-                    <h3 className="text-3xl font-bold text-white mb-2">
+                    <h3 className="text-2xl font-bold text-white mb-2">
                         {callStatus === 'ended'
                             ? "Disconnected"
                             : Object.keys(remoteStreams).length > 0
@@ -78,15 +78,15 @@ export const AudioCallView = ({ callId }: { callId: string }) => {
                     {callStatus === 'ended' && (
                         <p className="text-blue-200 text-sm mt-2 opacity-80">
                             {endReason === 'network_unstable' ? 'The network is unstable.' :
-                             endReason === 'rejected' ? 'The call was rejected.' :
-                             'The user left.'}
+                                endReason === 'rejected' ? 'The call was rejected.' :
+                                    'The user left.'}
                         </p>
                     )}
                 </div>
 
             </div>
             <div className="w-full max-w-xs md:max-w-md mx-auto h-[60px] flex items-center justify-center mb-8 transition-all duration-300">
-                {!isMuted && localStream && (
+                {!isMuted && localStream && callStatus === 'connected' && (
                     <div className="w-full opacity-80">
                         <LiveVoiceVisualizer
                             stream={localStream}
@@ -98,25 +98,34 @@ export const AudioCallView = ({ callId }: { callId: string }) => {
                 )}
             </div>
 
-            {/* Controls */}
-            <div className="h-32 bg-gradient-to-t from-slate-950 to-transparent flex items-center justify-center gap-8 pb-8 z-10">
-                <Button
-                    variant={isMuted ? "destructive" : "secondary"}
-                    size="icon"
-                    className="rounded-full w-16 h-16 shadow-[0_0_30px_rgba(0,0,0,0.5)] hover:scale-105 transition-all duration-300"
-                    onClick={toggleMute}
-                >
-                    {isMuted ? <MicOff className="w-7 h-7" /> : <Mic className="w-7 h-7" />}
-                </Button>
 
-                <Button
-                    variant="destructive"
-                    size="icon"
-                    className="rounded-full w-20 h-20 shadow-[0_0_30px_rgba(220,38,38,0.4)] hover:scale-110 transition-all duration-300 bg-red-600 hover:bg-red-700"
-                    onClick={endCall}
-                >
-                    <PhoneOff className="w-8 h-8" />
-                </Button>
+            {/* Controls */}
+            <div className="h-40 bg-gradient-to-t from-slate-950 to-transparent flex flex-col items-center justify-end gap-6 pb-8 z-10">
+                {callStatus === 'connected' && (
+                    <div className="text-blue-200 text-sm font-mono bg-slate-900/50 px-4 py-1 rounded-full border border-slate-700 backdrop-blur-md">
+                        {Math.floor(callDuration / 60).toString().padStart(2, '0')}:{(callDuration % 60).toString().padStart(2, '0')}
+                    </div>
+                )}
+                {callStatus !== 'ended' && <div className="flex items-center justify-center gap-8">
+                    <Button
+                        variant={isMuted ? "destructive" : "secondary"}
+                        size="icon"
+                        className="rounded-full w-16 h-16 shadow-[0_0_30px_rgba(0,0,0,0.5)] hover:scale-105 transition-all duration-300"
+                        onClick={toggleMute}
+                    >
+                        {isMuted ? <MicOff className="w-7 h-7" /> : <Mic className="w-7 h-7" />}
+                    </Button>
+
+                    <Button
+                        variant="destructive"
+                        size="icon"
+                        className="rounded-full w-20 h-20 shadow-[0_0_30px_rgba(220,38,38,0.4)] hover:scale-110 transition-all duration-300 bg-red-600 hover:bg-red-700"
+                        onClick={endCall}
+                    >
+                        <PhoneOff className="w-8 h-8" />
+                    </Button>
+                </div>}
+
             </div>
         </div>
     );

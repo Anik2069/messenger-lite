@@ -14,7 +14,7 @@ export const VideoCallView = ({ callId }: { callId: string }) => {
         toggleScreenShare,
     } = useCall();
 
-    const { localStream, remoteStreams, isMuted, isCameraOff, isScreenSharing, callStatus, endReason } = callState;
+    const { localStream, remoteStreams, isMuted, isCameraOff, isScreenSharing, callStatus, endReason, callDuration } = callState;
     const localVideoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
@@ -27,10 +27,10 @@ export const VideoCallView = ({ callId }: { callId: string }) => {
         <div className="flex flex-col h-screen bg-gray-900 text-white">
             {/* Header / Info */}
             <div className="absolute top-0 w-full p-4 z-10 bg-transparent text-center">
-                <h2 className="text-xl font-semibold drop-shadow-md">
+                <h2 className="text-xm font-semibold drop-shadow-md">
                     {callStatus === 'ringing' ? 'Ringing...' :
                         callStatus === 'connecting' ? 'Connecting...' :
-                            callStatus === 'connected' ? 'Connected' :
+                            callStatus === 'connected' ? '' :
                                 callStatus === 'ended' ? 'Call Ended' : 'Calling...'}
                 </h2>
             </div>
@@ -48,19 +48,21 @@ export const VideoCallView = ({ callId }: { callId: string }) => {
                             <h3 className="text-2xl font-bold text-white mb-2">Disconnected</h3>
                             <p className="text-gray-400 text-sm">
                                 {endReason === 'network_unstable' ? 'The network is unstable.' :
-                                 endReason === 'rejected' ? 'The call was rejected.' :
-                                 'The user left.'}
+                                    endReason === 'rejected' ? 'The call was rejected.' :
+                                        'The user left.'}
                             </p>
                         </div>
                     )}
 
                     {Object.entries(remoteStreams).map(([userId, stream]) => (
-                        <RemoteVideo key={userId} stream={stream} userId={userId} />
+                        <div className="relative bg-black overflow-hidden w-full aspect-video shadow-md h-full">
+                            <RemoteVideo key={userId} stream={stream} userId={userId} />
+                        </div>
                     ))}
                 </div>
 
                 {/* Local Video (PiP) */}
-                <div className="absolute bottom-24 right-4 w-48 h-36 bg-black rounded-lg overflow-hidden border border-gray-700 shadow-lg transition-all duration-300">
+                <div className="absolute top-6 right-6 w-32 h-24 md:w-40 md:h-32 lg:w-48 lg:h-32 bg-black  overflow-hidden border border-gray-700  transition-all duration-300 z-30">
                     <video
                         ref={localVideoRef}
                         autoPlay
@@ -77,42 +79,50 @@ export const VideoCallView = ({ callId }: { callId: string }) => {
             </div>
 
             {/* Controls */}
-            <div className="h-24 bg-gradient-to-t from-gray-900 to-transparent flex items-center justify-center gap-6 pb-6">
-                <Button
-                    variant={isMuted ? "destructive" : "secondary"}
-                    size="icon"
-                    className="rounded-full w-14 h-14 shadow-lg hover:scale-105 transition-transform"
-                    onClick={toggleMute}
-                >
-                    {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
-                </Button>
+            <div className="h-32 bg-gradient-to-t from-gray-900 to-transparent flex flex-col items-center justify-end gap-4 pb-6 z-40">
+                {callStatus === 'connected' && (
+                    <div className="text-gray-300 text-sm font-mono bg-black/50 px-4 py-1 rounded-full border border-gray-700">
+                        {Math.floor(callDuration / 60).toString().padStart(2, '0')}:{(callDuration % 60).toString().padStart(2, '0')}
+                    </div>
+                )}
+                <div className="flex items-center justify-center gap-6">
+                    <Button
+                        variant={isMuted ? "destructive" : "secondary"}
+                        size="icon"
+                        className="rounded-full w-14 h-14 shadow-lg hover:scale-105 transition-transform"
+                        onClick={toggleMute}
+                    >
+                        {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+                    </Button>
 
-                <Button
-                    variant={isCameraOff ? "destructive" : "secondary"}
-                    size="icon"
-                    className="rounded-full w-14 h-14 shadow-lg hover:scale-105 transition-transform"
-                    onClick={toggleCamera}
-                >
-                    {isCameraOff ? <VideoOff className="w-6 h-6" /> : <Video className="w-6 h-6" />}
-                </Button>
+                    <Button
+                        variant={isCameraOff ? "destructive" : "secondary"}
+                        size="icon"
+                        className="rounded-full w-14 h-14 shadow-lg hover:scale-105 transition-transform"
+                        onClick={toggleCamera}
+                    >
+                        {isCameraOff ? <VideoOff className="w-6 h-6" /> : <Video className="w-6 h-6" />}
+                    </Button>
 
-                <Button
+                    {/* <Button
                     variant={isScreenSharing ? "default" : "secondary"}
                     size="icon"
                     className="rounded-full w-14 h-14 shadow-lg hover:scale-105 transition-transform"
                     onClick={toggleScreenShare}
                 >
                     <ScreenShare className="w-6 h-6" />
-                </Button>
+                </Button> */}
 
-                <Button
-                    variant="destructive"
-                    size="icon"
-                    className="rounded-full w-16 h-16 shadow-lg hover:scale-110 transition-transform bg-red-600 hover:bg-red-700"
-                    onClick={endCall}
-                >
-                    <PhoneOff className="w-8 h-8" />
-                </Button>
+                    <Button
+                        variant="destructive"
+                        size="icon"
+                        className="rounded-full w-16 h-16 shadow-lg hover:scale-110 transition-transform bg-red-600 hover:bg-red-700"
+                        onClick={endCall}
+                    >
+                        <PhoneOff className="w-8 h-8" />
+                    </Button>
+                </div>
+
             </div>
         </div>
     );

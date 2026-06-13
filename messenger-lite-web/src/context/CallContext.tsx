@@ -300,13 +300,19 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
   }, [state.localStream, state.isMuted]);
 
   const toggleCamera = useCallback(() => {
+    const newCameraState = !state.isCameraOff;
     if (state.localStream) {
       state.localStream.getVideoTracks().forEach(track => {
-        track.enabled = state.isCameraOff;
+        track.enabled = state.isCameraOff; // If it was off, we enable it.
       });
     }
+    
+    if (state.callId) {
+        socket.emit("camera_toggled", { callId: state.callId, isCameraOff: newCameraState });
+    }
+    
     dispatch({ type: 'TOGGLE_CAMERA' });
-  }, [state.localStream, state.isCameraOff]);
+  }, [state.localStream, state.isCameraOff, state.callId]);
 
   const toggleScreenShare = useCallback(async () => {
     try {

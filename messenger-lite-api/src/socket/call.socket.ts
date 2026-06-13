@@ -162,6 +162,12 @@ export function initCallSocket(io: Server) {
             });
         });
 
+        socket.on("camera_toggled", ({ callId, isCameraOff }: { callId: string, isCameraOff: boolean }) => {
+            const fromUserId = socket.data.userId || userId;
+            // Broadcast to everyone else in the call room
+            socket.to(callId).emit("camera_toggled", { userId: fromUserId, isCameraOff });
+        });
+
         // End Call / Reject
         socket.on("call_ended", ({ callId }: { callId: string }) => {
             const fromUserId = socket.data.userId || userId;
