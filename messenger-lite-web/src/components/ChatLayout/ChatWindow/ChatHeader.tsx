@@ -130,6 +130,8 @@ const ChatHeader = ({ selectedChat }: ChatHeaderProps) => {
     }
   };
 
+  console.log(selectedChat, "selectedChat")
+
   return (
     <div className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 flex justify-between items-center">
       <div className="flex items-center">
@@ -143,8 +145,7 @@ const ChatHeader = ({ selectedChat }: ChatHeaderProps) => {
           <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
             {selectedChat.type === 'group' ? (
               <span className="flex items-center">
-                <span className="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
-                Group chat • {selectedChat.memberCount || 'Multiple'} members
+                {selectedChat.memberIds?.length || 'Multiple'} members
               </span>
             ) : (
               <span className="flex items-center">
@@ -152,11 +153,7 @@ const ChatHeader = ({ selectedChat }: ChatHeaderProps) => {
                   className={`w-2 h-2 rounded-full mr-2 ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}
                 ></span>
                 {isOnline ? 'Online' : 'Offline'}
-                {isCalling && (
-                  <span className="ml-2 px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 text-xs rounded-full">
-                    Calling...
-                  </span>
-                )}
+
               </span>
             )}
           </p>
@@ -164,33 +161,34 @@ const ChatHeader = ({ selectedChat }: ChatHeaderProps) => {
       </div>
 
       <div className="flex items-center gap-2">
-        {/* Call Buttons - Show for direct and group with participants */}
-        {(!isCurrentUser && (isDirectChat || (selectedChat.type === 'group' && selectedChat.participants))) && (
-          <div className="flex items-center border-r border-gray-200 dark:border-gray-700 pr-3 mr-3">
-            {!isCurrentUser && (
+        {/* Call Buttons - Show for direct and group with member */}
+        {(!isCurrentUser && (isDirectChat || (selectedChat.type === 'group' && selectedChat.memberIds
+        ))) && (
+            <div className="flex items-center border-r border-gray-200 dark:border-gray-700 pr-3 mr-3">
+              {!isCurrentUser && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`hover:bg-gray-200 dark:hover:bg-gray-700 transition ${isCalling ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onClick={handleVideoCall}
+                >
+                  <Video className={`w-5 h-5 ${isCalling ? 'text-blue-500' : 'text-gray-700 dark:text-gray-300'}`} />
+                </Button>
+              )}
+
               <Button
                 variant="ghost"
                 size="icon"
                 className={`hover:bg-gray-200 dark:hover:bg-gray-700 transition ${isCalling ? 'opacity-50 cursor-not-allowed' : ''}`}
-                onClick={handleVideoCall}
+                onClick={handleAudioCall}
               >
-                <Video className={`w-5 h-5 ${isCalling ? 'text-blue-500' : 'text-gray-700 dark:text-gray-300'}`} />
+                <Phone className={`w-5 h-5 ${isCalling ? 'text-blue-500' : 'text-gray-700 dark:text-gray-300'}`} />
               </Button>
-            )}
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`hover:bg-gray-200 dark:hover:bg-gray-700 transition ${isCalling ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onClick={handleAudioCall}
-            >
-              <Phone className={`w-5 h-5 ${isCalling ? 'text-blue-500' : 'text-gray-700 dark:text-gray-300'}`} />
-            </Button>
-          </div>
-        )}
+            </div>
+          )}
 
         {/* Other actions */}
-        <ChatHeaderActions conversationId={selectedChat.id} />
+        <ChatHeaderActions selectedChat={selectedChat} conversationId={selectedChat.id} />
       </div>
 
       <CallConfirmationModal

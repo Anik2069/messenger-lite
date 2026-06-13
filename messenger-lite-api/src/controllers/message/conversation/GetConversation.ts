@@ -30,38 +30,48 @@ export function getConversations(
             },
             searchTerm
               ? {
-                  OR: [
-                    {
-                      name: {
-                        contains: searchTerm,
-                        mode: "insensitive",
-                      },
+                OR: [
+                  {
+                    name: {
+                      contains: searchTerm,
+                      mode: "insensitive",
                     },
-                    {
-                      participants: {
-                        some: {
-                          userId: {
-                            not: userId,
-                          },
-                          user: {
-                            username: {
-                              contains: searchTerm,
-                              mode: "insensitive",
-                            },
+                  },
+                  {
+                    participants: {
+                      some: {
+                        userId: {
+                          not: userId,
+                        },
+                        user: {
+                          username: {
+                            contains: searchTerm,
+                            mode: "insensitive",
                           },
                         },
                       },
                     },
-                  ],
-                }
+                  },
+                ],
+              }
               : {},
           ],
         },
         include: {
           participants: {
             include: {
-              user: true,
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  avatar: true,
+                  isOnline: true,
+                  email: true,
+
+                },
+              },
             },
+
           },
           messages: {
             orderBy: {

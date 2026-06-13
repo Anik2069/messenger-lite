@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { StatusCodes } from "http-status-codes";
-import sendResponse from "../../../libs/sendResponse";
-import { IOServerWithHelpers } from "../../../socket/initSocket";
-import { getUserConversationsSorted } from "../SendMessageHandler.controller";
+import sendResponse from "../../libs/sendResponse";
+import { IOServerWithHelpers } from "../../socket/initSocket";
+import { getUserConversationsSorted } from "../message/SendMessageHandler.controller";
 import fs from "fs";
 import path from "path";
 

@@ -75,7 +75,10 @@ const ChatSidebar = ({
             </div>
           ) : (
             conversations?.map((conv) => {
-              // console.log(conv)
+              if (conv?.type === "GROUP") {
+                console.log(conv);
+
+              }
               const isGroup = conv.type === 'GROUP';
 
               // ✅ FIX: Safe access to participants
@@ -113,8 +116,9 @@ const ChatSidebar = ({
                       id: conv.id,
                       name: displayName,
                       avatar: displayAvatar || undefined,
-                      isOnline,
-                      userId: otherParticipant?.id || '',
+                      isOnline: isGroup ? false : isOnline,
+                      userId: isGroup ? "" : otherParticipant?.id || '',
+                      memberIds: isGroup ? participants.map((p) => p.user?.id) : [],
                     });
                   }}
                   className={`flex items-center px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${selectedChat?.id === conv.id ||
@@ -155,11 +159,9 @@ const ChatSidebar = ({
 
                     {messageCount > 0 ? (
                       <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                        {isGroup
-                          ? `${participants.length} members`
-                          : `${lastMessage?.author?.username === user?.username
-                            ? 'You'
-                            : lastMessage?.author?.username || 'Unknown'
+                        {`${lastMessage?.author?.username === user?.username
+                          ? 'You'
+                          : lastMessage?.author?.username || 'Unknown'
                           }: ${lastMessage?.message || 'No message'}`}
                       </p>
                     ) : (

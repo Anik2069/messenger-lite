@@ -8,6 +8,7 @@ import readsRouter from "./reads/reads.router";
 import friendRouter from "./friend/friend.router";
 import settingsRouter from "./settings/settings.router";
 import authUpdateRouter from "./auth/authUpdateRouter";
+import groupsRouter from "./group/groups.route";
 
 const v1Router = (io: IOServerWithHelpers) => {
   const router = Router();
@@ -17,6 +18,7 @@ const v1Router = (io: IOServerWithHelpers) => {
   router.use("/meta", listRouter);
 
   router.use("/messages", messagesRouter(io));
+  router.use("/group", groupsRouter(io));
 
   router.use("/reactions", reactionsRouter(io));
   router.use("/reads", readsRouter(io));

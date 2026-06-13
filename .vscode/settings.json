@@ -1,3 +1,6 @@
 {
-  "cSpell.words": ["convo"]
+  "cSpell.words": [
+    "convo"
+  ],
+  "prisma.pinToPrisma6": true
 }

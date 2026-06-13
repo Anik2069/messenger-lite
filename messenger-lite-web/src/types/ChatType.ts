@@ -8,4 +8,5 @@ export interface Chat {
   unreadCount?: number;
   isOnline?: boolean;
   userId?: string;
+  memberIds?: string[];
 }

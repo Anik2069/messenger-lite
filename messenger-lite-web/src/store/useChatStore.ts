@@ -98,6 +98,7 @@ export type ChatState = {
   showSearch: boolean;
 
   selectedUserInfo: User | null;
+  selectedGroupInfo: any | null;
 
   // Pagination state
   messageCursor: string | null;
@@ -137,6 +138,8 @@ export type ChatState = {
   selectedMedia: any[];
   isLoadingMedia: boolean;
   handleCloseChat: () => void;
+  handleFetchGroupInfo: (id: string) => void;
+  setSelectedGroupInfo: (data: any) => void;
 };
 
 let listenersInitialized = false;
@@ -265,7 +268,8 @@ export const useChatStore = create<ChatState>((set, get) => {
     isConnected: socket.connected,
     showSearch: false,
     selectedUserInfo: null,
-
+    selectedGroupInfo: null,
+    setSelectedGroupInfo: (data: any) => set({ selectedGroupInfo: data }),
     // Pagination state
     messageCursor: null,
     hasMoreMessages: false,
@@ -413,6 +417,16 @@ export const useChatStore = create<ChatState>((set, get) => {
         const data = await response.data?.results;
         // console.log(data, "==========");
         set({ selectedUserInfo: data });
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    handleFetchGroupInfo: async (id: string) => {
+      try {
+        const response = await axiosInstance.get(`${HOST}/group/group-info/${id}`);
+        const data = await response.data?.results;
+        console.log(data, "==========");
+        set({ selectedGroupInfo: data });
       } catch (error) {
         console.log(error);
       }

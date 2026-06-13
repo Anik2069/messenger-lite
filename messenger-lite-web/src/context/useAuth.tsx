@@ -234,7 +234,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const response = await axiosInstance.post('auth/user/2fa/generate');
       if (response.status === 200) {
-        console.log(response.data?.results);
+        // console.log(response.data?.results);
         setQr(response.data?.results?.qr);
         setSecret(response.data?.results?.secret);
       }
@@ -262,7 +262,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const getMyself = async () => {
     try {
       const response = await axiosInstance.get('auth/user/me');
-      console.log(response);
+      // console.log(response);
       if (response.status === 200) {
         const u = response.data?.results?.userInfo as User | undefined;
         if (u) {

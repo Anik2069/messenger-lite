@@ -297,7 +297,7 @@ export const useFriendsStore = create<FriendsState>()(
 
       createGroup: async (formData: FormData) => {
         try {
-          const response = await axiosInstance.post('/messages/group', formData, {
+          const response = await axiosInstance.post('/group/create', formData, {
             headers: {
               'Content-Type': 'multipart/form-data',
             },

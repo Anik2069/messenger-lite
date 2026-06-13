@@ -12,9 +12,12 @@ import {
 import { toast } from "react-toastify";
 import { useChatStore } from "@/store/useChatStore";
 import { useGlobalContext } from "@/provider/GlobalContextProvider";
-const ChatHeaderActions = ({ conversationId }: { conversationId: string }) => {
-  const { handleClearConversation, handleCloseChat } = useChatStore();
+import { Chat } from "@/types/ChatType";
+const ChatHeaderActions = ({ conversationId, selectedChat }: { conversationId: string, selectedChat: Chat }) => {
+  const { handleClearConversation, handleCloseChat, } = useChatStore();
+
   const {
+    closeSelectedChatProfile,
     openSelectedChatProfile,
   } = useGlobalContext();
   return (
@@ -32,7 +35,7 @@ const ChatHeaderActions = ({ conversationId }: { conversationId: string }) => {
             console.log("Profile");
           }}
         >
-          View profile{" "}
+          {selectedChat.type === 'group' ? "Group Info" : "View profile"}
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
@@ -73,12 +76,16 @@ const ChatHeaderActions = ({ conversationId }: { conversationId: string }) => {
         </DropdownMenuItem>
         <DropdownMenuItem
           variant="destructive"
-          onClick={() => handleCloseChat()}
+          onClick={() => {
+            handleCloseChat()
+            closeSelectedChatProfile()
+          }
+          }
         >
           Close
         </DropdownMenuItem>
       </DropdownMenuContent>
-    </DropdownMenu>
+    </DropdownMenu >
   );
 };
 

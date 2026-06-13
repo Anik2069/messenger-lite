@@ -22,6 +22,7 @@ export default function getMessagesController(prisma: PrismaClient) {
         });
       }
 
+
       let conversation = await prisma.conversation.findFirst({
         where: {
           id: param,

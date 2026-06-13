@@ -30,7 +30,7 @@ export const useConversationStore = create<ConversationState>((set, get) => {
       try {
         const response = await axiosInstance.get(`messages/conversations?search=${search || ''}`);
         const data = await response.data;
-        console.log('📩 conversations', data);
+        // console.log('📩 conversations', data);
         set({ conversations: data?.results, isLoadingConversation: false });
       } catch (error) {
         set({ error: 'Failed to fetch conversations', isLoadingConversation: false });
