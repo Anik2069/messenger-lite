@@ -24,7 +24,7 @@ const MessageItem = ({
   /** Header for group messages */
   const renderMessageHeader = () =>
     isGroupChat && !isOwnMessage ? (
-      <p className="text-xs font-medium mb-1 opacity-75">{msg.from?.username ? msg.from.username : msg.author?.username ? msg.author.username : "Unknown"}:</p>
+      <p className="text-xs font-medium  opacity-75">{msg.from?.username ? msg.from.username : msg.author?.username ? msg.author.username : "Unknown"}</p>
     ) : null;
 
   /** Forwarded message header */
@@ -182,9 +182,13 @@ const MessageItem = ({
                 : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-xs'
                 }`}
             >
-              {renderMessageHeader()}
-              {renderForwardedHeader()}
-              {renderMessageContent()}
+              <div className="">
+                <div className="-mb-1">
+                  {renderMessageHeader()}
+                  {renderForwardedHeader()}
+                </div>
+                {renderMessageContent()}
+              </div>
 
               <div className="absolute -bottom-1.5 right-1.5 text-white text-sm text-right py-2">
                 {renderMessageTime()}

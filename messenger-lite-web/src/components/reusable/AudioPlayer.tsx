@@ -30,7 +30,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, width = 300, height = 40
 
     const ws = WaveSurfer.create({
       container: containerRef.current,
-      waveColor: '#ffffff',
+      waveColor: '#000000',
       progressColor: '#696969',
       height,
       barWidth: 2,
