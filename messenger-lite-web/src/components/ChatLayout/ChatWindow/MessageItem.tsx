@@ -23,8 +23,8 @@ const MessageItem = ({
 }: MessageItemProps) => {
   /** Header for group messages */
   const renderMessageHeader = () =>
-    isGroupChat && !isOwnMessage && msg.from?.username ? (
-      <p className="text-xs font-medium mb-1 opacity-75">{msg.from.username}</p>
+    isGroupChat && !isOwnMessage ? (
+      <p className="text-xs font-medium mb-1 opacity-75">{msg.from?.username ? msg.from.username : msg.author?.username ? msg.author.username : "Unknown"}:</p>
     ) : null;
 
   /** Forwarded message header */
@@ -89,9 +89,8 @@ const MessageItem = ({
   /** Message timestamp */
   const renderMessageTime = () => (
     <p
-      className={`text-[11px] whitespace-nowrap ${
-        isOwnMessage ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
-      }`}
+      className={`text-[11px] whitespace-nowrap ${isOwnMessage ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
+        }`}
     >
       {formatLocalTime(msg.createdAt ? new Date(msg.createdAt) : msg.timestamp)}
     </p>
@@ -178,11 +177,10 @@ const MessageItem = ({
 
           <div className="max-w-xs lg:max-w-lg">
             <div
-              className={`flex gap-2 items-end px-3 py-2 rounded-lg relative group ${
-                isOwnMessage
-                  ? 'bg-blue-500 text-white rounded-br-xs'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-xs'
-              }`}
+              className={`flex gap-2 items-end px-3 py-2 rounded-lg relative group ${isOwnMessage
+                ? 'bg-blue-500 text-white rounded-br-xs'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-xs'
+                }`}
             >
               {renderMessageHeader()}
               {renderForwardedHeader()}

@@ -27,7 +27,7 @@ const MessageList = ({
     selectedChat,
   } = useChatStore();
   const { user } = useAuth();
-  
+
   const currentUserId = user?.id;
   const isGroupChat = selectedChat?.type === 'group';
   const containerRef = useRef<HTMLDivElement>(null);
@@ -47,8 +47,8 @@ const MessageList = ({
     const isNewMessage = lastMessageIdRef.current !== currentLastMessageId;
 
     if (isInitialLoad || isNewMessage || otherUserTyping) {
-      messagesEndRef.current?.scrollIntoView({ 
-        behavior: isInitialLoad ? 'auto' : 'smooth' 
+      messagesEndRef.current?.scrollIntoView({
+        behavior: isInitialLoad ? 'auto' : 'smooth'
       });
     }
 
@@ -106,6 +106,7 @@ const MessageList = ({
 
         {messages?.length > 0 ? (
           messages?.map((msg) => {
+            console.log(msg, "ppppppppppppppppppppppppppppppppp")
             const dateLabel = getDateLabel((msg?.createdAt as string) ?? msg?.timestamp);
             const isOwnMessage =
               msg?.from?.id === currentUserId || msg?.author?.id === currentUserId;
