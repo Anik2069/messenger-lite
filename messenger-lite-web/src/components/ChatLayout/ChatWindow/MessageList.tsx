@@ -33,9 +33,26 @@ const MessageList = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const lastMessageIdRef = useRef<string | null>(null);
+
   // Scroll to bottom on new messages or typing
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (!messages || messages.length === 0) {
+      lastMessageIdRef.current = null;
+      return;
+    }
+
+    const currentLastMessageId = messages[messages.length - 1]?.id;
+    const isInitialLoad = lastMessageIdRef.current === null;
+    const isNewMessage = lastMessageIdRef.current !== currentLastMessageId;
+
+    if (isInitialLoad || isNewMessage || otherUserTyping) {
+      messagesEndRef.current?.scrollIntoView({ 
+        behavior: isInitialLoad ? 'auto' : 'smooth' 
+      });
+    }
+
+    lastMessageIdRef.current = currentLastMessageId;
   }, [messages, otherUserTyping]);
 
   // Handle infinite scroll / load older messages
