@@ -99,6 +99,7 @@ export type ChatState = {
 
   selectedUserInfo: User | null;
   selectedGroupInfo: any | null;
+  sentTempIds: string[];
 
   // Pagination state
   messageCursor: string | null;
@@ -187,6 +188,18 @@ export const useChatStore = create<ChatState>((set, get) => {
       console.log(msg, 'receive msg');
 
       set((state) => {
+        // ✅ Check if the message belongs to the currently active chat window
+        const isMyTempId = msg.clientTempId ? state.sentTempIds.includes(msg.clientTempId) : false;
+        
+        const belongsToCurrentChat =
+          !state.selectedChat ? false :
+          msg.conversationId === state.selectedChat.id ||
+          isMyTempId ||
+          (state.selectedChat.type === 'user' && !msg.isGroupMessage && (
+            msg.from.id === state.selectedChat.id ||
+            msg.from.id === state.selectedChat.userId
+          ));
+
         // ✅ Replace logic: allow multiple messages with same clientTempId (for multiple file sends)
         if (msg.clientTempId) {
           const hasExactTemp = state.messages.some(
@@ -206,6 +219,10 @@ export const useChatStore = create<ChatState>((set, get) => {
               ),
             };
           }
+        }
+
+        if (!belongsToCurrentChat) {
+          return state; // Do not append if it doesn't belong to the current chat
         }
 
         // ✅ Still skip exact duplicates from backend
@@ -264,6 +281,7 @@ export const useChatStore = create<ChatState>((set, get) => {
     selectedMedia: [],
     selectedChat: null,
     messages: [],
+    sentTempIds: [],
     otherUserTyping: null,
     isConnected: socket.connected,
     showSearch: false,
@@ -312,6 +330,7 @@ export const useChatStore = create<ChatState>((set, get) => {
       if (!selectedChat || !currentUser) return;
 
       const clientTempId = uuidv4();
+      set((state) => ({ sentTempIds: [...state.sentTempIds, clientTempId] }));
       // const tempId = `temp-${Date.now()}`;
 
       // Optimistic UI
