@@ -13,6 +13,7 @@ interface ProfileImageProps {
   currentImage: string | null;
   onImageChange: (file: File, preview: string) => void;
   className?: string;
+  showHoverMeaage?: boolean
 }
 
 export function ProfileImage({
@@ -20,6 +21,7 @@ export function ProfileImage({
   currentImage,
   onImageChange,
   className,
+  showHoverMeaage = true
 }: ProfileImageProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isHovering, setIsHovering] = useState(false);
@@ -41,11 +43,14 @@ export function ProfileImage({
     // Create preview URL
     const previewUrl = URL.createObjectURL(file);
     onImageChange(file, previewUrl);
+
+    // Clear the input value so the same file can be selected again
+    e.target.value = '';
   };
 
   return (
     <div
-      className={`${className} relative rounded-full overflow-hidden cursor-pointer border-4 border-white bg-muted `}
+      className={`${className} relative group rounded-full overflow-hidden cursor-pointer border-4 border-white bg-muted `}
       onClick={handleImageClick}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
@@ -67,12 +72,17 @@ export function ProfileImage({
             <Spinner />
           </div>
         )}
-        {!isHovering && (
+        {!isHovering && showHoverMeaage && (
           <div className="absolute inset-0 bg-black/10 py-1 flex items-end mt-auto h-fit justify-center text-white text-sm">
             <Camera className="h-4 w-4" />
           </div>
         )}
-        {isHovering && (
+        {!showHoverMeaage && (
+          <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 py-1 flex items-end mt-auto h-fit justify-center text-white text-sm">
+            <Camera className="h-4 w-4" />
+          </div>
+        )}
+        {isHovering && showHoverMeaage && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-sm">
             Click to change
           </div>

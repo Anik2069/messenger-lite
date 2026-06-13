@@ -75,6 +75,7 @@ const ChatSidebar = ({
             </div>
           ) : (
             conversations?.map((conv) => {
+              // console.log(conv)
               const isGroup = conv.type === 'GROUP';
 
               // ✅ FIX: Safe access to participants
@@ -88,7 +89,7 @@ const ChatSidebar = ({
                 : otherParticipant?.username || 'Unknown';
 
               const displayAvatar = isGroup
-                ? conv.avatar
+                ? conv.avatar ? `${MEDIA_HOST}/${conv.avatar}` : dummyGroupAvatar.src
                 : otherParticipant?.avatar
                   ? `${MEDIA_HOST}/${otherParticipant.avatar}`
                   : DummyAvatar.src;

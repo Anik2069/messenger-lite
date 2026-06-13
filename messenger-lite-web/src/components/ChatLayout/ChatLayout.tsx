@@ -243,7 +243,7 @@ const ChatLayout = () => {
       <Modal
         maxWidth="md"
         className="min-h-[60vh] !p-0"
-        title="Create Group"
+        title="New Group"
         open={isCreateGroupModalOpen}
         onClose={() => {
           createGroupModalClose()

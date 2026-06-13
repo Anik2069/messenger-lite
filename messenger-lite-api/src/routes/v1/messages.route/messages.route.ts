@@ -4,6 +4,7 @@ import type { IOServerWithHelpers } from "../../../socket/initSocket";
 import SendMessageHandler from "../../../controllers/message/SendMessageHandler.controller";
 import requireAuth from "../../../middlewares/requireAuth";
 import { getConversations } from "../../../controllers/message/conversation/GetConversation";
+import CreateGroupConversation from "../../../controllers/message/conversation/CreateGroupConversation.controller";
 import getMessagesController from "../../../controllers/message/getMessage/getMessages.controller";
 import { upload } from "../../../middlewares/upload.middleware";
 import clearMessagesForFriend from "../../../controllers/message/messageClear.controller";
@@ -23,6 +24,15 @@ const messagesRouter = (io: IOServerWithHelpers) => {
 
   // Get all conversations
   router.get("/conversations", requireAuth, getConversations(io, prisma));
+
+  // Create a new group conversation
+
+  router.post(
+    "/group",
+    requireAuth,
+    upload.single("avatar"),
+    CreateGroupConversation(io, prisma)
+  );
 
   // Get messages of a conversation
   router.get("/:conversationId", requireAuth, getMessagesController(prisma));

@@ -46,6 +46,7 @@ export interface FriendsState {
   clearSelectedUsers: () => void;
   // socket
   setupSocketListeners: (socket: Socket, userId: string) => () => void;
+  createGroup: (formData: FormData) => Promise<void>;
 }
 
 export const useFriendsStore = create<FriendsState>()(
@@ -292,6 +293,28 @@ export const useFriendsStore = create<FriendsState>()(
         set({
           selectedUsers: [],
         });
+      },
+
+      createGroup: async (formData: FormData) => {
+        try {
+          const response = await axiosInstance.post('/messages/group', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+          console.log(response)
+          if (response.status === 201) {
+            toast.success('Group created successfully!');
+            set((state) => ({
+              selectedUsers: [],
+            }));
+            return response
+          }
+        } catch (error: any) {
+          console.error('Failed to create group:', error);
+          toast.error(error?.response?.data?.message || 'Failed to create group');
+          return error
+        }
       }
 
     }),
