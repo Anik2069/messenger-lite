@@ -28,11 +28,7 @@ const ChatLayout = () => {
   const { user, getMyself } = useAuth();
   const {
     selectedChat,
-    messages,
-    otherUserTyping,
     isConnected,
-    hasMoreMessages,
-    isLoadingMessages,
     setSelectedChat,
     setMessages,
     setOtherUserTyping,
@@ -41,7 +37,6 @@ const ChatLayout = () => {
     onSendMessage,
     onAddReaction,
     resetPagination,
-    loadMoreMessages,
   } = useChatStore();
 
   const {
@@ -142,18 +137,12 @@ const ChatLayout = () => {
         >
           <ChatWindow
             currentUser={user}
-            selectedChat={selectedChat}
-            messages={messages}
-            otherUserTyping={otherUserTyping}
             onSendMessage={(msg, type, file, voice, fwd) =>
               onSendMessage(msg, type, file, voice, fwd, user, isOpenSelectedChatProfile)
             }
             onAddReaction={(id, emoji) => onAddReaction(id, emoji, user)}
             onTypingStart={handleTypingStart}
             onTypingStop={handleTypingStop}
-            hasMoreMessages={hasMoreMessages}
-            isLoadingMessages={isLoadingMessages}
-            onLoadMoreMessages={loadMoreMessages}
           />
         </AnimatedWrapper>
         {/* </div> */}

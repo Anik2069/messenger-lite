@@ -2,34 +2,34 @@ import { useEffect, useRef } from 'react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { Message } from '../../../types/MessageType';
 import MessageItem from './MessageItem';
+import { useChatStore } from '@/store/useChatStore';
+import { useAuth } from '@/context/useAuth';
 
 interface MessageListProps {
-  messages: Message[];
-  currentUserId?: string;
-  isGroupChat: boolean;
-  otherUserTyping: string | null;
   showReactions: string | null;
   setShowReactions: (id: string | null) => void;
   onForward: (msg: Message) => void;
   onAddReaction: (id: string, emoji: string) => void;
-  hasMoreMessages: boolean;
-  isLoadingMessages: boolean;
-  onLoadMoreMessages: () => Promise<void>;
 }
 
 const MessageList = ({
-  messages,
-  currentUserId,
-  isGroupChat,
-  otherUserTyping,
   showReactions,
   setShowReactions,
   onForward,
   onAddReaction,
-  hasMoreMessages,
-  isLoadingMessages,
-  onLoadMoreMessages,
 }: MessageListProps) => {
+  const {
+    messages,
+    otherUserTyping,
+    hasMoreMessages,
+    isLoadingMessages,
+    loadMoreMessages: onLoadMoreMessages,
+    selectedChat,
+  } = useChatStore();
+  const { user } = useAuth();
+  
+  const currentUserId = user?.id;
+  const isGroupChat = selectedChat?.type === 'group';
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
