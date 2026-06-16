@@ -12,16 +12,21 @@ export interface CallState {
     callId: string | null;
     callType: CallType;
     callStatus: CallStatus;
-    endReason?: 'user_left' | 'network_unstable' | 'rejected' | null;
+    endReason?: 'user_left' | 'network_unstable' | 'rejected' | 'last_participant' | null;
     localStream: MediaStream | null;
-    remoteStream: MediaStream | null; // Deprecated, keep for backward compat or remove if possible
-    remoteStreams: Record<string, MediaStream>; // Added for group calls
+    remoteStream: MediaStream | null; // Deprecated, keep for backward compat
+    remoteStreams: Record<string, MediaStream>;
     participants: CallUser[];
+    participantIds: string[];       // List of user IDs currently in the call
+    isGroupCall: boolean;           // True when more than 2 participants
     isMuted: boolean;
     isCameraOff: boolean;
     isScreenSharing: boolean;
     callDuration: number;
-    caller: { id: string } | null; // Simplified from CallUser for now as we just use ID often
+    caller: { id: string } | null;
+    // Track mute/camera state of remote participants
+    remoteMuteStates: Record<string, boolean>;
+    remoteCameraStates: Record<string, boolean>;
 }
 
 export interface CallContextType {
@@ -29,6 +34,7 @@ export interface CallContextType {
     startCall: (toUserId: string | string[], type: CallType, callId: string) => void;
     answerCall: (callId: string, type: CallType) => void;
     endCall: () => void;
+    leaveCall: () => void;
     toggleMute: () => void;
     toggleCamera: () => void;
     toggleScreenShare: () => void;

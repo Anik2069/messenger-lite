@@ -1,17 +1,14 @@
+"use client"
 import CallInterface from '@/components/Call/CallInterface';
-import { CallProvider } from '@/context/CallContext';
+import { useParams } from 'next/navigation';
 
-interface CallPageProps {
-    params: {
-        callId: string;
-    };
-}
 
-export default function CallPage({ params }: CallPageProps) {
-    console.log(params.callId, "params.callId")
+export default function CallPage() {
+    const params = useParams()
+    const { callId } = params;
+    console.log(callId, "params.callId")
     return (
-        <CallProvider>
-            <CallInterface callId={params.callId} />
-        </CallProvider>
+
+        <CallInterface callId={callId as string} />
     );
 }

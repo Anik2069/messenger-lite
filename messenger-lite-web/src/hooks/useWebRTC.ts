@@ -72,13 +72,20 @@ export function useWebRTC(callState: CallState, dispatch: React.Dispatch<any>, s
         peer.onconnectionstatechange = () => {
             console.log(`Connection state with ${peerId}:`, peer.connectionState);
             if (peer.connectionState === 'connected') {
+                // In group calls, mark as connected when ANY peer connects
                 dispatch({ type: 'SET_CALL_STATUS', payload: 'connected' });
             }
             if (peer.connectionState === 'disconnected' || peer.connectionState === 'failed') {
-                dispatch({ type: 'SET_END_REASON', payload: 'network_unstable' });
-                dispatch({ type: 'SET_CALL_STATUS', payload: 'ended' });
+                // Remove this specific peer, but don't end the entire call
+                console.log(`Peer ${peerId} disconnected/failed. Cleaning up that peer only.`);
                 dispatch({ type: 'REMOVE_REMOTE_STREAM', payload: { userId: peerId } });
                 peersRef.current.delete(peerId);
+
+                // Only end the call if ALL peers are gone
+                if (peersRef.current.size === 0) {
+                    dispatch({ type: 'SET_END_REASON', payload: 'network_unstable' });
+                    dispatch({ type: 'SET_CALL_STATUS', payload: 'ended' });
+                }
             }
         };
 

@@ -14,11 +14,15 @@ const initialState: CallState = {
   remoteStream: null,
   remoteStreams: {},
   participants: [],
+  participantIds: [],
+  isGroupCall: false,
   isMuted: false,
   isCameraOff: false,
   isScreenSharing: false,
   callDuration: 0,
   caller: null,
+  remoteMuteStates: {},
+  remoteCameraStates: {},
 };
 
 const CallContext = createContext<CallContextType | undefined>(undefined);
@@ -42,13 +46,48 @@ function callReducer(state: CallState, action: any): CallState {
           ...state.remoteStreams,
           [action.payload.userId]: action.payload.stream
         }
-      } as any;
-    case 'REMOVE_REMOTE_STREAM':
-      const newStreams = { ...state.remoteStreams } as Record<string, MediaStream>;
+      };
+    case 'REMOVE_REMOTE_STREAM': {
+      const newStreams = { ...state.remoteStreams };
       delete newStreams[action.payload.userId];
-      return { ...state, remoteStreams: newStreams } as any;
+      // Also clean up remote states
+      const newMuteStates = { ...state.remoteMuteStates };
+      delete newMuteStates[action.payload.userId];
+      const newCameraStates = { ...state.remoteCameraStates };
+      delete newCameraStates[action.payload.userId];
+      return {
+        ...state,
+        remoteStreams: newStreams,
+        remoteMuteStates: newMuteStates,
+        remoteCameraStates: newCameraStates,
+      };
+    }
     case 'SET_PARTICIPANTS':
       return { ...state, participants: action.payload };
+    case 'SET_PARTICIPANT_IDS':
+      return {
+        ...state,
+        participantIds: action.payload,
+        isGroupCall: action.payload.length > 2,
+      };
+    case 'SET_IS_GROUP_CALL':
+      return { ...state, isGroupCall: action.payload };
+    case 'SET_REMOTE_MUTE_STATE':
+      return {
+        ...state,
+        remoteMuteStates: {
+          ...state.remoteMuteStates,
+          [action.payload.userId]: action.payload.isMuted,
+        },
+      };
+    case 'SET_REMOTE_CAMERA_STATE':
+      return {
+        ...state,
+        remoteCameraStates: {
+          ...state.remoteCameraStates,
+          [action.payload.userId]: action.payload.isCameraOff,
+        },
+      };
     case 'TOGGLE_MUTE':
       return { ...state, isMuted: !state.isMuted };
     case 'TOGGLE_CAMERA':
@@ -69,10 +108,7 @@ function callReducer(state: CallState, action: any): CallState {
 }
 
 export function CallProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(callReducer, {
-    ...initialState,
-    remoteStreams: {}
-  } as any);
+  const [state, dispatch] = useReducer(callReducer, initialState);
 
   const socket = getCallSocket();
   const { user } = useAuth();
@@ -108,13 +144,14 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Socket event handlers
+  // Socket event handlers — cleanup on unmount
   useEffect(() => {
     return () => {
       disconnectCallSocket();
     };
   }, []);
 
+  // Main socket event wiring
   useEffect(() => {
     if (!socket.connected) socket.connect();
 
@@ -122,11 +159,13 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       socket.emit("join_call", { callId: state.callId, userId: user.id });
     }
 
+    // ─── Call Initiated (caller confirmation) ───
     socket.on('call_initiated', ({ callId }) => {
       console.log("Call initiated confirmed:", callId);
       dispatch({ type: 'SET_CALL_STATUS', payload: 'ringing' });
     });
 
+    // ─── Call Answered (someone answered) ───
     socket.on('call_answered', async ({ fromUserId }) => {
       console.log('Call answered by', fromUserId);
       dispatch({ type: 'SET_CALL_STATUS', payload: 'connecting' });
@@ -138,19 +177,58 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    socket.on('user_joined_call', async ({ userId: newUserId }) => {
-      console.log('User joined call:', newUserId);
-      if (state.caller?.id === user?.id && newUserId !== user?.id) {
-        const peer = createPeerConnection(newUserId);
-        if (peer) await createOffer(newUserId);
+    // ─── Existing Participants (sent to joiner on join) ───
+    socket.on('existing_participants', async ({ participants, isGroupCall }: { participants: string[], isGroupCall: boolean }) => {
+      console.log('Existing participants in room:', participants, '| Group:', isGroupCall);
+      dispatch({ type: 'SET_IS_GROUP_CALL', payload: isGroupCall });
+
+      // Create peer connections to all existing participants
+      for (const peerId of participants) {
+        if (peerId !== user?.id) {
+          createPeerConnection(peerId);
+        }
       }
     });
 
-    socket.on('call_ended', ({ fromUserId, callId }) => {
-      console.log('Call ended by', fromUserId, 'callId:', callId);
+    // ─── Participant Joined (broadcast to all in room) ───
+    socket.on('participant_joined', async ({ userId: newUserId, participants, isGroupCall }: { userId: string, participants: string[], isGroupCall: boolean }) => {
+      console.log('Participant joined:', newUserId, '| Total:', participants.length, '| Group:', isGroupCall);
+
+      dispatch({ type: 'SET_PARTICIPANT_IDS', payload: participants });
+      dispatch({ type: 'SET_IS_GROUP_CALL', payload: isGroupCall });
+
+      // If a NEW user joined (not me), create a peer connection and send offer
+      if (newUserId !== user?.id) {
+        const peer = createPeerConnection(newUserId);
+        if (peer) {
+          await createOffer(newUserId);
+        }
+      }
+    });
+
+    // ─── Participant Left (someone left but call continues) ───
+    socket.on('participant_left', ({ userId: leftUserId, participants, isGroupCall }: { userId: string, participants: string[], isGroupCall: boolean }) => {
+      console.log('Participant left:', leftUserId, '| Remaining:', participants.length);
+
+      dispatch({ type: 'SET_PARTICIPANT_IDS', payload: participants });
+      dispatch({ type: 'SET_IS_GROUP_CALL', payload: isGroupCall });
+
+      // Close the peer connection for the user who left
+      closePeerConnection(leftUserId);
+    });
+
+    // ─── User Joined Call (legacy, still used for initial handshake) ───
+    socket.on('user_joined_call', async ({ userId: newUserId }) => {
+      console.log('User joined call (legacy):', newUserId);
+      // This is handled by participant_joined now, but keep for backward compat
+    });
+
+    // ─── Call Ended (entire call terminated) ───
+    socket.on('call_ended', ({ fromUserId, callId, reason }) => {
+      console.log('Call ended by', fromUserId, 'callId:', callId, 'reason:', reason);
       closePeerConnection();
       dispatch({ type: 'RESET_CALL' });
-      dispatch({ type: 'SET_END_REASON', payload: 'user_left' });
+      dispatch({ type: 'SET_END_REASON', payload: reason || 'user_left' });
       dispatch({ type: 'SET_CALL_STATUS', payload: 'ended' });
 
       const channel = new BroadcastChannel('messenger_call_state');
@@ -160,6 +238,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       setTimeout(() => window.close(), 2000);
     });
 
+    // ─── Call Rejected ───
     socket.on('call_rejected', ({ fromUserId }) => {
       console.log('Call rejected by', fromUserId);
       dispatch({ type: 'SET_END_REASON', payload: 'rejected' });
@@ -167,6 +246,16 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       setTimeout(() => window.close(), 2000);
     });
 
+    // ─── Remote mute/camera state ───
+    socket.on('mute_toggled', ({ userId: remoteUserId, isMuted }: { userId: string, isMuted: boolean }) => {
+      dispatch({ type: 'SET_REMOTE_MUTE_STATE', payload: { userId: remoteUserId, isMuted } });
+    });
+
+    socket.on('camera_toggled', ({ userId: remoteUserId, isCameraOff }: { userId: string, isCameraOff: boolean }) => {
+      dispatch({ type: 'SET_REMOTE_CAMERA_STATE', payload: { userId: remoteUserId, isCameraOff } });
+    });
+
+    // ─── WebRTC Signals ───
     socket.on('webrtc_offer', async ({ sdp, fromUserId }) => {
       const peer = createPeerConnection(fromUserId);
       if (peer) {
@@ -185,16 +274,21 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     return () => {
       socket.off('call_initiated');
       socket.off('call_answered');
+      socket.off('existing_participants');
+      socket.off('participant_joined');
+      socket.off('participant_left');
       socket.off('user_joined_call');
       socket.off('call_ended');
       socket.off('call_rejected');
+      socket.off('mute_toggled');
+      socket.off('camera_toggled');
       socket.off('webrtc_offer');
       socket.off('webrtc_answer');
       socket.off('webrtc_ice_candidate');
     };
   }, [state.callId, user?.id, createPeerConnection, createOffer, handleOffer, handleAnswer, handleIceCandidate, closePeerConnection, state.caller?.id]);
 
-  // Use useCallback to keep reference stable
+  // ─── Start Call ───
   const startCall = useCallback(async (toUserId: string | string[], type: CallType, callId: string) => {
     const stream = await initMedia(type);
     if (!stream) return;
@@ -202,25 +296,26 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_CALL_ID', payload: callId });
     dispatch({ type: 'SET_CALL_TYPE', payload: type });
     dispatch({ type: 'SET_CALLER', payload: { id: user?.id } });
-    console.log(toUserId, "toUserId", type, "type", callId, "callId")
+
     socket.emit('call_user', {
       toUserIds: Array.isArray(toUserId) ? toUserId : [toUserId],
       callType: type,
       callId,
     });
+
     const channel = new BroadcastChannel('messenger_call_state');
     channel.postMessage({ type: 'CALL_STARTED', callId, userId: user?.id });
     channel.close();
   }, [initMedia, user?.id]);
 
+  // ─── Answer Call ───
   const answerCall = useCallback(async (callId: string, type: CallType) => {
-    // Determine type from URL or prev state, simplified here to assume passed correctly
     const stream = await initMedia(type);
     if (!stream) return;
 
     dispatch({ type: 'SET_CALL_ID', payload: callId });
     dispatch({ type: 'SET_CALL_TYPE', payload: type });
-    dispatch({ type: 'SET_CALL_STATUS', payload: 'connecting' }); // Optimistic
+    dispatch({ type: 'SET_CALL_STATUS', payload: 'connecting' });
 
     const channel = new BroadcastChannel('messenger_call_state');
     channel.postMessage({ type: 'CALL_STARTED', callId, userId: user?.id });
@@ -229,6 +324,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     socket.emit('call_answered', { callId });
   }, [initMedia]);
 
+  // ─── End Call (terminates entire call for everyone) ───
   const endCall = useCallback(() => {
     if (state.callId) {
       socket.emit('call_ended', { callId: state.callId });
@@ -238,22 +334,43 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     }
     closePeerConnection();
     dispatch({ type: 'RESET_CALL' });
-    
+
     const channel = new BroadcastChannel('messenger_call_state');
     channel.postMessage({ type: 'CALL_ENDED', userId: user?.id });
     channel.close();
-    
+
+    window.close();
+  }, [state.callId, state.localStream, closePeerConnection, user?.id]);
+
+  // ─── Leave Call (user leaves, call continues for others) ───
+  const leaveCall = useCallback(() => {
+    if (state.callId) {
+      socket.emit('leave_call', { callId: state.callId });
+    }
+    if (state.localStream) {
+      state.localStream.getTracks().forEach(track => track.stop());
+    }
+    closePeerConnection();
+    dispatch({ type: 'RESET_CALL' });
+
+    const channel = new BroadcastChannel('messenger_call_state');
+    channel.postMessage({ type: 'CALL_ENDED', userId: user?.id });
+    channel.close();
+
     window.close();
   }, [state.callId, state.localStream, closePeerConnection, user?.id]);
 
   // Handle unload to clean up
   useEffect(() => {
     const handleBeforeUnload = () => {
-      endCall();
+      // Use leaveCall behavior (graceful) rather than endCall (force everyone out)
+      if (state.callId) {
+        socket.emit('leave_call', { callId: state.callId });
+      }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [endCall]);
+  }, [state.callId]);
 
   // Broadcast Channel Listener for Status Checks and Force Close
   useEffect(() => {
@@ -267,15 +384,14 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       }
       if (event.data.type === 'FORCE_CLOSE_CALL') {
         console.log("Force closing call from other tab");
-        endCall();
+        leaveCall();
       }
     };
-    // Also announce presence on mount if connected
     if (state.callStatus === 'connected' && state.callId) {
       channel.postMessage({ type: 'CALL_STARTED', callId: state.callId, userId: user.id });
     }
     return () => channel.close();
-  }, [state.callStatus, state.callId, endCall, user?.id]);
+  }, [state.callStatus, state.callId, leaveCall, user?.id]);
 
   // Call timer
   useEffect(() => {
@@ -296,21 +412,25 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         track.enabled = state.isMuted;
       });
     }
+    // Broadcast mute state to other participants
+    if (state.callId) {
+      socket.emit('mute_toggled', { callId: state.callId, isMuted: !state.isMuted });
+    }
     dispatch({ type: 'TOGGLE_MUTE' });
-  }, [state.localStream, state.isMuted]);
+  }, [state.localStream, state.isMuted, state.callId]);
 
   const toggleCamera = useCallback(() => {
     const newCameraState = !state.isCameraOff;
     if (state.localStream) {
       state.localStream.getVideoTracks().forEach(track => {
-        track.enabled = state.isCameraOff; // If it was off, we enable it.
+        track.enabled = state.isCameraOff;
       });
     }
-    
+
     if (state.callId) {
-        socket.emit("camera_toggled", { callId: state.callId, isCameraOff: newCameraState });
+      socket.emit("camera_toggled", { callId: state.callId, isCameraOff: newCameraState });
     }
-    
+
     dispatch({ type: 'TOGGLE_CAMERA' });
   }, [state.localStream, state.isCameraOff, state.callId]);
 
@@ -325,11 +445,11 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
           } : false,
           audio: true,
         });
-        
+
         // Respect current mute and camera states
         stream.getAudioTracks().forEach(track => track.enabled = !state.isMuted);
         stream.getVideoTracks().forEach(track => track.enabled = !state.isCameraOff);
-        
+
         dispatch({ type: 'SET_LOCAL_STREAM', payload: stream });
       } else {
         const stream = await navigator.mediaDevices.getDisplayMedia({
@@ -348,18 +468,17 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.isScreenSharing]);
 
-  // Hacky partial update of context type to match existing components if needed
-  // Or assuming components will update to match new signature
-  const value: any = {
+  const value: CallContextType = {
     callState: state,
     startCall,
-    answerCall,  // This now expects (callId, type)
+    answerCall,
     endCall,
+    leaveCall,
     toggleMute,
     toggleCamera,
     toggleScreenShare,
-    setLocalStream: (stream: MediaStream) => dispatch({ type: 'SET_LOCAL_STREAM', payload: stream }),
-    setRemoteStream: (stream: MediaStream) => { }, // legacy
+    setLocalStream: (stream: MediaStream | null) => dispatch({ type: 'SET_LOCAL_STREAM', payload: stream }),
+    setRemoteStream: (stream: MediaStream | null) => { }, // legacy
     updateCallStatus: (status: CallStatus) => dispatch({ type: 'SET_CALL_STATUS', payload: status }),
   };
 

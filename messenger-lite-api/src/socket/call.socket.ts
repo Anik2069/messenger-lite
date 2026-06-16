@@ -1,5 +1,4 @@
 import { Server, Socket } from "socket.io";
-// import emitToRecipients from "../helpers/socketEmit.helper";
 
 // Store active calls in memory (scoped to this module/namespace)
 const activeCalls = new Map<string, {
@@ -8,45 +7,24 @@ const activeCalls = new Map<string, {
     callType: "audio" | "video";
     timestamp: number;
     status: "ringing" | "answered" | "ended";
+    participants: Set<string>;
 }>();
 
-// Helper to get socket IDs for a user in the /call namespace
-const getSocketIds = (io: any, userId: string) => {
-    // In the /call namespace, we join the room named after the userId
-    // so emitting to `userId` should work if we joined it.
-    return [userId];
-};
+// Track which call each socket belongs to (for disconnect cleanup)
+const socketToCall = new Map<string, { callId: string; userId: string }>();
 
 export function initCallSocket(io: Server) {
     const callNamespace = io.of("/call");
 
     callNamespace.on("connection", (socket: Socket) => {
-        // Authenticate (Basic check - in prod reuse middleware)
         const token = socket.handshake.auth?.token || socket.handshake.query?.token;
         if (!token) {
             console.log("Call socket missing token");
-            // socket.disconnect(); // strict
-            // return; 
         }
-
-        // We assume the client sends userId in handshake or we decode token
-        // For consistency with existing initSocket, let's trust the client sends userId or we decoded it.
-        // But since we are separating, we should ideally reuse the auth middleware.
-        // For now, let's grab it from handshake auth if available, or rely on the client joining 'join_call_room'
-        // But the previous implementation had `socket.data.userId` set by middleware.
-        // We really should attach middleware to this namespace too.
-
-        // FIXME: We need userId. Let's assume it's passed or we use the middleware from initSocket if it was global.
-        // Since we are decoupling, let's assume valid connection means we have userId from the handshake auth.
-        // Ideally we'd verifyJWT here too.
 
         let userId = socket.handshake.auth?.userId;
-        if (!userId) {
-            // Fallback: try to decode token if needed, or wait for a 'join' event.
-            // But existing logic heavily relies on socket.data.userId
-        }
 
-        // Just for safety if we don't have middleware here yet:
+        // Register user identity
         socket.on("register", (id: string) => {
             userId = id;
             socket.join(userId);
@@ -58,37 +36,34 @@ export function initCallSocket(io: Server) {
         socket.on("join_room", (room: string) => {
             socket.join(room);
             if (!userId) {
-                userId = room; // Assume first join is userId room
+                userId = room;
                 socket.data.userId = userId;
             }
         });
 
         console.log(`[CallSocket] Client connected: ${socket.id}`);
 
-        // Call User
+        // ─── Call User ───
         socket.on("call_user", ({ toUserIds, callType, callId }: { toUserIds: string[], callType: "audio" | "video", callId: string }) => {
             const fromUserId = socket.data.userId || userId;
-            console.log(`[CallSocket] call_user from ${fromUserId} to ${toUserIds}  ----------------------------------------`);
+            console.log(`[CallSocket] call_user from ${fromUserId} to ${toUserIds}`);
 
             if (!fromUserId) return;
 
-            // Store call
+            // Store call with participant tracking
             activeCalls.set(callId, {
                 callerId: fromUserId,
                 recipients: toUserIds,
                 callType,
                 timestamp: Date.now(),
-                status: "ringing"
+                status: "ringing",
+                participants: new Set<string>(),
             });
 
             // 1. Emit to Sender (Call Initiated)
             socket.emit("call_initiated", { callId, recipients: toUserIds, callType });
 
-            // 2. We CANNOT emit 'call_received' to recipients here because they are NOT connected to /call yet!
-            // We must bridge to the /chat namespace to notify them.
-            // Since we don't have direct access to the /chat io instance easily unless we pass it or import it.
-            // Using `io.of('/chat')` works if io is the main server instance.
-
+            // 2. Bridge to /chat namespace to notify recipients
             io.of("/chat").to(toUserIds).emit("notification", {
                 type: "incoming_call",
                 callId,
@@ -99,28 +74,41 @@ export function initCallSocket(io: Server) {
             console.log(`[CallSocket] Bridged notification to /chat for ${toUserIds}`);
         });
 
-        // Join Call (New tab opened)
+        // ─── Join Call (User opens call tab) ───
         socket.on("join_call", ({ callId, userId: id }: { callId: string, userId: string }) => {
-            // This is confirmed user joining the call (opening the tab)
             userId = id;
             socket.data.userId = id;
-            socket.join(id); // Join their own room
-            socket.join(callId); // Join call room
-            console.log(`[CallSocket] User ${id} joined call ${callId}`);
+            socket.join(id);      // Join their own room (for targeted signaling)
+            socket.join(callId);  // Join call room
+
+            // Track socket → call mapping for disconnect cleanup
+            socketToCall.set(socket.id, { callId, userId: id });
 
             const call = activeCalls.get(callId);
             if (call) {
-                // If this is a recipient joining, it means they "Answered" implicitly by opening the link?
-                // Or they are just ready. The UI will trigger "call_answered" explicitly or implicit?
-                // Requirements say: "Accept opens new tab".
-                // So if they are here, they accepted.
+                // Add to participants
+                call.participants.add(id);
+                const participantList = Array.from(call.participants);
+                const isGroupCall = participantList.length > 2;
 
-                // NOTIFY others in the call room
-                socket.to(callId).emit("user_joined_call", { userId: id });
+                console.log(`[CallSocket] User ${id} joined call ${callId} | Participants: ${participantList.length} | Group: ${isGroupCall}`);
+
+                // Notify ALL users in the room (including the joiner) about current participants
+                callNamespace.to(callId).emit("participant_joined", {
+                    userId: id,
+                    participants: participantList,
+                    isGroupCall,
+                });
+
+                // Also tell the joining user who's already there (so they can create peer connections)
+                socket.emit("existing_participants", {
+                    participants: participantList.filter(p => p !== id),
+                    isGroupCall,
+                });
             }
         });
 
-        // Call Answered (Explicit Signal)
+        // ─── Call Answered (Explicit Signal) ───
         socket.on("call_answered", ({ callId }: { callId: string }) => {
             const fromUserId = socket.data.userId || userId;
             console.log(`[CallSocket] call_answered by ${fromUserId}`);
@@ -130,19 +118,14 @@ export function initCallSocket(io: Server) {
                 call.status = "answered";
                 activeCalls.set(callId, call);
 
-                // Notify everyone in the call (caller is already there)
-                // Emit to the CALL ID room
+                // Notify everyone in the call
                 callNamespace.to(callId).emit("call_answered", { fromUserId, callId });
             }
         });
 
-        // WebRTC Signals (Offer, Answer, ICE)
-        // Forwarding logic: Sender sends to specific user OR to room.
-        // Usually WebRTC is P2P so we target specific user.
-
+        // ─── WebRTC Signals ───
         socket.on("webrtc_offer", ({ toUserIds, sdp, callId }: { toUserIds: string[], sdp: any, callId: string }) => {
             const fromUserId = socket.data.userId || userId;
-            // Emit to specific users in /call namespace
             toUserIds.forEach(toId => {
                 callNamespace.to(toId).emit("webrtc_offer", { fromUserId, sdp, callId });
             });
@@ -164,22 +147,36 @@ export function initCallSocket(io: Server) {
 
         socket.on("camera_toggled", ({ callId, isCameraOff }: { callId: string, isCameraOff: boolean }) => {
             const fromUserId = socket.data.userId || userId;
-            // Broadcast to everyone else in the call room
             socket.to(callId).emit("camera_toggled", { userId: fromUserId, isCameraOff });
         });
 
-        // End Call / Reject
+        // ─── Mute toggle broadcast ───
+        socket.on("mute_toggled", ({ callId, isMuted }: { callId: string, isMuted: boolean }) => {
+            const fromUserId = socket.data.userId || userId;
+            socket.to(callId).emit("mute_toggled", { userId: fromUserId, isMuted });
+        });
+
+        // ─── Leave Call (User leaves but call continues for others) ───
+        socket.on("leave_call", ({ callId }: { callId: string }) => {
+            const fromUserId = socket.data.userId || userId;
+            handleUserLeaveCall(socket, callNamespace, io, fromUserId, callId);
+        });
+
+        // ─── End Call (Legacy: ends the entire call for everyone) ───
         socket.on("call_ended", ({ callId }: { callId: string }) => {
             const fromUserId = socket.data.userId || userId;
             const call = activeCalls.get(callId);
             if (call) {
                 activeCalls.delete(callId);
+                // Clean up all socket mappings for this call
+                for (const [sid, info] of socketToCall.entries()) {
+                    if (info.callId === callId) socketToCall.delete(sid);
+                }
+
                 // Notify everyone in the call room
                 callNamespace.to(callId).emit("call_ended", { fromUserId, callId });
 
-                // Also could notify disjoint recipients if they haven't joined yet via chat?
-                // For now, assume if they haven't joined, they miss it.
-                // Or we can send a 'call_ended' notification to chat too to close the popup.
+                // Also notify via chat
                 io.of("/chat").to(call.recipients).emit("notification", {
                     type: "call_ended",
                     callId
@@ -188,31 +185,84 @@ export function initCallSocket(io: Server) {
         });
 
         socket.on("call_rejected", ({ callId }: { callId: string }) => {
-            const fromUserId = socket.data.userId || userId;
-            // Notify caller via Chat (since they are waiting in chat tab? No, caller opens tab immediately)
-            // Caller IS in /call namespace.
-            // If Callee rejects from Popup (Chat Tab) -> They emit to Chat Socket -> Chat Socket forwards to Call Namespace?
-            // OR Callee opens tab just to reject? No, "Accept opens new tab".
-            // So Rejection happens in Chat Tab. 
-            // We need `call_rejected` handler in CHAT socket that forwards to CALL socket.
+            // Rejection handled from chat socket bridge
         });
 
+        // ─── Disconnect ───
         socket.on("disconnect", () => {
             const fromUserId = socket.data.userId || userId;
-            console.log(`[CallSocket] Disconnected: ${fromUserId}`);
-            
-            // Clean up active calls ONLY if the caller drops
-            for (const [callId, call] of activeCalls.entries()) {
-                if (call.callerId === fromUserId) {
-                    activeCalls.delete(callId);
-                    callNamespace.to(callId).emit("call_ended", { fromUserId, callId });
-                    
-                    io.of("/chat").to(call.recipients).emit("notification", {
-                        type: "call_ended",
-                        callId
-                    });
-                }
+            console.log(`[CallSocket] Disconnected: ${fromUserId} (socket: ${socket.id})`);
+
+            // Look up which call this socket was in
+            const callInfo = socketToCall.get(socket.id);
+            if (callInfo) {
+                handleUserLeaveCall(socket, callNamespace, io, callInfo.userId, callInfo.callId);
+                socketToCall.delete(socket.id);
             }
         });
     });
+}
+
+/**
+ * Handle a user leaving a call (either voluntarily or via disconnect).
+ * If other participants remain, the call continues. If no one is left, the call is cleaned up.
+ */
+function handleUserLeaveCall(
+    socket: Socket,
+    callNamespace: any,
+    io: Server,
+    userId: string,
+    callId: string
+) {
+    const call = activeCalls.get(callId);
+    if (!call) return;
+
+    // Remove from participants
+    call.participants.delete(userId);
+    socket.leave(callId);
+
+    const participantList = Array.from(call.participants);
+    const isGroupCall = participantList.length > 2;
+
+    console.log(`[CallSocket] User ${userId} left call ${callId} | Remaining: ${participantList.length}`);
+
+    if (participantList.length === 0) {
+        // No one left — clean up the call entirely
+        activeCalls.delete(callId);
+
+        // Clean up socket mappings
+        for (const [sid, info] of socketToCall.entries()) {
+            if (info.callId === callId) socketToCall.delete(sid);
+        }
+
+        // Notify chat about call ending
+        io.of("/chat").to(call.recipients).emit("notification", {
+            type: "call_ended",
+            callId,
+        });
+    } else if (participantList.length === 1) {
+        // Only one person left — end the call for them too
+        callNamespace.to(callId).emit("call_ended", {
+            fromUserId: userId,
+            callId,
+            reason: "last_participant",
+        });
+
+        activeCalls.delete(callId);
+        for (const [sid, info] of socketToCall.entries()) {
+            if (info.callId === callId) socketToCall.delete(sid);
+        }
+
+        io.of("/chat").to(call.recipients).emit("notification", {
+            type: "call_ended",
+            callId,
+        });
+    } else {
+        // Others still in the call — notify them
+        callNamespace.to(callId).emit("participant_left", {
+            userId,
+            participants: participantList,
+            isGroupCall,
+        });
+    }
 }
