@@ -128,8 +128,9 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       const constraints = {
         audio: true,
         video: type === 'video' ? {
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
+          width: { ideal: 640, max: 640 },
+          height: { ideal: 480, max: 480 },
+          frameRate: { ideal: 15, max: 20 },
           facingMode: 'user',
         } : false,
       };
@@ -439,8 +440,9 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       if (state.isScreenSharing) {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: state.callType === 'video' ? {
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
+            width: { ideal: 640, max: 640 },
+            height: { ideal: 480, max: 480 },
+            frameRate: { ideal: 15, max: 20 },
             facingMode: 'user',
           } : false,
           audio: true,
@@ -454,9 +456,9 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       } else {
         const stream = await navigator.mediaDevices.getDisplayMedia({
           video: {
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-            frameRate: { ideal: 30 }
+            width: { ideal: 1280, max: 1920 },
+            height: { ideal: 720, max: 1080 },
+            frameRate: { ideal: 10, max: 15 } // Reduced framerate for screen sharing to save bandwidth
           },
           audio: true,
         });

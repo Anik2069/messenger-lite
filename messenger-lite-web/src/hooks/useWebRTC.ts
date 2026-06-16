@@ -41,6 +41,8 @@ export function useWebRTC(callState: CallState, dispatch: React.Dispatch<any>, s
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
             ],
+            iceCandidatePoolSize: 5,
+            bundlePolicy: 'max-bundle',
         });
 
         peersRef.current.set(peerId, peer);
