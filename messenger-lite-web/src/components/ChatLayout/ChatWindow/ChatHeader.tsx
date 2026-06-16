@@ -13,9 +13,10 @@ import { useAuth } from '@/context/useAuth';
 import { useBroadcastCall } from '@/hooks/useBroadcastCall';
 import { base64UrlEncode } from '@/lib/utils';
 import { useState } from 'react';
+import { Chat } from '@/types/ChatType';
 
 interface ChatHeaderProps {
-  selectedChat: any;
+  selectedChat: Chat;
 }
 
 
@@ -28,7 +29,7 @@ const ChatHeader = ({ selectedChat }: ChatHeaderProps) => {
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
-  const [isCalling, setIsCalling] = useState(false);
+  const [isCalling] = useState(false);
   // console.log(selectedChat, "selectedChat")
 
   const image = selectedChat.avatar
@@ -43,7 +44,7 @@ const ChatHeader = ({ selectedChat }: ChatHeaderProps) => {
     }
     return otherStatuses[userId] || { userId, isOnline: false };
   };
-  const isOnline = getStatusForUser(selectedChat.userId).isOnline;
+  const isOnline = getStatusForUser(selectedChat.userId || selectedChat.id).isOnline;
 
   // Prevent calling yourself
   const isCurrentUser = selectedChat.userId === user?.id;
@@ -64,7 +65,7 @@ const ChatHeader = ({ selectedChat }: ChatHeaderProps) => {
 
   const performCallInitiation = (type: 'audio' | 'video', toUserIds: string[]) => {
     const callId = `call_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
-    const toParam = toUserIds.join(',');
+
     const payload = {
       callId,
       type,
@@ -101,9 +102,7 @@ const ChatHeader = ({ selectedChat }: ChatHeaderProps) => {
       initiateCall('video', [selectedChat.userId || selectedChat.id]);
     } else if (selectedChat.memberIds) {
       // Group call logic
-      const participantIds = selectedChat.memberIds
-        .map((p: any) => p)
-        .filter((id: string) => id !== user?.id);
+      const participantIds = selectedChat.memberIds.filter((id: string) => id !== user?.id);
 
       if (participantIds.length > 0) {
         initiateCall('video', participantIds);
@@ -120,9 +119,7 @@ const ChatHeader = ({ selectedChat }: ChatHeaderProps) => {
 
       // console.log(selectedChat)
       // Group call logic
-      const participantIds = selectedChat.memberIds
-        .map((p: any) => p)
-        .filter((id: string) => id !== user?.id);
+      const participantIds = selectedChat.memberIds.filter((id: string) => id !== user?.id);
       // console.log(participantIds)
       if (participantIds.length > 0) {
         initiateCall('audio', participantIds);

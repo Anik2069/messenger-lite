@@ -10,7 +10,7 @@ import { useFriendsStore } from '@/store/useFriendsStrore';
 import Image from 'next/image';
 import { DummyAvatar } from '@/assets/image';
 import { MEDIA_HOST } from '@/constant';
-import axiosInstance from '@/config/axiosInstance';
+
 import { toast } from 'react-toastify';
 import AnimatedWrapper from '@/components/animations/AnimatedWrapper';
 import { useGlobalContext } from '@/provider/GlobalContextProvider';
@@ -59,10 +59,10 @@ export const CreateGroupForm = ({ onBack }: CreateGroupFormProps) => {
             const res = await createGroup(formData);
 
             console.log(res)
-            if ((res as any).status === 201) {
+            if ((res as Record<string, any>).status === 201) { // eslint-disable-line @typescript-eslint/no-explicit-any
                 createGroupModalClose();
             }
-        } catch (error: any) {
+        } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
             console.error('Failed to create group:', error);
             toast.error(error?.response?.data?.message || 'Failed to create group');
         } finally {

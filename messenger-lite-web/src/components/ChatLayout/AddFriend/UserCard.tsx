@@ -4,7 +4,7 @@ import Image from 'next/image';
 import React from 'react';
 
 interface UserCardProps {
-  user: any;
+  user: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   actionContent?: React.ReactNode;
   onClick?: () => void;
   className?: string;

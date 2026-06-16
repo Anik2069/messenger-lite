@@ -2,7 +2,7 @@
 
 import { DummyAvatar } from '@/assets/image';
 import Image from 'next/image';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useFriendsStore } from '@/store/useFriendsStrore';
 import { socket } from '@/lib/socket';
 import { useAuth } from '@/context/useAuth';
@@ -19,7 +19,7 @@ interface AllContactsProps {
 }
 
 const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
-  const { friends, friendLoading, fetchFriends, error: friendsError } = useFriendsStore();
+  const { friends, friendLoading, fetchFriends } = useFriendsStore();
   // const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const { selectedChat, setSelectedChat } = useChatStore();
   const { user } = useAuth();
@@ -27,14 +27,14 @@ const AllContacts = ({ searchText, onChatSelect }: AllContactsProps) => {
   const { newDrawerClose } = useGlobalContext();
 
   useEffect(() => {
-    const newUserCreate = (datid: string, newUser: boolean) => {
+    const newUserCreate = () => {
       fetchFriends(searchText);
     };
     socket.on('user:created', newUserCreate);
     return () => {
       socket.off('user:created', newUserCreate);
     };
-  }, []);
+  }, [fetchFriends, searchText]);
 
   useEffect(() => {
     fetchFriends(searchText);

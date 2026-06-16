@@ -4,9 +4,7 @@ import { useCall } from "@/context/CallContext";
 import { base64UrlDecode } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { Button } from "../ui/button";
-import { Mic, MicOff, PhoneOff, ScreenShare, Video, VideoOff } from "lucide-react";
-import { RemoteVideo } from "./RemoteVideo";
+
 import { AudioCallView } from "./AudioCallView";
 import { VideoCallView } from "./VideoCallView";
 
@@ -72,7 +70,7 @@ const CallInterface = ({ callId }: { callId: string }) => {
             // We are joining (Callee)
             answerCall(callId, type);
         }
-    }, [callId, payload, startCall, answerCall, initialLoading, user, callState.callId, callState.callStatus]);
+    }, [callId, payload, startCall, answerCall, initialLoading, user, callState.callId, callState.callStatus, endCall]);
 
     if (callState.callType === 'audio') {
         return <AudioCallView callId={callId} />;

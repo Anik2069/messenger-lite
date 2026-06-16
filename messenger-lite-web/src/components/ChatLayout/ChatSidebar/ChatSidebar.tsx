@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Group } from '../../../types/GroupType';
 import { Chat } from '../../../types/ChatType';
 import { MessageCircle } from 'lucide-react';
-import Image from 'next/image';
+
 import { DummyAvatar, dummyGroupAvatar } from '@/assets/image';
 import ReusableSearchInput from '@/components/reusable/ReusableSearchInput';
 import { useConversationStore } from '@/store/useConversationStore';
@@ -11,7 +11,7 @@ import { useAuth } from '@/context/useAuth';
 import { Status, useSettings } from '@/context/SettingsContext';
 import { formatLocalTime } from '@/types/MessageType';
 import { format, isToday, parseISO } from 'date-fns';
-import { MEDIA_HOST, SOCKET_HOST } from '@/constant';
+import { MEDIA_HOST } from '@/constant';
 import AvatarImage from '@/components/reusable/AvatarImage';
 import { Spinner } from '@/components/ui/Spinner';
 
@@ -23,7 +23,7 @@ interface ChatSidebarProps {
 }
 
 const ChatSidebar = ({
-  groups,
+
   selectedChat,
   onChatSelect,
   sidebarMode = false,

@@ -22,7 +22,7 @@ interface ChatWindowProps {
 }
 
 const ChatWindow = ({
-  currentUser,
+
   onSendMessage,
   onAddReaction,
   onTypingStart,

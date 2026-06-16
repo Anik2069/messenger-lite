@@ -60,7 +60,7 @@ export function uuidv4(): string {
 
 
 
-export const base64UrlEncode = (obj: any) => {
+export const base64UrlEncode = (obj: Record<string, any>) => { // eslint-disable-line @typescript-eslint/no-explicit-any
   const json = JSON.stringify(obj);
   let base64 = Buffer.from(json).toString('base64');
   base64 = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');

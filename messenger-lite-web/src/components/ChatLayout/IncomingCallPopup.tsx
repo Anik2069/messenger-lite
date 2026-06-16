@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { Phone, PhoneOff, Video, Mic } from 'lucide-react';
+import { Phone, PhoneOff, Video } from 'lucide-react';
 // import { useCall } from '@/context/CallContext'; // No longer used here
 import { socket } from '@/lib/socket'; // Chat Socket
 import { useAuth } from '@/context/useAuth';
-import { CALL_SECRET, MEDIA_HOST } from '@/constant';
+import { CALL_SECRET } from '@/constant';
 import { base64UrlEncode } from '@/lib/utils';
 import { useBroadcastCall } from '@/hooks/useBroadcastCall';
 import { CallConfirmationModal } from '@/components/Call/CallConfirmationModal';
@@ -37,7 +37,7 @@ export default function IncomingCallPopup() {
         audioRef.current.loop = true;
 
         // Listen for generic notifications that are calls
-        socket.on('notification', (data: any) => {
+        socket.on('notification', (data: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
             if (data.type === 'incoming_call') {
                 console.log("Incoming call received via chat notification:", data);
 

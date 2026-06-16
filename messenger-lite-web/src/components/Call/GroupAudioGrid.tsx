@@ -8,7 +8,7 @@ interface GroupAudioGridProps {
     callId: string;
 }
 
-export const GroupAudioGrid = ({ callId }: GroupAudioGridProps) => {
+export const GroupAudioGrid = ({}: GroupAudioGridProps) => {
     const { callState } = useCall();
     const { user } = useAuth();
     const { remoteStreams, localStream, isMuted, remoteMuteStates } = callState;
@@ -37,6 +37,7 @@ export const GroupAudioGrid = ({ callId }: GroupAudioGridProps) => {
                 delete remoteAudioRefs.current[userId];
             }
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [remoteStreams]);
 
     const totalParticipants = remoteEntries.length + 1;

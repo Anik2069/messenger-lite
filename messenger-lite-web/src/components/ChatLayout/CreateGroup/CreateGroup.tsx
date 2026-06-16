@@ -1,4 +1,4 @@
-import { Card, CardFooter } from '@/components/ui/card';
+
 import { useState } from 'react';
 import { SelectFriends } from './SelectFriends';
 import { CreateGroupForm } from './CreateGroupForm';

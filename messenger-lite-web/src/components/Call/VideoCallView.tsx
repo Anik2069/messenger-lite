@@ -13,10 +13,9 @@ export const VideoCallView = ({ callId }: { callId: string }) => {
         leaveCall,
         toggleMute,
         toggleCamera,
-        toggleScreenShare,
     } = useCall();
 
-    const { localStream, remoteStreams, isMuted, isCameraOff, isScreenSharing, callStatus, endReason, callDuration, isGroupCall, participantIds } = callState;
+    const { localStream, remoteStreams, isMuted, isCameraOff, callStatus, endReason, callDuration, isGroupCall, participantIds } = callState;
     const localVideoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {

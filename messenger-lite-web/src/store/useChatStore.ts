@@ -98,7 +98,7 @@ export type ChatState = {
   showSearch: boolean;
 
   selectedUserInfo: User | null;
-  selectedGroupInfo: any | null;
+  selectedGroupInfo: Record<string, any> | null; // eslint-disable-line @typescript-eslint/no-explicit-any
   sentTempIds: string[];
 
   // Pagination state
@@ -135,12 +135,11 @@ export type ChatState = {
   setSelectedUserInfo: () => void;
   loadMoreMessages: () => Promise<void>;
   fetchConversationsMedia: (id: string) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   selectedMedia: any[];
   isLoadingMedia: boolean;
   handleCloseChat: () => void;
   handleFetchGroupInfo: (id: string) => void;
-  setSelectedGroupInfo: (data: any) => void;
+  setSelectedGroupInfo: (data: Record<string, any>) => void;
 };
 
 let listenersInitialized = false;
@@ -190,15 +189,15 @@ export const useChatStore = create<ChatState>((set, get) => {
       set((state) => {
         // ✅ Check if the message belongs to the currently active chat window
         const isMyTempId = msg.clientTempId ? state.sentTempIds.includes(msg.clientTempId) : false;
-        
+
         const belongsToCurrentChat =
           !state.selectedChat ? false :
-          msg.conversationId === state.selectedChat.id ||
-          isMyTempId ||
-          (state.selectedChat.type === 'user' && !msg.isGroupMessage && (
-            msg.from.id === state.selectedChat.id ||
-            msg.from.id === state.selectedChat.userId
-          ));
+            msg.conversationId === state.selectedChat.id ||
+            isMyTempId ||
+            (state.selectedChat.type === 'user' && !msg.isGroupMessage && (
+              msg.from.id === state.selectedChat.id ||
+              msg.from.id === state.selectedChat.userId
+            ));
 
         // ✅ Replace logic: allow multiple messages with same clientTempId (for multiple file sends)
         if (msg.clientTempId) {
@@ -287,7 +286,7 @@ export const useChatStore = create<ChatState>((set, get) => {
     showSearch: false,
     selectedUserInfo: null,
     selectedGroupInfo: null,
-    setSelectedGroupInfo: (data: any) => set({ selectedGroupInfo: data }),
+    setSelectedGroupInfo: (data: Record<string, any>) => set({ selectedGroupInfo: data }), // eslint-disable-line @typescript-eslint/no-explicit-any
     // Pagination state
     messageCursor: null,
     hasMoreMessages: false,

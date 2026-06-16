@@ -170,7 +170,7 @@ const MessengerLiteCover = () => {
             >
               <p className="text-gray-400 mb-3">Powered by:</p>
               <div className="flex flex-wrap gap-3">
-                {techStack.map((tech, index) => (
+                {techStack.map((tech) => (
                   <div
                     key={tech.name}
                     className="bg-black/30 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/10"
@@ -272,7 +272,7 @@ const MessengerLiteCover = () => {
             { value: '<100ms', label: 'Response Time' },
             { value: 'SSL', label: 'Encryption' },
             { value: '24/7', label: 'Support' },
-          ].map((stat, index) => (
+          ].map((stat) => (
             <div key={stat.label} className="space-y-2">
               <div className="text-2xl md:text-3xl font-bold text-white">{stat.value}</div>
               <div className="text-gray-400 text-sm md:text-base">{stat.label}</div>

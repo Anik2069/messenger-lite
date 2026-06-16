@@ -3,21 +3,17 @@ import {
   LogOut,
   MailPlus,
   MessageSquare,
-  Search,
   Settings,
   UserRoundPlus,
   UsersRound,
-  Wifi,
-  WifiOff,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getInitials } from '@/lib/utils';
+
 import { useGlobalContext } from '@/provider/GlobalContextProvider';
 import { useAuth } from '@/context/useAuth';
 import { useSettings } from '@/context/SettingsContext';
 import { APP_NAME, MEDIA_HOST } from '@/constant';
-import { User } from '@/types/UserType';
-import Image from 'next/image';
+
 import { DummyAvatar } from '@/assets/image';
 import AvatarImage from '../../reusable/AvatarImage';
 
@@ -26,7 +22,7 @@ interface NavbarProps {
   onSearchClick: () => void;
 }
 
-const Navbar = ({ isConnected, onSearchClick }: NavbarProps) => {
+const Navbar = ({}: NavbarProps) => {
   const { newDrawerOpen, settingModalOpen, isSidebarOpen, setIsSidebarOpen, addFriendModalOpen, createGroupModalOpen } =
     useGlobalContext();
   const { logout, currentUserDetails } = useAuth();
@@ -39,11 +35,7 @@ const Navbar = ({ isConnected, onSearchClick }: NavbarProps) => {
   // Use activeStatus from context (real-time) or fallback to settings
   const isOnline = activeStatus?.isOnline ?? settings?.activeStatus ?? false;
 
-  const presenceClasses = isOnline
-    ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-    : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300';
 
-  const presenceText = isOnline ? 'Online' : 'Offline';
 
   const onIconClick = () => {
     setIsSidebarOpen(!isSidebarOpen);

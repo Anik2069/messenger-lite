@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 import { useChatStore } from "@/store/useChatStore";
 import { useGlobalContext } from "@/provider/GlobalContextProvider";
 import { Chat } from "@/types/ChatType";
-const ChatHeaderActions = ({ conversationId, selectedChat }: { conversationId: string, selectedChat: Chat }) => {
+const ChatHeaderActions = ({ conversationId, selectedChat }: { conversationId: any, selectedChat: Chat }) => {
   const { handleClearConversation, handleCloseChat, } = useChatStore();
 
   const {

@@ -46,7 +46,7 @@ export interface FriendsState {
   clearSelectedUsers: () => void;
   // socket
   setupSocketListeners: (socket: Socket, userId: string) => () => void;
-  createGroup: (formData: FormData) => Promise<void>;
+  createGroup: (formData: FormData) => Promise<any>;
 }
 
 export const useFriendsStore = create<FriendsState>()(
@@ -305,7 +305,7 @@ export const useFriendsStore = create<FriendsState>()(
           console.log(response)
           if (response.status === 201) {
             toast.success('Group created successfully!');
-            set((state) => ({
+            set(() => ({
               selectedUsers: [],
             }));
             return response

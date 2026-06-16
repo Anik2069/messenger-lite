@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useRef, useState } from "react";
 import { getCallSocket } from "@/lib/callSocket";
-import { Mic, MicOff, User, VideoOff } from "lucide-react";
+import { MicOff, User } from "lucide-react";
 import LiveVoiceVisualizer from "../reusable/LiveVoiceVisualizer";
 
 interface ParticipantTileProps {

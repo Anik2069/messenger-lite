@@ -56,7 +56,6 @@ const ChatLayout = () => {
     closeSelectedChatProfile,
     createGroupModalClose,
     isCreateGroupModalOpen,
-    setIsCreateGroupModalOpen,
   } = useGlobalContext();
 
   const { clearSelectedUsers } = useFriendsStore()
@@ -70,7 +69,7 @@ const ChatLayout = () => {
 
   useEffect(() => {
     if (user) getMyself();
-  }, [user]);
+  }, [user, getMyself]);
 
   const onChatSelect = useCallback(
     (chat: Chat) => {
@@ -95,7 +94,7 @@ const ChatLayout = () => {
               hasMoreMessages: data.hasMore || false,
             });
           }
-        } catch (error) {
+        } catch {
           setMessages([]);
         }
       })();

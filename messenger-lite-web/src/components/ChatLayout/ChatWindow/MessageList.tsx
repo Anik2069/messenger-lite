@@ -55,27 +55,27 @@ const MessageList = ({
     lastMessageIdRef.current = currentLastMessageId;
   }, [messages, otherUserTyping]);
 
-  // Handle infinite scroll / load older messages
-  const handleScroll = async () => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    // Check if scrolled to top (with small threshold)
-    if (el.scrollTop < 100 && hasMoreMessages && !isLoadingMessages) {
-      const prevHeight = el.scrollHeight;
-      const prevScrollTop = el.scrollTop;
-
-      await onLoadMoreMessages();
-
-      // Preserve scroll position after loading
-      requestAnimationFrame(() => {
-        const newHeight = el.scrollHeight;
-        el.scrollTop = prevScrollTop + (newHeight - prevHeight);
-      });
-    }
-  };
-
   useEffect(() => {
+    // Handle infinite scroll / load older messages
+    const handleScroll = async () => {
+      const el = containerRef.current;
+      if (!el) return;
+
+      // Check if scrolled to top (with small threshold)
+      if (el.scrollTop < 100 && hasMoreMessages && !isLoadingMessages) {
+        const prevHeight = el.scrollHeight;
+        const prevScrollTop = el.scrollTop;
+
+        await onLoadMoreMessages();
+
+        // Preserve scroll position after loading
+        requestAnimationFrame(() => {
+          const newHeight = el.scrollHeight;
+          el.scrollTop = prevScrollTop + (newHeight - prevHeight);
+        });
+      }
+    };
+
     const el = containerRef.current;
     if (el) {
       el.addEventListener('scroll', handleScroll);

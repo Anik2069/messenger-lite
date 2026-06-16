@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { useCall } from "@/context/CallContext";
 import { useAuth } from "@/context/useAuth";
 import { ParticipantTile } from "./ParticipantTile";
@@ -8,7 +8,7 @@ interface GroupVideoGridProps {
     callId: string;
 }
 
-export const GroupVideoGrid = ({ callId }: GroupVideoGridProps) => {
+export const GroupVideoGrid = ({}: GroupVideoGridProps) => {
     const { callState } = useCall();
     const { user } = useAuth();
     const { remoteStreams, localStream, isMuted, isCameraOff, remoteMuteStates, remoteCameraStates } = callState;

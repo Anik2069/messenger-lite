@@ -2,12 +2,11 @@ import { useCallback, useRef, useEffect } from 'react';
 import { Socket } from 'socket.io-client';
 import { CallState } from '@/types/call';
 
-export function useWebRTC(callState: CallState, dispatch: React.Dispatch<any>, socket: Socket) {
+export function useWebRTC(callState: CallState, dispatch: React.Dispatch<Record<string, any>>, socket: Socket) { // eslint-disable-line @typescript-eslint/no-explicit-any
     // Map of peer connections, keyed by User ID
     const peersRef = useRef<Map<string, RTCPeerConnection>>(new Map());
 
-    // Store data channels if needed
-    const dataChannelsRef = useRef<Map<string, RTCDataChannel>>(new Map());
+
 
     // Update tracks when localStream changes (e.g. screen share toggle)
     useEffect(() => {
@@ -114,7 +113,7 @@ export function useWebRTC(callState: CallState, dispatch: React.Dispatch<any>, s
         }
     }, [socket]);
 
-    const handleOffer = useCallback(async (sdp: any, peerId: string) => {
+    const handleOffer = useCallback(async (sdp: RTCSessionDescriptionInit, peerId: string) => {
         let peer = peersRef.current.get(peerId);
         if (!peer) {
             peer = createPeerConnection(peerId);
@@ -134,7 +133,7 @@ export function useWebRTC(callState: CallState, dispatch: React.Dispatch<any>, s
         }
     }, [createPeerConnection, socket]);
 
-    const handleAnswer = useCallback(async (sdp: any, peerId: string) => {
+    const handleAnswer = useCallback(async (sdp: RTCSessionDescriptionInit, peerId: string) => {
         const peer = peersRef.current.get(peerId);
         if (!peer) return;
 
@@ -145,7 +144,7 @@ export function useWebRTC(callState: CallState, dispatch: React.Dispatch<any>, s
         }
     }, []);
 
-    const handleIceCandidate = useCallback(async (candidate: any, peerId: string) => {
+    const handleIceCandidate = useCallback(async (candidate: RTCIceCandidateInit, peerId: string) => {
         const peer = peersRef.current.get(peerId);
         if (!peer) {
             console.warn(`Received ICE candidate for unknown peer ${peerId}`);

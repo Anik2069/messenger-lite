@@ -1,7 +1,7 @@
 import { useChatStore } from '@/store/useChatStore';
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
-import AvatarImage from '../reusable/AvatarImage';
+
 import { MEDIA_HOST } from '@/constant';
 import { DummyAvatar, dummyGroupAvatar } from '@/assets/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
@@ -31,7 +31,7 @@ const SelectedChatProfile: React.FC<SelectedChatProfileProps> = ({ id, onClose }
     if (isGroup && selectedChat?.id && isOpenSelectedChatProfile) {
       handleFetchGroupInfo(selectedChat?.id);
     }
-  }, [selectedChat, handleFetchGroupInfo, isOpenSelectedChatProfile,]);
+  }, [selectedChat, handleFetchGroupInfo, isOpenSelectedChatProfile, isGroup]);
 
   // if (isGroup && !selectedGroupInfo) return <div className="p-4">Loading group info...</div>;
   // if (!isGroup && !selectedUserInfo) return <div className="p-4">Loading user info...</div>;
@@ -68,6 +68,7 @@ const SelectedChatProfile: React.FC<SelectedChatProfileProps> = ({ id, onClose }
       {/* Avatar */}
       <div className="flex justify-center mb-2 shrink-0">
         <div className="w-24 h-24">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={displayAvatar} alt="Profile" className="rounded-full object-cover w-full h-full" />
         </div>
       </div>

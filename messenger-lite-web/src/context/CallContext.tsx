@@ -27,7 +27,7 @@ const initialState: CallState = {
 
 const CallContext = createContext<CallContextType | undefined>(undefined);
 
-function callReducer(state: CallState, action: any): CallState {
+function callReducer(state: CallState, action: Record<string, any>): CallState { // eslint-disable-line @typescript-eslint/no-explicit-any
   switch (action.type) {
     case 'SET_CALL_ID':
       return { ...state, callId: action.payload };
@@ -287,7 +287,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       socket.off('webrtc_answer');
       socket.off('webrtc_ice_candidate');
     };
-  }, [state.callId, user?.id, createPeerConnection, createOffer, handleOffer, handleAnswer, handleIceCandidate, closePeerConnection, state.caller?.id]);
+  }, [state.callId, user?.id, createPeerConnection, createOffer, handleOffer, handleAnswer, handleIceCandidate, closePeerConnection, state.caller?.id, socket]);
 
   // ─── Start Call ───
   const startCall = useCallback(async (toUserId: string | string[], type: CallType, callId: string) => {
@@ -307,7 +307,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     const channel = new BroadcastChannel('messenger_call_state');
     channel.postMessage({ type: 'CALL_STARTED', callId, userId: user?.id });
     channel.close();
-  }, [initMedia, user?.id]);
+  }, [initMedia, user?.id, socket]);
 
   // ─── Answer Call ───
   const answerCall = useCallback(async (callId: string, type: CallType) => {
@@ -323,7 +323,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     channel.close();
 
     socket.emit('call_answered', { callId });
-  }, [initMedia]);
+  }, [initMedia, socket, user?.id]);
 
   // ─── End Call (terminates entire call for everyone) ───
   const endCall = useCallback(() => {
@@ -341,7 +341,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     channel.close();
 
     window.close();
-  }, [state.callId, state.localStream, closePeerConnection, user?.id]);
+  }, [state.callId, state.localStream, closePeerConnection, user?.id, socket]);
 
   // ─── Leave Call (user leaves, call continues for others) ───
   const leaveCall = useCallback(() => {
@@ -359,7 +359,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     channel.close();
 
     window.close();
-  }, [state.callId, state.localStream, closePeerConnection, user?.id]);
+  }, [state.callId, state.localStream, closePeerConnection, user?.id, socket]);
 
   // Handle unload to clean up
   useEffect(() => {
@@ -371,7 +371,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [state.callId]);
+  }, [state.callId, socket]);
 
   // Broadcast Channel Listener for Status Checks and Force Close
   useEffect(() => {
@@ -418,7 +418,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       socket.emit('mute_toggled', { callId: state.callId, isMuted: !state.isMuted });
     }
     dispatch({ type: 'TOGGLE_MUTE' });
-  }, [state.localStream, state.isMuted, state.callId]);
+  }, [state.localStream, state.isMuted, state.callId, socket]);
 
   const toggleCamera = useCallback(() => {
     const newCameraState = !state.isCameraOff;
@@ -433,7 +433,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     }
 
     dispatch({ type: 'TOGGLE_CAMERA' });
-  }, [state.localStream, state.isCameraOff, state.callId]);
+  }, [state.localStream, state.isCameraOff, state.callId, socket]);
 
   const toggleScreenShare = useCallback(async () => {
     try {
@@ -468,7 +468,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Screen share error:', error);
     }
-  }, [state.isScreenSharing]);
+  }, [state.isScreenSharing, state.callType, state.isMuted, state.isCameraOff]);
 
   const value: CallContextType = {
     callState: state,
@@ -480,7 +480,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     toggleCamera,
     toggleScreenShare,
     setLocalStream: (stream: MediaStream | null) => dispatch({ type: 'SET_LOCAL_STREAM', payload: stream }),
-    setRemoteStream: (stream: MediaStream | null) => { }, // legacy
+    setRemoteStream: () => { }, // legacy
     updateCallStatus: (status: CallStatus) => dispatch({ type: 'SET_CALL_STATUS', payload: status }),
   };
 

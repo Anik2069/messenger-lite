@@ -18,7 +18,7 @@ const ShowInfo = ({ isGroup, selectedUserInfo, selectedGroupInfo }: { isGroup: b
             Participants ({selectedGroupInfo.participants?.length || 0})
           </span>
           <div className="flex flex-col gap-3 mt-2">
-            {selectedGroupInfo.participants?.map((participant: any) => {
+            {selectedGroupInfo.participants?.map((participant: Record<string, any>) => { // eslint-disable-line @typescript-eslint/no-explicit-any
               const user = participant.user;
               const displayAvatar = user?.avatar ? `${MEDIA_HOST}/${user.avatar}` : DummyAvatar.src;
               return (
