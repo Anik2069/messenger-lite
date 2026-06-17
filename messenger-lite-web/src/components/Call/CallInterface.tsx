@@ -4,10 +4,8 @@ import { useCall } from '@/context/CallContext';
 import { base64UrlDecode } from '@/lib/utils';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef } from 'react';
-
 import { AudioCallView } from './AudioCallView';
 import { VideoCallView } from './VideoCallView';
-
 import { useAuth } from '@/context/useAuth';
 
 const secretKey = CALL_SECRET;
