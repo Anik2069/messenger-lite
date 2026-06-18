@@ -68,7 +68,6 @@ function callReducer(state: CallState, action: Record<string, any>): CallState {
       return {
         ...state,
         participantIds: action.payload,
-        isGroupCall: action.payload.length > 2,
       };
     case 'SET_IS_GROUP_CALL':
       return { ...state, isGroupCall: action.payload };

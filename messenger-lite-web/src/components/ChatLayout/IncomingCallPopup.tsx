@@ -122,11 +122,9 @@ export default function IncomingCallPopup() {
 
             const url = `/call/${popupData.callId}?payload=${base64Payload}`;
 
-            // Use same window name to reuse tab
-            // Short timeout to allow force close to propagate if needed?
-            setTimeout(() => {
-                window.open(url, 'MessengerCall', 'width=1280,height=720');
-            }, 100);
+            // IMPORTANT: window.open must be called synchronously inside the click handler.
+            // Any await or setTimeout before this can cause browsers to block the popup.
+            window.open(url, 'MessengerCall', 'width=1280,height=720');
         }
     };
 

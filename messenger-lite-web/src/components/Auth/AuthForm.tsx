@@ -51,7 +51,7 @@ function AuthFormInner() {
             <div className="bg-blue-600 p-3 rounded-2xl flex items-center justify-center shadow-lg">
               <MessageSquare className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-white">Messenger Lite</h1>
+            <h1 className="text-3xl font-bold text-white">Pakiza Lite</h1>
           </div>
           <p className="text-gray-100 text-sm">Fast, simple, and efficient messaging</p>
         </div>

@@ -1,10 +1,12 @@
 import { Server, Socket } from "socket.io";
+import { verifyJWT } from "../utils/jwt";
 
 // Store active calls in memory (scoped to this module/namespace)
 const activeCalls = new Map<string, {
     callerId: string;
     recipients: string[];
     callType: "audio" | "video";
+    isGroupCall: boolean;
     timestamp: number;
     status: "ringing" | "answered" | "ended";
     participants: Set<string>;
@@ -16,13 +18,33 @@ const socketToCall = new Map<string, { callId: string; userId: string }>();
 export function initCallSocket(io: Server) {
     const callNamespace = io.of("/call");
 
-    callNamespace.on("connection", (socket: Socket) => {
-        const token = socket.handshake.auth?.token || socket.handshake.query?.token;
+    // ─── Auth Middleware ───
+    // Mirrors the /chat namespace: reject connections without a valid JWT.
+    // This ensures socket.data.userId is always set from the verified token.
+    callNamespace.use(async (socket, next) => {
+        const token =
+            socket.handshake.auth?.token ||
+            socket.handshake.query?.token;
+
         if (!token) {
-            console.log("Call socket missing token");
+            console.warn("[CallSocket] Connection rejected: missing token");
+            return next(new Error("Missing token"));
         }
 
-        let userId = socket.handshake.auth?.userId;
+        try {
+            const { id } = verifyJWT(token as string);
+            socket.data.userId = id;
+            next();
+        } catch {
+            console.warn("[CallSocket] Connection rejected: invalid token");
+            next(new Error("Invalid token"));
+        }
+    });
+
+    callNamespace.on("connection", (socket: Socket) => {
+        // userId is set by auth middleware via socket.data.userId (verified JWT).
+        // The local mutable `userId` allows handlers like 'register' to override it.
+        let userId: string = socket.data.userId;
 
         // Register user identity
         socket.on("register", (id: string) => {
@@ -55,6 +77,7 @@ export function initCallSocket(io: Server) {
                 callerId: fromUserId,
                 recipients: toUserIds,
                 callType,
+                isGroupCall: toUserIds.length > 1,
                 timestamp: Date.now(),
                 status: "ringing",
                 participants: new Set<string>(),
@@ -89,7 +112,7 @@ export function initCallSocket(io: Server) {
                 // Add to participants
                 call.participants.add(id);
                 const participantList = Array.from(call.participants);
-                const isGroupCall = participantList.length > 2;
+                const isGroupCall = call.isGroupCall;
 
                 console.log(`[CallSocket] User ${id} joined call ${callId} | Participants: ${participantList.length} | Group: ${isGroupCall}`);
 
@@ -222,7 +245,7 @@ function handleUserLeaveCall(
     socket.leave(callId);
 
     const participantList = Array.from(call.participants);
-    const isGroupCall = participantList.length > 2;
+    const isGroupCall = call.isGroupCall;
 
     console.log(`[CallSocket] User ${userId} left call ${callId} | Remaining: ${participantList.length}`);
 
