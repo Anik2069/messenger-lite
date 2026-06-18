@@ -25,10 +25,11 @@ app.use(
       "http://192.168.31.152:3001",
       "http://192.168.137.1:3000",
       "http://192.168.31.178:3000",
+      "http://10.81.100.111:4000",
       // "https://messenger-lite-two.vercel.app",
     ],
     credentials: true,
-  })
+  }),
 );
 
 app.use(express.json());

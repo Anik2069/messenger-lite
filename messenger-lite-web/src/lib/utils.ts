@@ -60,15 +60,20 @@ export function uuidv4(): string {
 
 
 
-export const base64UrlEncode = (obj: Record<string, any>) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+export const base64UrlEncode = (obj: Record<string, any>): string => { // eslint-disable-line @typescript-eslint/no-explicit-any
   const json = JSON.stringify(obj);
-  let base64 = Buffer.from(json).toString('base64');
-  base64 = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  return base64;
+  // Browser-safe: use TextEncoder + btoa (no Node Buffer)
+  const bytes = new TextEncoder().encode(json);
+  let base64 = btoa(String.fromCharCode(...Array.from(bytes)));
+  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 };
 
 export const base64UrlDecode = (str: string) => {
+  // Browser-safe: use atob + TextDecoder (no Node Buffer)
+  // base64url → standard base64: - → +, _ → /
   str = str.replace(/-/g, '+').replace(/_/g, '/');
   const padded = str + '==='.slice((str.length + 3) % 4);
-  return JSON.parse(Buffer.from(padded, 'base64').toString('utf-8'));
+  const binary = atob(padded);
+  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
 };

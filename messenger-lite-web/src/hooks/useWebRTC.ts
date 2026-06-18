@@ -2,184 +2,219 @@ import { useCallback, useRef, useEffect } from 'react';
 import { Socket } from 'socket.io-client';
 import { CallState } from '@/types/call';
 
-export function useWebRTC(callState: CallState, dispatch: React.Dispatch<Record<string, any>>, socket: Socket) { // eslint-disable-line @typescript-eslint/no-explicit-any
-    // Map of peer connections, keyed by User ID
-    const peersRef = useRef<Map<string, RTCPeerConnection>>(new Map());
+export function useWebRTC(
+  callState: CallState,
+  dispatch: React.Dispatch<Record<string, any>>,
+  socket: Socket
+) {
+  // eslint-disable-line @typescript-eslint/no-explicit-any
+  // Map of peer connections, keyed by User ID
+  const peersRef = useRef<Map<string, RTCPeerConnection>>(new Map());
 
+  // Update tracks when localStream changes (e.g. screen share toggle)
+  useEffect(() => {
+    const stream = callState.localStream;
+    if (!stream) return;
 
-
-    // Update tracks when localStream changes (e.g. screen share toggle)
-    useEffect(() => {
-        const stream = callState.localStream;
-        if (!stream) return;
-
-        peersRef.current.forEach((peer) => {
-            const senders = peer.getSenders();
-            stream.getTracks().forEach(newTrack => {
-                const sender = senders.find(s => s.track?.kind === newTrack.kind);
-                if (sender) {
-                    sender.replaceTrack(newTrack).catch(err => console.error('Error replacing track:', err));
-                } else {
-                    peer.addTrack(newTrack, stream);
-                }
-            });
-        });
-
-    }, [callState.localStream]);
-
-    const createPeerConnection = useCallback((peerId: string) => {
-        if (peersRef.current.has(peerId)) {
-            console.log(`Peer connection for ${peerId} already exists`);
-            return peersRef.current.get(peerId)!;
-        }
-
-        console.log(`Creating peer connection for ${peerId}`);
-
-        const peer = new RTCPeerConnection({
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' },
-            ],
-            iceCandidatePoolSize: 5,
-            bundlePolicy: 'max-bundle',
-        });
-
-        peersRef.current.set(peerId, peer);
-
-        // Add local tracks
-        if (callState.localStream) {
-            callState.localStream.getTracks().forEach(track => {
-                peer.addTrack(track, callState.localStream!);
-            });
-        }
-
-        // Handle remote stream
-        peer.ontrack = (event) => {
-            console.log(`Stream received from ${peerId}`);
-            const [remoteStream] = event.streams;
-            dispatch({ type: 'ADD_REMOTE_STREAM', payload: { userId: peerId, stream: remoteStream } });
-        };
-
-        // ICE candidates
-        peer.onicecandidate = (event) => {
-            if (event.candidate) {
-                socket.emit('webrtc_ice_candidate', {
-                    toUserIds: [peerId],
-                    candidate: event.candidate,
-                });
-            }
-        };
-
-        peer.onconnectionstatechange = () => {
-            console.log(`Connection state with ${peerId}:`, peer.connectionState);
-            if (peer.connectionState === 'connected') {
-                // In group calls, mark as connected when ANY peer connects
-                dispatch({ type: 'SET_CALL_STATUS', payload: 'connected' });
-            }
-            if (peer.connectionState === 'disconnected' || peer.connectionState === 'failed') {
-                // Remove this specific peer, but don't end the entire call
-                console.log(`Peer ${peerId} disconnected/failed. Cleaning up that peer only.`);
-                dispatch({ type: 'REMOVE_REMOTE_STREAM', payload: { userId: peerId } });
-                peersRef.current.delete(peerId);
-
-                // Only end the call if ALL peers are gone
-                if (peersRef.current.size === 0) {
-                    dispatch({ type: 'SET_END_REASON', payload: 'network_unstable' });
-                    dispatch({ type: 'SET_CALL_STATUS', payload: 'ended' });
-                }
-            }
-        };
-
-        return peer;
-    }, [callState.localStream, dispatch, socket]);
-
-    const createOffer = useCallback(async (peerId: string) => {
-        const peer = peersRef.current.get(peerId);
-        if (!peer) {
-            console.warn(`No peer connection found for ${peerId} to create offer`);
-            return;
-        }
-
-        try {
-            const offer = await peer.createOffer();
-            await peer.setLocalDescription(offer);
-
-            socket.emit('webrtc_offer', {
-                toUserIds: [peerId],
-                sdp: offer,
-            });
-        } catch (error) {
-            console.error('Error creating offer:', error);
-        }
-    }, [socket]);
-
-    const handleOffer = useCallback(async (sdp: RTCSessionDescriptionInit, peerId: string) => {
-        let peer = peersRef.current.get(peerId);
-        if (!peer) {
-            peer = createPeerConnection(peerId);
-        }
-
-        try {
-            await peer.setRemoteDescription(new RTCSessionDescription(sdp));
-            const answer = await peer.createAnswer();
-            await peer.setLocalDescription(answer);
-
-            socket.emit('webrtc_answer', {
-                toUserIds: [peerId],
-                sdp: answer,
-            });
-        } catch (error) {
-            console.error('Error handling offer:', error);
-        }
-    }, [createPeerConnection, socket]);
-
-    const handleAnswer = useCallback(async (sdp: RTCSessionDescriptionInit, peerId: string) => {
-        const peer = peersRef.current.get(peerId);
-        if (!peer) return;
-
-        try {
-            await peer.setRemoteDescription(new RTCSessionDescription(sdp));
-        } catch (error) {
-            console.error('Error handling answer:', error);
-        }
-    }, []);
-
-    const handleIceCandidate = useCallback(async (candidate: RTCIceCandidateInit, peerId: string) => {
-        const peer = peersRef.current.get(peerId);
-        if (!peer) {
-            console.warn(`Received ICE candidate for unknown peer ${peerId}`);
-            return;
-        }
-
-        try {
-            await peer.addIceCandidate(new RTCIceCandidate(candidate));
-        } catch (error) {
-            console.error('Error adding ICE candidate:', error);
-        }
-    }, []);
-
-    const closePeerConnection = useCallback((peerId?: string) => {
-        if (peerId) {
-            const peer = peersRef.current.get(peerId);
-            if (peer) {
-                peer.close();
-                peersRef.current.delete(peerId);
-                dispatch({ type: 'REMOVE_REMOTE_STREAM', payload: { userId: peerId } });
-            }
+    peersRef.current.forEach((peer) => {
+      const senders = peer.getSenders();
+      stream.getTracks().forEach((newTrack) => {
+        const sender = senders.find((s) => s.track?.kind === newTrack.kind);
+        if (sender) {
+          sender
+            .replaceTrack(newTrack)
+            .catch((err) => console.error('Error replacing track:', err));
         } else {
-            // Close all
-            peersRef.current.forEach(peer => peer.close());
-            peersRef.current.clear();
+          peer.addTrack(newTrack, stream);
         }
-    }, [dispatch]);
+      });
+    });
+  }, [callState.localStream]);
 
-    return {
-        createPeerConnection,
-        createOffer,
-        handleOffer,
-        handleAnswer,
-        handleIceCandidate,
-        closePeerConnection,
-        peersRef,
-    };
+  const createPeerConnection = useCallback(
+    (peerId: string) => {
+      if (peersRef.current.has(peerId)) {
+        console.log(`Peer connection for ${peerId} already exists`);
+        return peersRef.current.get(peerId)!;
+      }
+
+      console.log(`Creating peer connection for ${peerId}`);
+
+      const peer = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+          {
+            urls: ['stun:bn-turn1.xirsys.com'],
+          },
+          {
+            urls: [
+              'turn:bn-turn1.xirsys.com:80?transport=udp',
+              'turn:bn-turn1.xirsys.com:3478?transport=udp',
+              'turn:bn-turn1.xirsys.com:80?transport=tcp',
+              'turn:bn-turn1.xirsys.com:3478?transport=tcp',
+              'turns:bn-turn1.xirsys.com:443?transport=tcp',
+              'turns:bn-turn1.xirsys.com:5349?transport=tcp',
+            ],
+            username:
+              'OdYJZY_9G6UKKnwHmxa8HTpF7G1JieCMJLw8utubDCTkbctWFQu9MgDIVuT5I2fGAAAAAGozjJFyYWloYW5qYW1pa2hhbg==',
+            credential: 'd7e67aaa-6adc-11f1-84be-0242ac140004',
+          },
+          {
+            urls: ['stun:bn-turn1.xirsys.com'],
+          },
+        ],
+        iceCandidatePoolSize: 5,
+        bundlePolicy: 'max-bundle',
+      });
+
+      peersRef.current.set(peerId, peer);
+
+      // Add local tracks
+      if (callState.localStream) {
+        callState.localStream.getTracks().forEach((track) => {
+          peer.addTrack(track, callState.localStream!);
+        });
+      }
+
+      // Handle remote stream
+      peer.ontrack = (event) => {
+        console.log(`Stream received from ${peerId}`);
+        const [remoteStream] = event.streams;
+        dispatch({ type: 'ADD_REMOTE_STREAM', payload: { userId: peerId, stream: remoteStream } });
+      };
+
+      // ICE candidates
+      peer.onicecandidate = (event) => {
+        if (event.candidate) {
+          socket.emit('webrtc_ice_candidate', {
+            toUserIds: [peerId],
+            candidate: event.candidate,
+          });
+        }
+      };
+
+      peer.onconnectionstatechange = () => {
+        console.log(`Connection state with ${peerId}:`, peer.connectionState);
+        if (peer.connectionState === 'connected') {
+          // In group calls, mark as connected when ANY peer connects
+          dispatch({ type: 'SET_CALL_STATUS', payload: 'connected' });
+        }
+        if (peer.connectionState === 'disconnected' || peer.connectionState === 'failed') {
+          // Remove this specific peer, but don't end the entire call
+          console.log(`Peer ${peerId} disconnected/failed. Cleaning up that peer only.`);
+          dispatch({ type: 'REMOVE_REMOTE_STREAM', payload: { userId: peerId } });
+          peersRef.current.delete(peerId);
+
+          // Only end the call if ALL peers are gone
+          if (peersRef.current.size === 0) {
+            dispatch({ type: 'SET_END_REASON', payload: 'network_unstable' });
+            dispatch({ type: 'SET_CALL_STATUS', payload: 'ended' });
+          }
+        }
+      };
+
+      return peer;
+    },
+    [callState.localStream, dispatch, socket]
+  );
+
+  const createOffer = useCallback(
+    async (peerId: string) => {
+      const peer = peersRef.current.get(peerId);
+      if (!peer) {
+        console.warn(`No peer connection found for ${peerId} to create offer`);
+        return;
+      }
+
+      try {
+        const offer = await peer.createOffer();
+        await peer.setLocalDescription(offer);
+
+        socket.emit('webrtc_offer', {
+          toUserIds: [peerId],
+          sdp: offer,
+        });
+      } catch (error) {
+        console.error('Error creating offer:', error);
+      }
+    },
+    [socket]
+  );
+
+  const handleOffer = useCallback(
+    async (sdp: RTCSessionDescriptionInit, peerId: string) => {
+      let peer = peersRef.current.get(peerId);
+      if (!peer) {
+        peer = createPeerConnection(peerId);
+      }
+
+      try {
+        await peer.setRemoteDescription(new RTCSessionDescription(sdp));
+        const answer = await peer.createAnswer();
+        await peer.setLocalDescription(answer);
+
+        socket.emit('webrtc_answer', {
+          toUserIds: [peerId],
+          sdp: answer,
+        });
+      } catch (error) {
+        console.error('Error handling offer:', error);
+      }
+    },
+    [createPeerConnection, socket]
+  );
+
+  const handleAnswer = useCallback(async (sdp: RTCSessionDescriptionInit, peerId: string) => {
+    const peer = peersRef.current.get(peerId);
+    if (!peer) return;
+
+    try {
+      await peer.setRemoteDescription(new RTCSessionDescription(sdp));
+    } catch (error) {
+      console.error('Error handling answer:', error);
+    }
+  }, []);
+
+  const handleIceCandidate = useCallback(async (candidate: RTCIceCandidateInit, peerId: string) => {
+    const peer = peersRef.current.get(peerId);
+    if (!peer) {
+      console.warn(`Received ICE candidate for unknown peer ${peerId}`);
+      return;
+    }
+
+    try {
+      await peer.addIceCandidate(new RTCIceCandidate(candidate));
+    } catch (error) {
+      console.error('Error adding ICE candidate:', error);
+    }
+  }, []);
+
+  const closePeerConnection = useCallback(
+    (peerId?: string) => {
+      if (peerId) {
+        const peer = peersRef.current.get(peerId);
+        if (peer) {
+          peer.close();
+          peersRef.current.delete(peerId);
+          dispatch({ type: 'REMOVE_REMOTE_STREAM', payload: { userId: peerId } });
+        }
+      } else {
+        // Close all
+        peersRef.current.forEach((peer) => peer.close());
+        peersRef.current.clear();
+      }
+    },
+    [dispatch]
+  );
+
+  return {
+    createPeerConnection,
+    createOffer,
+    handleOffer,
+    handleAnswer,
+    handleIceCandidate,
+    closePeerConnection,
+    peersRef,
+  };
 }
