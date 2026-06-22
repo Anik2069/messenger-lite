@@ -37,7 +37,7 @@ export default function IncomingCallPopup() {
         audioRef.current.loop = true;
 
         // Listen for generic notifications that are calls
-        socket.on('notification', (data: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+        socket.on('notification', (data: any) => {
             if (data.type === 'incoming_call') {
                 console.log("Incoming call received via chat notification:", data);
 

@@ -59,10 +59,10 @@ export const CreateGroupForm = ({ onBack }: CreateGroupFormProps) => {
             const res = await createGroup(formData);
 
             console.log(res)
-            if ((res as Record<string, any>).status === 201) { // eslint-disable-line @typescript-eslint/no-explicit-any
+            if ((res as Record<string, any>).status === 201) {
                 createGroupModalClose();
             }
-        } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
             console.error('Failed to create group:', error);
             toast.error(error?.response?.data?.message || 'Failed to create group');
         } finally {

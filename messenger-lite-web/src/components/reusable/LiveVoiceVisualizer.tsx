@@ -36,7 +36,7 @@ const LiveVoiceVisualizer: React.FC<LiveVoiceVisualizerProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const AudioContextClass = window.AudioContext || (window as Record<string, any>).webkitAudioContext; // eslint-disable-line @typescript-eslint/no-explicit-any
+    const AudioContextClass = window.AudioContext || (window as Record<string, any>).webkitAudioContext;
     const audioContext = new AudioContextClass();
     audioContextRef.current = audioContext;
 

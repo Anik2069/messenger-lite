@@ -60,11 +60,11 @@ export function uuidv4(): string {
 
 
 
-export const base64UrlEncode = (obj: Record<string, any>): string => { // eslint-disable-line @typescript-eslint/no-explicit-any
+export const base64UrlEncode = (obj: Record<string, any>): string => {
   const json = JSON.stringify(obj);
   // Browser-safe: use TextEncoder + btoa (no Node Buffer)
   const bytes = new TextEncoder().encode(json);
-  let base64 = btoa(String.fromCharCode(...Array.from(bytes)));
+  const base64 = btoa(String.fromCharCode(...Array.from(bytes)));
   return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 };
 

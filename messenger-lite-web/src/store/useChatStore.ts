@@ -98,7 +98,7 @@ export type ChatState = {
   showSearch: boolean;
 
   selectedUserInfo: User | null;
-  selectedGroupInfo: Record<string, any> | null; // eslint-disable-line @typescript-eslint/no-explicit-any
+  selectedGroupInfo: Record<string, any> | null;
   sentTempIds: string[];
 
   // Pagination state
@@ -286,7 +286,7 @@ export const useChatStore = create<ChatState>((set, get) => {
     showSearch: false,
     selectedUserInfo: null,
     selectedGroupInfo: null,
-    setSelectedGroupInfo: (data: Record<string, any>) => set({ selectedGroupInfo: data }), // eslint-disable-line @typescript-eslint/no-explicit-any
+    setSelectedGroupInfo: (data: Record<string, any>) => set({ selectedGroupInfo: data }),
     // Pagination state
     messageCursor: null,
     hasMoreMessages: false,

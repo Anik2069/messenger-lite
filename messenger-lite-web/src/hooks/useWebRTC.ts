@@ -7,7 +7,6 @@ export function useWebRTC(
   dispatch: React.Dispatch<Record<string, any>>,
   socket: Socket
 ) {
-  // eslint-disable-line @typescript-eslint/no-explicit-any
   // Map of peer connections, keyed by User ID
   const peersRef = useRef<Map<string, RTCPeerConnection>>(new Map());
 

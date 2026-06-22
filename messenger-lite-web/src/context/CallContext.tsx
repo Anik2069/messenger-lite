@@ -27,7 +27,7 @@ const initialState: CallState = {
 
 const CallContext = createContext<CallContextType | undefined>(undefined);
 
-function callReducer(state: CallState, action: Record<string, any>): CallState { // eslint-disable-line @typescript-eslint/no-explicit-any
+function callReducer(state: CallState, action: Record<string, any>): CallState {
   switch (action.type) {
     case 'SET_CALL_ID':
       return { ...state, callId: action.payload };

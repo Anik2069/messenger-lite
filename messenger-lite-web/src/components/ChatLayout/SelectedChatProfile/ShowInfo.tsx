@@ -4,7 +4,6 @@ import AvatarImage from '../../reusable/AvatarImage';
 import { MEDIA_HOST } from '@/constant';
 import { DummyAvatar } from '@/assets/image';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ShowInfo = ({ isGroup, selectedUserInfo, selectedGroupInfo }: { isGroup: boolean; selectedUserInfo?: any; selectedGroupInfo?: any }) => {
   if (isGroup && selectedGroupInfo) {
     return (
@@ -18,7 +17,7 @@ const ShowInfo = ({ isGroup, selectedUserInfo, selectedGroupInfo }: { isGroup: b
             Participants ({selectedGroupInfo.participants?.length || 0})
           </span>
           <div className="flex flex-col gap-3 mt-2">
-            {selectedGroupInfo.participants?.map((participant: Record<string, any>) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+            {selectedGroupInfo.participants?.map((participant: Record<string, any>) => {
               const user = participant.user;
               const displayAvatar = user?.avatar ? `${MEDIA_HOST}/${user.avatar}` : DummyAvatar.src;
               return (
