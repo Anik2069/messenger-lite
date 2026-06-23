@@ -33,7 +33,7 @@ const CallInterface = ({ callId }: { callId: string }) => {
       const msg = `Failed to decode call payload: ${(err as Error).message}`;
       console.error('[CallInterface]', msg, { payload });
       setCallError(msg);
-      endCall();
+      // endCall();
       return;
     }
 
@@ -70,7 +70,7 @@ const CallInterface = ({ callId }: { callId: string }) => {
         CALL_SECRET: payloadSecret,
       });
       setCallError(msg);
-      endCall();
+      // endCall();
       return;
     }
 
@@ -79,7 +79,7 @@ const CallInterface = ({ callId }: { callId: string }) => {
       const msg = `Call ID mismatch: URL="${callId}" payload="${payloadCallId}"`;
       console.error('[CallInterface]', msg);
       setCallError(msg);
-      endCall();
+      // endCall();
       return;
     }
 
@@ -88,7 +88,7 @@ const CallInterface = ({ callId }: { callId: string }) => {
       const msg = 'CALL_SECRET mismatch — unauthorised call.';
       console.error('[CallInterface]', msg, { payloadSecret, secretKey });
       setCallError(msg);
-      endCall();
+      // endCall();
       return;
     }
 
@@ -118,7 +118,7 @@ const CallInterface = ({ callId }: { callId: string }) => {
     user,
     callState.callId,
     callState.callStatus,
-    endCall,
+    // endCall,
   ]);
 
   // ── Error state: show visible error instead of blank/closed window ──

@@ -151,13 +151,9 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Main socket event wiring
+  // Main socket event wiring — register listeners ONCE
   useEffect(() => {
     if (!socket.connected) socket.connect();
-
-    if (state.callId && user?.id) {
-      socket.emit("join_call", { callId: state.callId, userId: user.id });
-    }
 
     // ─── Call Initiated (caller confirmation) ───
     socket.on('call_initiated', ({ callId }) => {
@@ -286,7 +282,17 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       socket.off('webrtc_answer');
       socket.off('webrtc_ice_candidate');
     };
-  }, [state.callId, user?.id, createPeerConnection, createOffer, handleOffer, handleAnswer, handleIceCandidate, closePeerConnection, state.caller?.id, socket]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [createPeerConnection, createOffer, handleOffer, handleAnswer, handleIceCandidate, closePeerConnection, socket]);
+
+  // Separate effect for joining call room — reacts to callId/userId changes
+  // without tearing down and re-registering all socket event listeners
+  useEffect(() => {
+    if (state.callId && user?.id) {
+      console.log('[CallContext] Emitting join_call', { callId: state.callId, userId: user.id });
+      socket.emit("join_call", { callId: state.callId, userId: user.id });
+    }
+  }, [state.callId, user?.id, socket]);
 
   // ─── Start Call ───
   const startCall = useCallback(async (toUserId: string | string[], type: CallType, callId: string) => {
