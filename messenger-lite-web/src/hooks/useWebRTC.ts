@@ -43,24 +43,29 @@ export function useWebRTC(
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
           { urls: 'stun:stun1.l.google.com:19302' },
+          // {
+          //   urls: ['stun:bn-turn1.xirsys.com'],
+          // },
+          // {
+          //   urls: [
+          //     'turn:bn-turn1.xirsys.com:80?transport=udp',
+          //     'turn:bn-turn1.xirsys.com:3478?transport=udp',
+          //     'turn:bn-turn1.xirsys.com:80?transport=tcp',
+          //     'turn:bn-turn1.xirsys.com:3478?transport=tcp',
+          //     'turns:bn-turn1.xirsys.com:443?transport=tcp',
+          //     'turns:bn-turn1.xirsys.com:5349?transport=tcp',
+          //   ],
+          //   username:
+          //     'OdYJZY_9G6UKKnwHmxa8HTpF7G1JieCMJLw8utubDCTkbctWFQu9MgDIVuT5I2fGAAAAAGozjJFyYWloYW5qYW1pa2hhbg==',
+          //   credential: 'd7e67aaa-6adc-11f1-84be-0242ac140004',
+          // },
+          // {
+          //   urls: ['stun:bn-turn1.xirsys.com'],
+          // },
           {
-            urls: ['stun:bn-turn1.xirsys.com'],
-          },
-          {
-            urls: [
-              'turn:bn-turn1.xirsys.com:80?transport=udp',
-              'turn:bn-turn1.xirsys.com:3478?transport=udp',
-              'turn:bn-turn1.xirsys.com:80?transport=tcp',
-              'turn:bn-turn1.xirsys.com:3478?transport=tcp',
-              'turns:bn-turn1.xirsys.com:443?transport=tcp',
-              'turns:bn-turn1.xirsys.com:5349?transport=tcp',
-            ],
-            username:
-              'OdYJZY_9G6UKKnwHmxa8HTpF7G1JieCMJLw8utubDCTkbctWFQu9MgDIVuT5I2fGAAAAAGozjJFyYWloYW5qYW1pa2hhbg==',
-            credential: 'd7e67aaa-6adc-11f1-84be-0242ac140004',
-          },
-          {
-            urls: ['stun:bn-turn1.xirsys.com'],
+            urls: ['stun:worknestor.com:3478', 'turn:worknestor.com:3478'],
+            username: 'worknestor',
+            credential: 'e8U.u+EL2Q#kmllJ.Xli',
           },
         ],
         iceCandidatePoolSize: 5,
