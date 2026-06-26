@@ -1,4 +1,3 @@
-// src/store/useChatStore.ts
 import { create } from 'zustand';
 import axiosInstance from '@/config/axiosInstance';
 import { socket } from '@/lib/socket';
@@ -40,87 +39,38 @@ interface ServerMessage {
   }>;
 }
 
-function mapServerMessage(m: ServerMessage): Message {
-  const messageType = (m.messageType ?? 'TEXT') as MessageKind;
-
-  return {
-    id: m.id,
-    clientTempId: m.clientTempId,
-    conversationId: m.conversationId,
-
-    from: {
-      id: m.author?.id ?? m.authorId ?? '',
-      username: m.author?.username ?? 'Unknown',
-    },
-    to: {
-      id: m.conversationId,
-      username: m.conversation?.name ?? '',
-    },
-
-    message: m.message ?? '',
-    messageType, // always "text" | "FILE" | "forwarded"
-
-    fileData: m.fileUrl
-      ? {
-        url: m.fileUrl,
-        filename: m.fileName ?? '',
-        originalName: m.fileName ?? '',
-        mimetype: m.fileMime ?? '',
-        size: m.fileSize ?? 0,
-      }
-      : undefined,
-
-    forwardedFrom: m.forwardedFrom ? { originalSender: m.forwardedFrom } : undefined,
-
-    isGroupMessage: m.conversation?.type === 'GROUP',
-    timestamp: new Date(m.createdAt ?? Date.now()),
-
-    reactions: (m.reactions ?? []).map((r) => ({
-      emoji: r.emoji,
-      username: r.user?.username ?? r.userId ?? '',
-      userId: r.userId,
-      timestamp: new Date(r.createdAt ?? Date.now()),
-    })),
-
-    readBy: (m.receipts ?? []).map((rc) => ({
-      username: rc.user?.username ?? rc.userId ?? '',
-      userId: rc.userId,
-      timestamp: new Date(rc.readAt ?? Date.now()),
-    })),
-  };
-}
-
 export type ChatState = {
   selectedChat: Chat | null;
   messages: Message[];
   otherUserTyping: string | null;
   isConnected: boolean;
   showSearch: boolean;
-
   selectedUserInfo: User | null;
   selectedGroupInfo: Record<string, any> | null;
+  selectedMedia: any[];
+  isLoadingMedia: boolean;
   sentTempIds: string[];
 
-  // Pagination state
   messageCursor: string | null;
   hasMoreMessages: boolean;
   isLoadingMessages: boolean;
 
-  // setters
   setSelectedChat: (chat: Chat | null) => void;
   setMessages: (messages: Message[]) => void;
-  setOtherUserTyping: (userId: string | null) => void;
+  setOtherUserTyping: (username: string | null) => void;
   setIsConnected: (connected: boolean) => void;
   setShowSearch: (show: boolean) => void;
+  setSelectedUserInfo: () => void;
+  setSelectedGroupInfo: (data: Record<string, any>) => void;
   resetPagination: () => void;
+  handleCloseChat: () => void;
 
-  // actions
-  emitTyping: ({ user }: { user: { username: string } }) => void;
+  emitTyping: (user: { username: string }) => void;
   onSendMessage: (
     text: string,
     type?: 'TEXT' | 'FILE' | 'forwarded' | 'VOICE',
     fileData?: object,
-    voiceUrl?: string | undefined,
+    voiceUrl?: string,
     forwardedFrom?: ForwardedData,
     currentUser?: { username: string; id: string } | null,
     isOpenSelectedChatProfile?: boolean
@@ -132,152 +82,178 @@ export type ChatState = {
   ) => Promise<void>;
   handleClearConversation: (conversationId: string) => void;
   handleFetchUsersInfo: (id: string) => void;
-  setSelectedUserInfo: () => void;
+  handleFetchGroupInfo: (id: string) => void;
   loadMoreMessages: () => Promise<void>;
   fetchConversationsMedia: (id: string) => void;
-  selectedMedia: any[];
-  isLoadingMedia: boolean;
-  handleCloseChat: () => void;
-  handleFetchGroupInfo: (id: string) => void;
-  setSelectedGroupInfo: (data: Record<string, any>) => void;
 };
 
-let listenersInitialized = false;
-
-export const useChatStore = create<ChatState>((set, get) => {
-  if (!listenersInitialized) {
-    listenersInitialized = true;
-    // cleanup old listeners
-    // socket.off("connect");
-    // socket.off("disconnect");
-    socket.off('receive_message');
-    socket.off('user_typing');
-    socket.off('message_reaction');
-
-    // socket.on("connect", () => set({ isConnected: true }));
-    // socket.on("disconnect", () => set({ isConnected: false }));
-
-    // socket.on("receive_message", (raw: unknown) => {
-    //   const msg = mapServerMessage(raw as ServerMessage);
-    //   console.log(msg, "receive msg");
-    //   set((state) => {
-    //     // replace optimistic message if clientTempId matched
-    //     if (msg.clientTempId) {
-    //       const hasTemp = state.messages.some(
-    //         (m) => m.clientTempId === msg.clientTempId
-    //       );
-    //       if (hasTemp) {
-    //         return {
-    //           messages: state.messages.map((m) =>
-    //             m.clientTempId === msg.clientTempId ? msg : m
-    //           ),
-    //         };
-    //       }
-    //     }
-
-    //     // skip duplicate messages
-    //     if (state.messages.some((m) => m.id === msg.id)) return state;
-    //     console.log(state, "state");
-    //     return { messages: [...state.messages, msg] };
-    //   });
-    // });
-
-    socket.on('receive_message', (raw: unknown) => {
-      const msg = mapServerMessage(raw as ServerMessage);
-      console.log(msg, 'receive msg');
-
-      set((state) => {
-        // ✅ Check if the message belongs to the currently active chat window
-        const isMyTempId = msg.clientTempId ? state.sentTempIds.includes(msg.clientTempId) : false;
-
-        const belongsToCurrentChat =
-          !state.selectedChat ? false :
-            msg.conversationId === state.selectedChat.id ||
-            isMyTempId ||
-            (state.selectedChat.type === 'user' && !msg.isGroupMessage && (
-              msg.from.id === state.selectedChat.id ||
-              msg.from.id === state.selectedChat.userId
-            ));
-
-        // ✅ Replace logic: allow multiple messages with same clientTempId (for multiple file sends)
-        if (msg.clientTempId) {
-          const hasExactTemp = state.messages.some(
-            (m) =>
-              m.clientTempId === msg.clientTempId &&
-              m.messageType === msg.messageType &&
-              (m.fileData as FileData)?.url === (msg.fileData as FileData)?.url
-          );
-
-          if (hasExactTemp) {
-            return {
-              messages: state.messages.map((m) =>
-                m.clientTempId === msg.clientTempId &&
-                  (m.fileData as FileData)?.url === (msg.fileData as FileData)?.url
-                  ? msg
-                  : m
-              ),
-            };
-          }
-        }
-
-        if (!belongsToCurrentChat) {
-          return state; // Do not append if it doesn't belong to the current chat
-        }
-
-        // ✅ Still skip exact duplicates from backend
-        const alreadyExists = state.messages.some((m) => m.id === msg.id);
-        if (alreadyExists) return state;
-
-        // ✅ Append new message normally
-        console.log(state, 'state');
-        return { messages: [...state.messages, msg] };
-      });
-    });
-
-    // Typing indicator
-    socket.on('user_typing', (data: { conversationId: string; username?: string }) => {
-      const { selectedChat } = get();
-      if (selectedChat && selectedChat.id === data.conversationId) {
-        set({ otherUserTyping: data.username ?? null });
+function mapServerMessage(raw: ServerMessage): Message {
+  return {
+    id: raw.id,
+    clientTempId: raw.clientTempId,
+    conversationId: raw.conversationId,
+    from: {
+      id: raw.author?.id ?? raw.authorId ?? '',
+      username: raw.author?.username ?? 'Unknown',
+    },
+    to: {
+      id: raw.conversationId,
+      username: raw.conversation?.name ?? '',
+    },
+    message: raw.message ?? '',
+    messageType: (raw.messageType ?? 'TEXT') as MessageKind,
+    fileData: raw.fileUrl
+      ? {
+        url: raw.fileUrl,
+        filename: raw.fileName ?? '',
+        originalName: raw.fileName ?? '',
+        mimetype: raw.fileMime ?? '',
+        size: raw.fileSize ?? 0,
       }
-    });
+      : undefined,
+    forwardedFrom: raw.forwardedFrom
+      ? { originalSender: raw.forwardedFrom }
+      : undefined,
+    isGroupMessage: raw.conversation?.type === 'GROUP',
+    timestamp: new Date(raw.createdAt ?? Date.now()),
+    reactions: (raw.reactions ?? []).map((r) => ({
+      emoji: r.emoji,
+      username: r.user?.username ?? r.userId ?? '',
+      userId: r.userId,
+      timestamp: new Date(r.createdAt ?? Date.now()),
+    })),
+    readBy: (raw.receipts ?? []).map((rc) => ({
+      username: rc.user?.username ?? rc.userId ?? '',
+      userId: rc.userId,
+      timestamp: new Date(rc.readAt ?? Date.now()),
+    })),
+  };
+}
 
-    // Reactions
-    socket.on('message_reaction', (payload) => {
-      set((state) => ({
-        messages: state.messages.map((msg) => {
-          if (msg.id !== payload.messageId) return msg;
+function belongsToSelectedChat(
+  msg: Message,
+  selectedChat: Chat | null,
+  sentTempIds: string[]
+): boolean {
+  if (!selectedChat) return false;
 
-          const actor = payload.username || payload.userId || 'Unknown';
+  // If we sent this message (matched by our temp ID), it always belongs here
+  const isOwnMessage = msg.clientTempId
+    ? sentTempIds.includes(msg.clientTempId)
+    : false;
 
-          if (payload.action === 'removed') {
-            return {
-              ...msg,
-              reactions: msg.reactions.filter(
-                (r) => !(r.emoji === payload.emoji && r.username === actor)
-              ),
-            };
-          }
+  if (isOwnMessage) return true;
 
-          return {
-            ...msg,
-            reactions: [
-              ...msg.reactions,
-              {
-                emoji: payload.emoji,
-                username: actor,
-                timestamp: payload.timestamp ? new Date(payload.timestamp) : new Date(),
-              },
-            ],
-          };
-        }),
-      }));
-    });
+  // Match by conversation ID (groups and direct messages with conversation record)
+  if (msg.conversationId === selectedChat.id) return true;
+
+  if (
+    selectedChat.type === 'user' &&
+    !msg.isGroupMessage &&
+    (msg.from.id === selectedChat.id || msg.from.id === selectedChat.userId)
+  ) {
+    return true;
   }
 
+  return false;
+}
+
+function mergeIncomingMessage(messages: Message[], incoming: Message): Message[] {
+  if (incoming.clientTempId) {
+    const optimisticIndex = messages.findIndex(
+      (m) =>
+        m.clientTempId === incoming.clientTempId &&
+        m.messageType === incoming.messageType &&
+        (m.fileData as FileData)?.url === (incoming.fileData as FileData)?.url
+    );
+
+    if (optimisticIndex !== -1) {
+      return messages.map((m, i) => (i === optimisticIndex ? incoming : m));
+    }
+  }
+
+  if (messages.some((m) => m.id === incoming.id)) {
+    return messages;
+  }
+
+  return [...messages, incoming];
+}
+
+let socketListenersRegistered = false;
+
+function registerSocketListeners(
+  get: () => ChatState,
+  set: (partial: Partial<ChatState> | ((state: ChatState) => Partial<ChatState>)) => void
+) {
+  if (socketListenersRegistered) return;
+  socketListenersRegistered = true;
+
+  socket.off('receive_message');
+  socket.off('user_typing');
+  socket.off('message_reaction');
+
+  socket.on('receive_message', (raw: unknown) => {
+    const incoming = mapServerMessage(raw as ServerMessage);
+
+    set((state) => {
+      if (!belongsToSelectedChat(incoming, state.selectedChat, state.sentTempIds)) {
+        return state;
+      }
+
+      return { messages: mergeIncomingMessage(state.messages, incoming) };
+    });
+  });
+
+  socket.on('user_typing', (data: { conversationId: string; username?: string }) => {
+    const { selectedChat } = get();
+    if (selectedChat?.id === data.conversationId) {
+      set({ otherUserTyping: data.username ?? null });
+    }
+  });
+
+  socket.on('message_reaction', (payload: {
+    messageId: string;
+    emoji: string;
+    action: 'added' | 'removed';
+    username?: string;
+    userId?: string;
+    timestamp?: string;
+  }) => {
+    const actor = payload.username ?? payload.userId ?? 'Unknown';
+
+    set((state) => ({
+      messages: state.messages.map((msg) => {
+        if (msg.id !== payload.messageId) return msg;
+
+        if (payload.action === 'removed') {
+          return {
+            ...msg,
+            reactions: msg.reactions.filter(
+              (r) => !(r.emoji === payload.emoji && r.username === actor)
+            ),
+          };
+        }
+
+        return {
+          ...msg,
+          reactions: [
+            ...msg.reactions,
+            {
+              emoji: payload.emoji,
+              username: actor,
+              timestamp: payload.timestamp ? new Date(payload.timestamp) : new Date(),
+            },
+          ],
+        };
+      }),
+    }));
+  });
+}
+
+export const useChatStore = create<ChatState>((set, get) => {
+  registerSocketListeners(get, set);
+
   return {
-    isLoadingMedia: false,
-    selectedMedia: [],
     selectedChat: null,
     messages: [],
     sentTempIds: [],
@@ -286,32 +262,30 @@ export const useChatStore = create<ChatState>((set, get) => {
     showSearch: false,
     selectedUserInfo: null,
     selectedGroupInfo: null,
-    setSelectedGroupInfo: (data: Record<string, any>) => set({ selectedGroupInfo: data }),
-    // Pagination state
+    selectedMedia: [],
+    isLoadingMedia: false,
     messageCursor: null,
     hasMoreMessages: false,
     isLoadingMessages: false,
-    handleCloseChat: () => set({ selectedChat: null }),
+
     setSelectedChat: (chat) => set({ selectedChat: chat }),
-    setSelectedUserInfo: () => set({ selectedChat: null }),
     setMessages: (messages) => set({ messages }),
-    setOtherUserTyping: (userId) => set({ otherUserTyping: userId }),
+    setOtherUserTyping: (username) => set({ otherUserTyping: username }),
     setIsConnected: (connected) => set({ isConnected: connected }),
     setShowSearch: (show) => set({ showSearch: show }),
+    setSelectedUserInfo: () => set({ selectedChat: null }),
+    setSelectedGroupInfo: (data) => set({ selectedGroupInfo: data }),
+    handleCloseChat: () => set({ selectedChat: null }),
     resetPagination: () =>
-      set({
-        messageCursor: null,
-        hasMoreMessages: false,
-        isLoadingMessages: false,
-      }),
+      set({ messageCursor: null, hasMoreMessages: false, isLoadingMessages: false }),
 
-    emitTyping: ({ user }) => {
+    emitTyping: ({ username }) => {
       const { selectedChat } = get();
-      if (!selectedChat || !user) return;
+      if (!selectedChat) return;
 
       socket.emit('typing', {
         conversationId: selectedChat.id,
-        username: user.username,
+        username,
       });
     },
 
@@ -325,136 +299,107 @@ export const useChatStore = create<ChatState>((set, get) => {
       isOpenSelectedChatProfile
     ) => {
       const { selectedChat, fetchConversationsMedia } = get();
-
       if (!selectedChat || !currentUser) return;
 
       const clientTempId = uuidv4();
       set((state) => ({ sentTempIds: [...state.sentTempIds, clientTempId] }));
-      // const tempId = `temp-${Date.now()}`;
-
-      // Optimistic UI
-      const optimistic: Message[] = [];
 
       const formData = new FormData();
-
       formData.append('conversationId', selectedChat.id);
-      if (selectedChat.type === 'user') {
-        formData.append('recipientId', selectedChat.id);
-      }
-      formData.append('message', text || '');
+      formData.append('message', text ?? '');
       formData.append('messageType', toServerType(type));
       formData.append('clientTempId', clientTempId);
 
+      if (selectedChat.type === 'user') {
+        formData.append('recipientId', selectedChat.id);
+      }
       if (forwardedFrom) {
         formData.append('forwardedFrom', forwardedFrom.originalSender);
       }
-
-      // If single or multiple files
       if (fileData) {
         const files = Array.isArray(fileData) ? fileData : [fileData];
-        files.forEach((file) => {
-          // file should be a File object from input
-          formData.append('files', file as unknown as Blob);
-        });
+        files.forEach((file) => formData.append('files', file as unknown as Blob));
       }
-      // handle voice message
       if (voiceUrl) {
-        // Convert voice blob if needed
         try {
           const blob = await fetch(voiceUrl).then((res) => res.blob());
-          console.log(blob, 'blob');
           formData.append('files', blob, 'voice-message.wav');
-        } catch (e) {
-          console.error('Voice file blob fetch failed', e);
+        } catch {
+          console.error('Failed to convert voice URL to blob');
         }
       }
 
       try {
         const res = await axiosInstance.post('messages', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+          headers: { 'Content-Type': 'multipart/form-data' },
         });
 
         const saved = res.data?.results;
-        console.log(saved, 'saved--------------');
 
-        if (saved) {
-          // fetch conversation media
-          if (selectedChat && isOpenSelectedChatProfile) {
-            const conversationId = saved?.conversation?.id || saved?.[0]?.conversation?.id;
-            if (conversationId) {
-              fetchConversationsMedia(conversationId);
-            }
+        // If the media panel is open, refresh its content after a file send
+        if (saved && isOpenSelectedChatProfile) {
+          const conversationId = saved?.conversation?.id ?? saved?.[0]?.conversation?.id;
+          if (conversationId) {
+            fetchConversationsMedia(conversationId);
           }
         }
       } catch (err) {
-        // rollback optimistic
-        set((state) => ({
-          messages: state.messages.filter((m) => !optimistic.includes(m)),
-        }));
-        // console.error("send failed", err);
-        const response = err as unknown as {
-          response: { data: { message: string } };
-        };
-        if (response?.response?.data?.message) {
-          toast.error(response.response.data.message || 'Failed to send message');
-          // console.log();
-          // TODO : add error message to set state
-          return;
-        }
-        toast.error('Failed to send message');
+        const apiError = err as { response?: { data?: { message?: string } } };
+        const serverMessage = apiError?.response?.data?.message;
+        toast.error(serverMessage ?? 'Failed to send message');
       }
     },
 
-    //  Add reaction
+    // ── Toggle / add an emoji reaction on a message ─
     onAddReaction: async (messageId, emoji) => {
       try {
         await axiosInstance.post(`reactions/${messageId}/reactions`, { emoji });
-      } catch (e) {
-        console.error('reaction failed', e);
+      } catch {
+        console.error('Failed to add reaction');
       }
     },
 
+    // ── Delete all messages in the current conversation ─
     handleClearConversation: async (conversationId) => {
       try {
-        const response = await axiosInstance.delete(`${HOST}/messages/clear/${conversationId}`);
+        const response = await axiosInstance.delete(
+          `${HOST}/messages/clear/${conversationId}`
+        );
 
         if (response.status === 200) {
           set({ messages: [] });
-          const { clearConversations } = useConversationStore.getState();
-          clearConversations(conversationId);
+          useConversationStore.getState().clearConversations(conversationId);
         }
       } catch (error) {
-        console.log(error);
-      }
-    },
-    handleFetchUsersInfo: async (id: string) => {
-      try {
-        const response = await axiosInstance.get(`${HOST}/auth/user/${id}`);
-        const data = await response.data?.results;
-        // console.log(data, "==========");
-        set({ selectedUserInfo: data });
-      } catch (error) {
-        console.log(error);
-      }
-    },
-    handleFetchGroupInfo: async (id: string) => {
-      try {
-        const response = await axiosInstance.get(`${HOST}/group/group-info/${id}`);
-        const data = await response.data?.results;
-        console.log(data, "==========");
-        set({ selectedGroupInfo: data });
-      } catch (error) {
-        console.log(error);
+        console.error('Failed to clear conversation', error);
       }
     },
 
+    // ── Fetch profile info for the other user in a DM ─
+    handleFetchUsersInfo: async (id) => {
+      try {
+        const response = await axiosInstance.get(`${HOST}/auth/user/${id}`);
+        set({ selectedUserInfo: response.data?.results });
+      } catch (error) {
+        console.error('Failed to fetch user info', error);
+      }
+    },
+
+    // ── Fetch metadata for a group conversation ─
+    handleFetchGroupInfo: async (id) => {
+      try {
+        const response = await axiosInstance.get(`${HOST}/group/group-info/${id}`);
+        set({ selectedGroupInfo: response.data?.results });
+      } catch (error) {
+        console.error('Failed to fetch group info', error);
+      }
+    },
+
+    // ── Paginate: load older messages above the current view ─
     loadMoreMessages: async () => {
       const { selectedChat, messageCursor, hasMoreMessages, isLoadingMessages, messages } = get();
 
-      // Don't load if already loading, no more messages, or no chat selected
-      if (isLoadingMessages || !hasMoreMessages || !selectedChat) return;
+      if (!selectedChat || isLoadingMessages || !hasMoreMessages) return;
 
       set({ isLoadingMessages: true });
 
@@ -464,42 +409,44 @@ export const useChatStore = create<ChatState>((set, get) => {
           : `messages/${selectedChat.id}`;
 
         const response = await axiosInstance.get(url);
+        const data = response.data?.results ?? response.data?.data ?? {};
 
-        if (response.status === 200) {
-          const data = response.data.results || response.data.data;
-          const newMessages = data.messages || [];
-          const hasMore = data.hasMore || false;
-          const nextCursor = data.nextCursor || null;
+        const olderMessages: Message[] = data.messages ?? [];
+        const nextCursor: string | null = data.nextCursor ?? null;
+        const hasMore: boolean = data.hasMore ?? false;
 
-          // Prepend older messages (they come in chronological order)
-          // Filter out duplicates by ID
-          const existingIds = new Set(messages.map((m) => m.id));
-          const uniqueNewMessages = newMessages.filter((m: Message) => !existingIds.has(m.id));
+        // Prepend older messages, skipping any that are already in state
+        const existingIds = new Set(messages.map((m) => m.id));
+        const uniqueOlder = olderMessages.filter((m) => !existingIds.has(m.id));
 
-          set({
-            messages: [...uniqueNewMessages, ...messages],
-            messageCursor: nextCursor,
-            hasMoreMessages: hasMore,
-            isLoadingMessages: false,
-          });
-        }
+        set({
+          messages: [...uniqueOlder, ...messages],
+          messageCursor: nextCursor,
+          hasMoreMessages: hasMore,
+          isLoadingMessages: false,
+        });
       } catch (error) {
-        console.error('Failed to load more messages', error);
+        console.error('Failed to load older messages', error);
         set({ isLoadingMessages: false });
       }
     },
 
-    fetchConversationsMedia: async (id: string) => {
+    // ── Fetch all media files shared in a conversation ─
+    fetchConversationsMedia: async (id) => {
       set({ isLoadingMedia: true });
+
       try {
         const response = await axiosInstance.get(`${HOST}/messages/${id}/media`);
-        // console.log(response?.data?.results?.media, "response");
-        if (response?.status === 200) {
-          set({ selectedMedia: response?.data?.results?.media, isLoadingMedia: false });
+
+        if (response.status === 200) {
+          set({
+            selectedMedia: response.data?.results?.media ?? [],
+            isLoadingMedia: false,
+          });
         }
       } catch (error) {
+        console.error('Failed to fetch conversation media', error);
         set({ selectedMedia: [], isLoadingMedia: false });
-        console.log(error);
       }
     },
   };

@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { Group } from '../../../types/GroupType';
 import { Chat } from '../../../types/ChatType';
 import { MessageCircle } from 'lucide-react';
-
 import { DummyAvatar, dummyGroupAvatar } from '@/assets/image';
 import ReusableSearchInput from '@/components/reusable/ReusableSearchInput';
 import { useConversationStore } from '@/store/useConversationStore';
