@@ -317,15 +317,15 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_CALL_TYPE', payload: type });
     dispatch({ type: 'SET_CALLER', payload: { id: user?.id } });
 
-    // Join the call room FIRST so we receive all broadcasts (e.g. call_answered)
-    joinedCallIdRef.current = callId;
-    socket.emit('join_call', { callId, userId: user?.id });
-
     socket.emit('call_user', {
       toUserIds: Array.isArray(toUserId) ? toUserId : [toUserId],
       callType: type,
       callId,
     });
+
+    // Join the call room after call_user so the server has the call in activeCalls
+    joinedCallIdRef.current = callId;
+    socket.emit('join_call', { callId, userId: user?.id });
 
     const channel = new BroadcastChannel('messenger_call_state');
     channel.postMessage({ type: 'CALL_STARTED', callId, userId: user?.id });

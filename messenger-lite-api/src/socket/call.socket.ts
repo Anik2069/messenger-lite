@@ -128,6 +128,9 @@ export function initCallSocket(io: Server) {
                     participants: participantList.filter(p => p !== id),
                     isGroupCall,
                 });
+            } else {
+                // Call no longer exists (e.g., ended before user could answer)
+                socket.emit("call_ended", { callId, reason: "call_not_found" });
             }
         });
 
