@@ -79,6 +79,7 @@ export default function getMessagesController(prisma: PrismaClient) {
           author: { select: { id: true, username: true, avatar: true } },
           reactions: { include: { user: { select: { id: true, username: true, avatar: true, email: true } } } },
           receipts: { include: { user: { select: { id: true, username: true, avatar: true, email: true } } } },
+          callLog: { include: { participants: { include: { user: { select: { id: true, username: true, avatar: true } } } } } },
         },
         orderBy: { createdAt: "desc" }, // Newest first for cursor pagination
         take: limit + 1, // Fetch one extra to check hasMore

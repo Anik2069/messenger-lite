@@ -304,7 +304,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
   }, [socket]);
 
   // ─── Start Call ───
-  const startCall = useCallback(async (toUserId: string | string[], type: CallType, callId: string) => {
+  const startCall = useCallback(async (toUserIds: string | string[], type: CallType, callId: string, conversationId: string) => {
     const stream = await initMedia(type);
     if (!stream) return;
 
@@ -313,9 +313,10 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_CALLER', payload: { id: user?.id } });
 
     socket.emit('call_user', {
-      toUserIds: Array.isArray(toUserId) ? toUserId : [toUserId],
+      toUserIds: Array.isArray(toUserIds) ? toUserIds : [toUserIds],
       callType: type,
       callId,
+      conversationId,
     });
 
     // Join call room after call_user so server has call in activeCalls

@@ -78,6 +78,7 @@ export function getConversations(
               createdAt: "desc",
             },
             include: {
+              callLog: true,
               author: {
                 select: {
                   id: true,

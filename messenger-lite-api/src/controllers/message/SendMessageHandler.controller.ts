@@ -32,6 +32,13 @@ export async function getUserConversationsSorted(
               avatar: true,
             },
           },
+          callLog: {
+            include: {
+              participants: {
+                include: { user: { select: { id: true, username: true, avatar: true } } }
+              }
+            }
+          }
         },
         take: 1,
       },

@@ -26,6 +26,7 @@ interface ServerMessage {
   fileData?: object;
   forwardedFrom?: string;
   createdAt?: string | number | Date;
+  callLog?: any;
   reactions?: Array<{
     emoji: string;
     user?: { username?: string };
@@ -116,6 +117,7 @@ function mapServerMessage(raw: ServerMessage): Message {
       : undefined,
     isGroupMessage: raw.conversation?.type === 'GROUP',
     timestamp: new Date(raw.createdAt ?? Date.now()),
+    callLog: raw.callLog,
     reactions: (raw.reactions ?? []).map((r) => ({
       emoji: r.emoji,
       username: r.user?.username ?? r.userId ?? '',

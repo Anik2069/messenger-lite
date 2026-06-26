@@ -29,6 +29,7 @@ model User {
   reads                  MessageRead[]
   UserDevice             UserDevice[]
   settings               UserSettings?
+  callLogParticipants    CallLogParticipant[]      @relation("CallLogUser")
 }
 
 model UserDevice {
@@ -106,6 +107,7 @@ model Message {
   conversation   Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   reactions      MessageReaction[]
   receipts       MessageRead[]
+  callLog        CallLog?
 
   @@index([conversationId, createdAt])
   @@index([authorId])
@@ -136,6 +138,31 @@ model MessageRead {
   @@unique([messageId, userId])
   @@index([messageId])
   @@index([userId])
+}
+
+model CallLog {
+  id        String  @id @default(uuid())
+  messageId String  @unique
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  duration    Int     @default(0)
+  status      String // "ended" | "missed"
+  callType    String // "audio" | "video"
+  isGroupCall Boolean @default(false)
+
+  participants CallLogParticipant[]
+}
+
+model CallLogParticipant {
+  id        String @id @default(uuid())
+  callLogId String
+  userId    String
+  status    String // "joined" | "missed"
+
+  callLog CallLog @relation(fields: [callLogId], references: [id], onDelete: Cascade)
+  user    User    @relation("CallLogUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([callLogId, userId])
 }
 
 model UserSettings {
@@ -183,6 +210,7 @@ enum MessageType {
   FILE
   FORWARDED
   VOICE
+  CALL
 }
 
 enum ThemeType {

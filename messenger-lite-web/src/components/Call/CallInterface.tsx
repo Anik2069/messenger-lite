@@ -44,6 +44,7 @@ const CallInterface = ({ callId }: { callId: string }) => {
       token,
       CALL_SECRET: payloadSecret,
       isCaller,
+      conversationId,
     } = decoded;
 
     console.log('[CallInterface] Decoded payload:', {
@@ -103,8 +104,8 @@ const CallInterface = ({ callId }: { callId: string }) => {
     hasInitialized.current = true;
 
     if (isCaller) {
-      console.log('[CallInterface] Starting call as caller', { toUserIds, type, callId });
-      startCall(toUserIds, type, callId);
+      console.log('[CallInterface] Starting call as caller', { toUserIds, type, callId, conversationId });
+      startCall(toUserIds, type, callId, conversationId);
     } else {
       console.log('[CallInterface] Answering call as callee', { callId, type });
       answerCall(callId, type);

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Group } from '../../../types/GroupType';
 import { Chat } from '../../../types/ChatType';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, PhoneIncoming, PhoneOutgoing } from 'lucide-react';
 import { DummyAvatar, dummyGroupAvatar } from '@/assets/image';
 import ReusableSearchInput from '@/components/reusable/ReusableSearchInput';
 import { useConversationStore } from '@/store/useConversationStore';
@@ -75,7 +75,7 @@ const ChatSidebar = ({
           ) : (
             conversations?.map((conv) => {
               if (conv?.type === "GROUP") {
-                console.log(conv);
+                // console.log(conv);
 
               }
               const isGroup = conv.type === 'GROUP';
@@ -105,6 +105,37 @@ const ChatSidebar = ({
               // ✅ FIX: Safe access to messages
               const lastMessage = conv.messages?.[0];
               const messageCount = conv.messages?.length || 0;
+
+              console.log(lastMessage)
+
+              const isOwnMessage = user?.id === (lastMessage?.authorId || lastMessage?.author?.id);
+
+              const message =
+                lastMessage?.messageType === 'CALL' ? (
+                  <>
+                    {lastMessage.callLog?.callType === 'audio' ? (
+                      <span className='flex items-center gap-1'>
+                        {isOwnMessage ? (
+                          <PhoneOutgoing className="h-3 w-3" />
+                        ) : (
+                          <PhoneIncoming className="h-3 w-3" />
+                        )}
+                        <span>Voice Call</span>
+                      </span>
+                    ) : (
+                      <span className='flex items-center gap-1'>
+                        {isOwnMessage ? (
+                          <PhoneOutgoing className="h-3 w-3" />
+                        ) : (
+                          <PhoneIncoming className="h-3 w-3" />
+                        )}
+                        <span>Video Call</span>
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  lastMessage?.message || 'No message'
+                );
 
               return (
                 <div
@@ -157,11 +188,12 @@ const ChatSidebar = ({
                     </div>
 
                     {messageCount > 0 ? (
-                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate flex items-center gap-1">
                         {`${lastMessage?.author?.username === user?.username
                           ? 'You'
                           : lastMessage?.author?.username || 'Unknown'
-                          }: ${lastMessage?.message || 'No message'}`}
+                          }: `}
+                        {message}
                       </p>
                     ) : (
                       <p className="text-sm text-gray-500 dark:text-gray-400">No messages yet</p>

@@ -1,5 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { verifyJWT } from "../utils/jwt";
+import { prisma } from "../configs/prisma.config";
+import { getUserConversationsSorted } from "../controllers/message/SendMessageHandler.controller";
 
 // Store active calls in memory (scoped to this module/namespace)
 const activeCalls = new Map<string, {
@@ -10,6 +12,7 @@ const activeCalls = new Map<string, {
     timestamp: number;
     status: "ringing" | "answered" | "ended";
     participants: Set<string>;
+    conversationId: string;
 }>();
 
 // Track which call each socket belongs to (for disconnect cleanup)
@@ -64,7 +67,7 @@ export function initCallSocket(io: Server) {
         console.log(`[CallSocket] Client connected: ${socket.id}`);
 
         // ─── Call User ───
-        socket.on("call_user", ({ toUserIds, callType, callId }: { toUserIds: string[], callType: "audio" | "video", callId: string }) => {
+        socket.on("call_user", ({ toUserIds, callType, callId, conversationId }: { toUserIds: string[], callType: "audio" | "video", callId: string, conversationId: string }) => {
             const fromUserId = socket.data.userId || userId;
             console.log(`[CallSocket] call_user from ${fromUserId} to ${toUserIds}`);
 
@@ -79,6 +82,7 @@ export function initCallSocket(io: Server) {
                 timestamp: Date.now(),
                 status: "ringing",
                 participants: new Set<string>(),
+                conversationId,
             });
 
             // 1. Emit to Sender (Call Initiated)
@@ -187,7 +191,7 @@ export function initCallSocket(io: Server) {
         });
 
         // ─── End Call (Legacy: ends the entire call for everyone) ───
-        socket.on("call_ended", ({ callId }: { callId: string }) => {
+        socket.on("call_ended", async ({ callId }: { callId: string }) => {
             const fromUserId = socket.data.userId || userId;
             const call = activeCalls.get(callId);
             if (call) {
@@ -205,11 +209,20 @@ export function initCallSocket(io: Server) {
                     type: "call_ended",
                     callId
                 });
+
+                // Create call log message
+                await createCallLogMessage(io, call, call.callerId);
             }
         });
 
-        socket.on("call_rejected", ({ callId }: { callId: string }) => {
+        socket.on("call_rejected", async ({ callId }: { callId: string }) => {
             // Rejection handled from chat socket bridge
+            const call = activeCalls.get(callId);
+            if (call) {
+                const fromUserId = socket.data.userId || userId;
+                activeCalls.delete(callId);
+                await createCallLogMessage(io, call, call.callerId);
+            }
         });
 
         // ─── Disconnect ───
@@ -228,7 +241,7 @@ export function initCallSocket(io: Server) {
 }
 
 // Handles user leaving, ending call if empty, or notifying others
-function handleUserLeaveCall(
+async function handleUserLeaveCall(
     socket: Socket,
     callNamespace: any,
     io: Server,
@@ -261,6 +274,8 @@ function handleUserLeaveCall(
             type: "call_ended",
             callId,
         });
+
+        await createCallLogMessage(io, call, call.callerId);
     } else if (participantList.length === 1) {
         // Only one person left — end the call for them too
         callNamespace.to(callId).emit("call_ended", {
@@ -278,6 +293,8 @@ function handleUserLeaveCall(
             type: "call_ended",
             callId,
         });
+
+        await createCallLogMessage(io, call, call.callerId);
     } else {
         // Others still in the call — notify them
         callNamespace.to(callId).emit("participant_left", {
@@ -285,5 +302,80 @@ function handleUserLeaveCall(
             participants: participantList,
             isGroupCall,
         });
+    }
+}
+
+async function createCallLogMessage(io: Server, call: any, authorId: string) {
+    try {
+        if (!call.conversationId) return;
+
+        const duration = call.status === "answered" ? Math.floor((Date.now() - call.timestamp) / 1000) : 0;
+        const callStatus = call.status === "answered" ? "ended" : "missed";
+
+        // Determine who participated and who missed
+        const joinedParticipants = Array.from(call.participants) as string[];
+        const callLogParticipants = call.recipients.map((userId: string) => ({
+            userId,
+            status: joinedParticipants.includes(userId) ? "joined" : "missed"
+        }));
+
+        const newMsg = await prisma.message.create({
+            data: {
+                conversationId: call.conversationId,
+                authorId: authorId,
+                message: "Call Log",
+                messageType: "CALL",
+                callLog: {
+                    create: {
+                        duration,
+                        status: callStatus,
+                        callType: call.callType,
+                        isGroupCall: call.isGroupCall,
+                        participants: {
+                            create: callLogParticipants
+                        }
+                    }
+                }
+            },
+            include: {
+                author: { select: { id: true, username: true, avatar: true } },
+                conversation: { select: { id: true, type: true, name: true } },
+                reactions: {
+                    include: { user: { select: { id: true, username: true } } },
+                },
+                receipts: {
+                    include: { user: { select: { id: true, username: true } } },
+                },
+                callLog: {
+                    include: {
+                        participants: {
+                            include: { user: { select: { id: true, username: true, avatar: true } } }
+                        }
+                    }
+                }
+            }
+        });
+
+        await prisma.conversation.update({
+            where: { id: call.conversationId },
+            data: { updatedAt: new Date() }
+        });
+
+        // Broadcast to conversation room
+        const roomName = `conv:${call.conversationId}`;
+        io.of("/chat").to(roomName).emit("receive_message", newMsg);
+
+        // Update conversation lists
+        const participants = await prisma.conversationParticipant.findMany({
+            where: { conversationId: call.conversationId },
+            select: { userId: true }
+        });
+
+        for (const p of participants) {
+            const updatedList = await getUserConversationsSorted(prisma as any, p.userId);
+            io.of("/chat").to(p.userId).emit("conversations_updated", updatedList);
+        }
+    } catch (e) {
+        console.error("[CallSocket] Error creating call log message:", e);
     }
 }

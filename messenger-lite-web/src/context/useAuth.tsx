@@ -259,10 +259,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const getMyself = async () => {
+  const getMyself = useCallback(async () => {
     try {
       const response = await axiosInstance.get('auth/user/me');
-      // console.log(response);
       if (response.status === 200) {
         const u = response.data?.results?.userInfo as User | undefined;
         if (u) {
@@ -271,7 +270,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
     } catch { }
-  };
+  }, []);
 
   const remove2FA = async (code?: string) => {
     try {

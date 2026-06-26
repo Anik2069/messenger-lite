@@ -31,7 +31,7 @@ export interface CallState {
 
 export interface CallContextType {
     callState: CallState;
-    startCall: (toUserId: string | string[], type: CallType, callId: string) => void;
+    startCall: (toUserId: string | string[], type: CallType, callId: string, conversationId: string) => void;
     answerCall: (callId: string, type: CallType) => void;
     endCall: () => void;
     leaveCall: () => void;

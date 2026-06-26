@@ -1,11 +1,27 @@
 import { format, isValid } from 'date-fns';
 import { User } from './UserType';
 
-export type MessageKind = 'TEXT' | 'FILE' | 'forwarded' | 'VOICE';
+export type MessageKind = 'TEXT' | 'FILE' | 'forwarded' | 'VOICE' | 'CALL';
 
 export interface MiniUserRef {
   id: string;
   username: string;
+}
+
+export interface CallLogParticipant {
+  id: string;
+  userId: string;
+  status: 'joined' | 'missed';
+  user?: User;
+}
+
+export interface CallLog {
+  id: string;
+  duration: number;
+  status: 'ended' | 'missed';
+  callType: 'audio' | 'video';
+  isGroupCall: boolean;
+  participants: CallLogParticipant[];
 }
 
 export interface FileData {
@@ -76,4 +92,6 @@ export interface Message {
   readBy: ReadReceipt[];
   author?: User;
   createdAt?: string | number | Date;
+  callLog?: CallLog;
+  authorId?: string;
 }

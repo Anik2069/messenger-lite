@@ -72,7 +72,8 @@ const ChatHeader = ({ selectedChat }: ChatHeaderProps) => {
       toUserIds,
       token,
       CALL_SECRET,
-      isCaller: true
+      isCaller: true,
+      conversationId: selectedChat.id
     }
     const base64Payload = base64UrlEncode(payload);
 
@@ -128,7 +129,7 @@ const ChatHeader = ({ selectedChat }: ChatHeaderProps) => {
 
   };
 
-  console.log(selectedChat, "selectedChat")
+  // console.log(selectedChat, "selectedChat")
 
   return (
     <div className="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 flex justify-between items-center">

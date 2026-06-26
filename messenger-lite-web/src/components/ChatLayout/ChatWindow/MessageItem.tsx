@@ -1,7 +1,27 @@
-import { Forward, Smile } from 'lucide-react';
-import { formatLocalTime, Message, FileData } from '../../../types/MessageType';
+import { Forward, PhoneIncoming, PhoneOutgoing, Smile } from 'lucide-react';
+import { FileData, formatLocalTime, Message } from '../../../types/MessageType';
 import FileMessage from './FileMessage';
 import ReactionPicker from './ReactionPicker';
+
+const formatCallDuration = (duration: number) => {
+  if (duration <= 0) return '';
+
+  const hours = Math.floor(duration / 3600);
+  const minutes = Math.floor((duration % 3600) / 60);
+  const seconds = duration % 60;
+
+  if (hours > 0) {
+    // Don't show seconds when duration is 1 hour+
+    return `${hours} hour${hours > 1 ? 's' : ''}${minutes > 0 ? ` ${minutes} min` : ''
+      }`;
+  }
+
+  if (minutes > 0) {
+    return `${minutes} min${seconds > 0 ? ` ${seconds} sec` : ''}`;
+  }
+
+  return `${seconds} sec`;
+};
 
 interface MessageItemProps {
   msg: Message;
@@ -21,6 +41,9 @@ const MessageItem = ({
   setShowReactions,
   onAddReaction,
 }: MessageItemProps) => {
+
+  console.log(msg)
+
   /** Header for group messages */
   const renderMessageHeader = () =>
     isGroupChat && !isOwnMessage ? (
@@ -56,6 +79,54 @@ const MessageItem = ({
     }
 
     const isAudio = file?.mimetype?.startsWith('audio/');
+
+    if (msg.messageType === 'CALL') {
+      const callData = msg.callLog;
+      if (!callData) {
+        return <div className="text-sm italic">Call log unavailable</div>;
+      }
+
+      const isMissed = callData.status === 'missed';
+      const isVideo = callData.callType === 'video';
+
+      let CallIcon = isOwnMessage ? PhoneOutgoing : PhoneIncoming;
+      if (isMissed) CallIcon = isOwnMessage ? PhoneOutgoing : PhoneIncoming;
+
+      const durationText = formatCallDuration(callData.duration);
+
+      const callText = isMissed
+        ? (isOwnMessage ? 'No answer' : 'You missed a call')
+        : durationText
+          ? `${durationText}`
+          : '';
+
+      let participantsDetail = null;
+      if (callData.isGroupCall && callData.participants && callData.participants.length > 0) {
+        const missedUsers = callData.participants.filter(p => p.status === 'missed' && p.user?.username).map(p => p.user?.username);
+        const joinedUsers = callData.participants.filter(p => p.status === 'joined' && p.user?.username).map(p => p.user?.username);
+
+        participantsDetail = (
+          <div className="text-xs opacity-75 mt-1 max-w-[200px]">
+            {joinedUsers.length > 0 && <div>Joined: {joinedUsers.join(', ')}</div>}
+            {missedUsers.length > 0 && <div>Missed: {missedUsers.join(', ')}</div>}
+          </div>
+        );
+      }
+
+      return (
+        <div className="flex items-center gap-2 pr-4">
+          <div className={`p-2 rounded-full ${isMissed ? isOwnMessage ? 'bg-gray-500/50 text-white' : 'bg-gray-500/50 text-red-500' : isOwnMessage ? 'bg-gray-500/50 text-white' : 'bg-gray-500/50 text-gray-300'}`}>
+            <CallIcon className="w-3 h-3" />
+          </div>
+          <div className="flex flex-col ">
+            <span className="text-xs font-medium">{isVideo ? "Video " : "Voice "}Call</span>
+            <span className="text-xs ">{callText}</span>
+            {/* {participantsDetail} */}
+          </div>
+          <div className="w-6 h-2.5 invisible"></div>
+        </div>
+      );
+    }
 
     return (
       <>
