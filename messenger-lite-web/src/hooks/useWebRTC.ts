@@ -1,6 +1,7 @@
 import { useCallback, useRef, useEffect } from 'react';
 import { Socket } from 'socket.io-client';
 import { CallState } from '@/types/call';
+import { TURN_CREDENTIAL, TURN_USERNAME } from '@/constant';
 
 export function useWebRTC(
   callState: CallState,
@@ -64,8 +65,8 @@ export function useWebRTC(
           // },
           {
             urls: ['stun:worknestor.com:3478', 'turn:worknestor.com:3478'],
-            username: 'worknestor',
-            credential: 'e8U.u+EL2Q#kmllJ.Xli',
+            username: TURN_USERNAME,
+            credential: TURN_CREDENTIAL,
           },
         ],
         iceCandidatePoolSize: 5,
