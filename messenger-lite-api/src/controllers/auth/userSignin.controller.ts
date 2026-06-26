@@ -92,7 +92,7 @@ export default function userSignin(io: IOServerWithHelpers) {
           },
         });
 
-        console.log("User signed in:", userInfoPrime);
+        // console.log("User signed in:", userInfoPrime);
         const deviceInfo: DeviceInfo = await trackDevice(req as any);
         let currentDeviceId = null;
 
@@ -133,7 +133,7 @@ export default function userSignin(io: IOServerWithHelpers) {
           }
         }
 
-        console.log(deviceInfo, "deviceInfo");
+        // console.log(deviceInfo, "deviceInfo");
         return sendResponse({
           res,
           statusCode: StatusCodes.OK,

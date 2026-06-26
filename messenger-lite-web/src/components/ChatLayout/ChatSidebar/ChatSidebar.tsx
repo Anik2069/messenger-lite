@@ -13,6 +13,7 @@ import { format, isToday, parseISO } from 'date-fns';
 import { MEDIA_HOST } from '@/constant';
 import AvatarImage from '@/components/reusable/AvatarImage';
 import { Spinner } from '@/components/ui/Spinner';
+import { useGlobalContext } from '@/provider/GlobalContextProvider';
 
 interface ChatSidebarProps {
   groups: Group[];
@@ -29,6 +30,7 @@ const ChatSidebar = ({
 }: ChatSidebarProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const { conversations, fetchConversations, isLoadingConversation } = useConversationStore();
+  const { sidebarClose } = useGlobalContext();
   const { user } = useAuth();
   const { activeStatus, otherStatuses } = useSettings();
 
@@ -106,7 +108,7 @@ const ChatSidebar = ({
               const lastMessage = conv.messages?.[0];
               const messageCount = conv.messages?.length || 0;
 
-              console.log(lastMessage)
+              // console.log(lastMessage)
 
               const isOwnMessage = user?.id === (lastMessage?.authorId || lastMessage?.author?.id);
 
@@ -150,6 +152,7 @@ const ChatSidebar = ({
                       userId: isGroup ? "" : otherParticipant?.id || '',
                       memberIds: isGroup ? participants.map((p) => p.user?.id) : [],
                     });
+                    sidebarClose()
                   }}
                   className={`flex items-center px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${selectedChat?.id === conv.id ||
                     (selectedChat?.userId && otherParticipant?.id === selectedChat.userId)

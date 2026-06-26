@@ -38,7 +38,7 @@ const GetRequestedUsers =
         requestCreatedAt: req.createdAt,
         requestUpdatedAt: req.updatedAt,
       }));
-      console.log(users);
+      // console.log(users);
       return sendResponse({
         res,
         statusCode: StatusCodes.OK,

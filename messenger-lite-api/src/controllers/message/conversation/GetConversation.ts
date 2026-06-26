@@ -16,7 +16,7 @@ export function getConversations(
 
     try {
       const searchTerm = typeof search === "string" ? search : "";
-      console.log(searchTerm, "searchTerm")
+      // console.log(searchTerm, "searchTerm")
 
       const conversations = await prisma.conversation.findMany({
         where: {

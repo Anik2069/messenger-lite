@@ -55,12 +55,12 @@ export async function updateUserPresence(
       lastSeenAt: isOnline ? null : new Date(),
     });
 
-    console.log(
-      `📢 Presence update: User ${userId} is now ${
-        isOnline ? "online" : "offline"
-      }`
-    );
-    console.log(`   → Sent to: self (${userId}) and all other connected users`);
+    // console.log(
+    // `📢 Presence update: User ${userId} is now ${
+    //   isOnline ? "online" : "offline"
+    // }`
+    // );
+    // console.log(`   → Sent to: self (${userId}) and all other connected users`);
 
     // 5) Return updated user info
     const updatedUser = await prisma.user.findUnique({

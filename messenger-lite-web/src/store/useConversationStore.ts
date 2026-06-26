@@ -16,7 +16,7 @@ export const useConversationStore = create<ConversationState>((set, get) => {
   socket.off('conversations_updated');
 
   socket.on('conversations_updated', (conversations: Conversation[]) => {
-    console.log('conversations_updated', conversations);
+    // console.log('conversations_updated', conversations);
     set({ conversations });
   });
 

@@ -22,7 +22,7 @@ interface NavbarProps {
   onSearchClick: () => void;
 }
 
-const Navbar = ({}: NavbarProps) => {
+const Navbar = ({ }: NavbarProps) => {
   const { newDrawerOpen, settingModalOpen, isSidebarOpen, setIsSidebarOpen, addFriendModalOpen, createGroupModalOpen } =
     useGlobalContext();
   const { logout, currentUserDetails } = useAuth();
@@ -62,7 +62,7 @@ const Navbar = ({}: NavbarProps) => {
         </div>
         <div>
           <h1 className="text-sm lg:text-lg font-semibold text-gray-900 dark:text-white">
-            {APP_NAME}
+            {APP_NAME || "Messenger Lite"}
           </h1>
           <p className="text-xs text-gray-500 dark:text-gray-400">{currentUserDetails?.username}</p>
         </div>

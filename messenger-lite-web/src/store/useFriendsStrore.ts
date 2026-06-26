@@ -239,7 +239,7 @@ export const useFriendsStore = create<FriendsState>()(
 
         // Someone sent you a friend request
         const onFriendRequestReceived = ({ request }: FriendRequestPayload) => {
-          console.log('New friend request', request);
+          // console.log('New friend request', request);
           toast.success(`${request.sender.username} sent you a friend request`);
           set((state) => ({
             requestedFriends: [request.sender, ...state.requestedFriends],
@@ -252,7 +252,6 @@ export const useFriendsStore = create<FriendsState>()(
 
         // A friend request you sent or received has been updated
         const onFriendRequestUpdated = ({ request }: FriendRequestPayload) => {
-          console.log();
           set((state) => ({
             requestedFriends: state.requestedFriends.filter((f) => f.id !== request.sender.id),
           }));
@@ -302,7 +301,7 @@ export const useFriendsStore = create<FriendsState>()(
               'Content-Type': 'multipart/form-data',
             },
           });
-          console.log(response)
+          // console.log(response)
           if (response.status === 201) {
             toast.success('Group created successfully!');
             set(() => ({

@@ -199,7 +199,7 @@ const VoiceMessageTest = () => {
 
   const sendRecording = () => {
     if (recordedURL) {
-      console.log('Sending recording:', recordedURL);
+      // console.log('Sending recording:', recordedURL);
       alert('Voice message sent!');
       setRecordedURL(null);
       setSeconds(0);

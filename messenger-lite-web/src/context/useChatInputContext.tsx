@@ -265,7 +265,7 @@ export const ChatInputContextProvider = ({ children }: { children: ReactNode }) 
 
   const sendRecording = () => {
     if (recordedURL) {
-      console.log('Sending recording:', recordedURL);
+      // console.log('Sending recording:', recordedURL);
       // You can implement the actual sending logic here
       setRecordedURL(null);
       setSeconds(0);

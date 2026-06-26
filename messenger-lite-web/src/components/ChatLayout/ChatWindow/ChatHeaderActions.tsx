@@ -44,7 +44,7 @@ const ChatHeaderActions = ({ conversationId, selectedChat }: { conversationId: a
         </DropdownMenuItem> */}
         <DropdownMenuItem onClick={() => {
           openSelectedChatProfile();
-          console.log("Media, link and docs");
+          // console.log("Media, link and docs");
         }}>
           Media, link and docs
         </DropdownMenuItem>
@@ -57,7 +57,7 @@ const ChatHeaderActions = ({ conversationId, selectedChat }: { conversationId: a
           variant="destructive"
           onClick={() => {
             toast.success("Reported");
-            console.log("this is a demo action!");
+            // console.log("this is a demo action!");
           }}
         >
           Report

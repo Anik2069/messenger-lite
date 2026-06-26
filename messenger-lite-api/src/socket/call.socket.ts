@@ -52,7 +52,7 @@ export function initCallSocket(io: Server) {
             userId = id;
             socket.join(userId);
             socket.data.userId = userId;
-            console.log(`[CallSocket] User ${userId} registered/connected`);
+            // console.log(`[CallSocket] User ${userId} registered/connected`);
         });
 
         // If client joins room manually
@@ -64,12 +64,12 @@ export function initCallSocket(io: Server) {
             }
         });
 
-        console.log(`[CallSocket] Client connected: ${socket.id}`);
+        // console.log(`[CallSocket] Client connected: ${socket.id}`);
 
         // ─── Call User ───
         socket.on("call_user", ({ toUserIds, callType, callId, conversationId }: { toUserIds: string[], callType: "audio" | "video", callId: string, conversationId: string }) => {
             const fromUserId = socket.data.userId || userId;
-            console.log(`[CallSocket] call_user from ${fromUserId} to ${toUserIds}`);
+            // console.log(`[CallSocket] call_user from ${fromUserId} to ${toUserIds}`);
 
             if (!fromUserId) return;
 
@@ -96,7 +96,7 @@ export function initCallSocket(io: Server) {
                 fromUserId,
                 timestamp: Date.now()
             });
-            console.log(`[CallSocket] Bridged notification to /chat for ${toUserIds}`);
+            // console.log(`[CallSocket] Bridged notification to /chat for ${toUserIds}`);
         });
 
         // ─── Join Call (User opens call tab) ───
@@ -116,7 +116,7 @@ export function initCallSocket(io: Server) {
                 const participantList = Array.from(call.participants);
                 const isGroupCall = call.isGroupCall;
 
-                console.log(`[CallSocket] User ${id} joined call ${callId} | Participants: ${participantList.length} | Group: ${isGroupCall}`);
+                // console.log(`[CallSocket] User ${id} joined call ${callId} | Participants: ${participantList.length} | Group: ${isGroupCall}`);
 
                 // Notify all users in room about current participants
                 callNamespace.to(callId).emit("participant_joined", {
@@ -139,7 +139,7 @@ export function initCallSocket(io: Server) {
         // ─── Call Answered (Explicit Signal) ───
         socket.on("call_answered", ({ callId }: { callId: string }) => {
             const fromUserId = socket.data.userId || userId;
-            console.log(`[CallSocket] call_answered by ${fromUserId}`);
+            // console.log(`[CallSocket] call_answered by ${fromUserId}`);
 
             const call = activeCalls.get(callId);
             if (call) {
@@ -228,7 +228,7 @@ export function initCallSocket(io: Server) {
         // ─── Disconnect ───
         socket.on("disconnect", () => {
             const fromUserId = socket.data.userId || userId;
-            console.log(`[CallSocket] Disconnected: ${fromUserId} (socket: ${socket.id})`);
+            // console.log(`[CallSocket] Disconnected: ${fromUserId} (socket: ${socket.id})`);
 
             // Look up which call this socket was in
             const callInfo = socketToCall.get(socket.id);
@@ -258,7 +258,7 @@ async function handleUserLeaveCall(
     const participantList = Array.from(call.participants);
     const isGroupCall = call.isGroupCall;
 
-    console.log(`[CallSocket] User ${userId} left call ${callId} | Remaining: ${participantList.length}`);
+    // console.log(`[CallSocket] User ${userId} left call ${callId} | Remaining: ${participantList.length}`);
 
     if (participantList.length === 0) {
         // No one left — clean up the call entirely

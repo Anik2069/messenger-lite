@@ -7,7 +7,6 @@ import sendResponse from "../../libs/sendResponse";
 import getAccessToken from "../../helpers/getAccessToken";
 import type { Request, Response } from "express";
 import { Prisma } from "@prisma/client";
-import { initSocket } from "../../socket copy";
 import { IOServerWithHelpers } from "../../socket/initSocket";
 
 const SALT_ROUNDS = Number(process.env.SALT_ROUNDS || 10);

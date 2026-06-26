@@ -28,7 +28,7 @@ export const copyFile = (from: string, to: string): void => {
 export const moveFile = (from: string, to: string): void => {
   fs.rename(from, to, (err) => {
     if (err) throw err;
-    console.log("Successfully moved!");
+    // console.log("Successfully moved!");
   });
 };
 
@@ -93,12 +93,12 @@ export const invoiceNumber = (prefix = ""): string => {
   const id = `${prefix}-${now.getFullYear()}${(now.getMonth() + 1)
     .toString()
     .padStart(2, "0")}${now.getDate().toString().padStart(2, "0")}-${now
-    .getHours()
-    .toString()
-    .padStart(2, "0")}${now.getMinutes().toString().padStart(2, "0")}${now
-    .getSeconds()
-    .toString()
-    .padStart(2, "0")}-${unique_invoice_number()}`;
+      .getHours()
+      .toString()
+      .padStart(2, "0")}${now.getMinutes().toString().padStart(2, "0")}${now
+        .getSeconds()
+        .toString()
+        .padStart(2, "0")}-${unique_invoice_number()}`;
   return id;
 };
 

@@ -45,7 +45,7 @@ const ProfileSettings = () => {
 
   const handleProfileUpdate = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    console.log('Updating profile:', profileData);
+    // console.log('Updating profile:', profileData);
     const payload = {
       username: profileData.username,
     }
@@ -69,7 +69,7 @@ const ProfileSettings = () => {
       formData.append('profile_pic', profileImageFile);
       await updateProfilePicture(formData);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     } finally {
       setProfileImageFile(null);
       setLoading(false);

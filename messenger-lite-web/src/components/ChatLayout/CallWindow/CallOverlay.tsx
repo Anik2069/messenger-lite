@@ -29,7 +29,7 @@ export default function CallOverlay() {
         const secs = seconds % 60;
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
-    console.log("oooooooooooooooooooooooooooooo", callState)
+    // console.log("oooooooooooooooooooooooooooooo", callState)
 
     return (
         <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col animate-in fade-in duration-300">

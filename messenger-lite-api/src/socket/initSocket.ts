@@ -55,7 +55,7 @@ export const initSocket = (server: any) => {
     const userId = socket.data.userId as string;
     const userSettings = socket.data.userSettings;
 
-    console.log("[ChatSocket] connected:", userId, "Socket ID:", socket.id);
+    // console.log("[ChatSocket] connected:", userId, "Socket ID:", socket.id);
 
     // Initialize device socket with chat namespace
     initDeviceSocket(chatNamespace as any, socket);
@@ -145,14 +145,14 @@ export const initSocket = (server: any) => {
 
     // Handle Call Rejection from Chat Popup
     socket.on("call_rejected", ({ callId, reason }: { callId: string, reason: string }) => {
-      console.log(`[ChatSocket] call_rejected by ${userId} for ${callId}`);
+      // console.log(`[ChatSocket] call_rejected by ${userId} for ${callId}`);
       // Forward to Call Namespace
       io.of("/call").to(callId).emit("call_rejected", { fromUserId: userId, callId, reason });
       // Call namespace handler manages caller notification
     });
 
     socket.on("disconnect", async () => {
-      console.log("[ChatSocket] disconnected:", userId);
+      // console.log("[ChatSocket] disconnected:", userId);
     });
   });
 

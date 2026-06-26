@@ -33,11 +33,11 @@ export function useWebRTC(
   const createPeerConnection = useCallback(
     (peerId: string) => {
       if (peersRef.current.has(peerId)) {
-        console.log(`Peer connection for ${peerId} already exists`);
+        // console.log(`Peer connection for ${peerId} already exists`);
         return peersRef.current.get(peerId)!;
       }
 
-      console.log(`Creating peer connection for ${peerId}`);
+      // console.log(`Creating peer connection for ${peerId}`);
 
       const peer = new RTCPeerConnection({
         iceServers: [
@@ -83,7 +83,7 @@ export function useWebRTC(
 
       // Handle remote stream
       peer.ontrack = (event) => {
-        console.log(`Stream received from ${peerId}`);
+        // console.log(`Stream received from ${peerId}`);
         const [remoteStream] = event.streams;
         dispatch({ type: 'ADD_REMOTE_STREAM', payload: { userId: peerId, stream: remoteStream } });
       };
@@ -99,14 +99,14 @@ export function useWebRTC(
       };
 
       peer.onconnectionstatechange = () => {
-        console.log(`Connection state with ${peerId}:`, peer.connectionState);
+        // console.log(`Connection state with ${peerId}:`, peer.connectionState);
         if (peer.connectionState === 'connected') {
           // In group calls, mark as connected when ANY peer connects
           dispatch({ type: 'SET_CALL_STATUS', payload: 'connected' });
         }
         if (peer.connectionState === 'disconnected' || peer.connectionState === 'failed') {
           // Remove this specific peer, but don't end the entire call
-          console.log(`Peer ${peerId} disconnected/failed. Cleaning up that peer only.`);
+          // console.log(`Peer ${peerId} disconnected/failed. Cleaning up that peer only.`);
           dispatch({ type: 'REMOVE_REMOTE_STREAM', payload: { userId: peerId } });
           peersRef.current.delete(peerId);
 

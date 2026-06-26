@@ -41,7 +41,7 @@ const authRouter = (io: IOServerWithHelpers) => {
   });
   router.get("/:id", requireAuth, async (req, res) => {
     const { id } = req.params;
-    console.log(id);
+    // console.log(id);
 
     const user = await prisma.user.findUnique({
       where: { id: id as string },

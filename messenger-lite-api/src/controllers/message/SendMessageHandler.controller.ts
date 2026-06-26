@@ -102,10 +102,10 @@ export default function createSendMessageController(
         messageType,
         clientTempId,
       } = req.body as any;
-      console.log(req.body, "req.body in send message");
+      // console.log(req.body, "req.body in send message");
       // Files uploaded via multer
       const files = req.files as Express.Multer.File[] | undefined;
-      console.log(files, "llllllllllllllllllllllllllll");
+      // console.log(files, "llllllllllllllllllllllllllll");
 
       let conversationId: string | undefined =
         conversationIdRaw?.trim() || undefined;
@@ -199,7 +199,7 @@ export default function createSendMessageController(
             );
           }
         } else {
-          console.log(message, "text");
+          // console.log(message, "text");
           // Text-only message
           messagesToCreate.push(
             tx.message.create({
@@ -251,9 +251,9 @@ export default function createSendMessageController(
         if (socket.data.userId === userId) {
           const roomName = conversationRoom(createdMessages[0].conversationId);
           socket.join(roomName);
-          console.log(
-            `Joined sender ${userId} (socket ${socket.id}) to conversation room ${roomName}`
-          );
+          // console.log(
+          //   `Joined sender ${userId} (socket ${socket.id}) to conversation room ${roomName}`
+          // );
         }
       }
 

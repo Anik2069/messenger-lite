@@ -47,18 +47,18 @@ const CallInterface = ({ callId }: { callId: string }) => {
       conversationId,
     } = decoded;
 
-    console.log('[CallInterface] Decoded payload:', {
-      callId,
-      payloadCallId,
-      type,
-      toUserIds,
-      token: token ? '***' : undefined,
-      CALL_SECRET: payloadSecret,
-      isCaller,
-      initialLoading,
-      user: user?.id,
-      hasInitialized: hasInitialized.current,
-    });
+    // console.log('[CallInterface] Decoded payload:', {
+    //   callId,
+    //   payloadCallId,
+    //   type,
+    //   toUserIds,
+    //   token: token ? '***' : undefined,
+    //   CALL_SECRET: payloadSecret,
+    //   isCaller,
+    //   initialLoading,
+    //   user: user?.id,
+    //   hasInitialized: hasInitialized.current,
+    // });
 
     // ── Step 2: Validate required fields ──
     if (!payloadCallId || !type || !toUserIds || !token || !payloadSecret) {
@@ -104,10 +104,10 @@ const CallInterface = ({ callId }: { callId: string }) => {
     hasInitialized.current = true;
 
     if (isCaller) {
-      console.log('[CallInterface] Starting call as caller', { toUserIds, type, callId, conversationId });
+      // console.log('[CallInterface] Starting call as caller', { toUserIds, type, callId, conversationId });
       startCall(toUserIds, type, callId, conversationId);
     } else {
-      console.log('[CallInterface] Answering call as callee', { callId, type });
+      // console.log('[CallInterface] Answering call as callee', { callId, type });
       answerCall(callId, type);
     }
   }, [

@@ -44,7 +44,7 @@ export const generate2FA = async (req: Request, res: Response) => {
       data: { twoFASecret: encryptedSecret },
     });
 
-    console.log("2FA secret:", secret, "encryptedSecret:", encryptedSecret);
+    // console.log("2FA secret:", secret, "encryptedSecret:", encryptedSecret);
 
     // Generate QR code
     const qr = await qrcode.toDataURL(secret.otpauth_url!);
@@ -101,7 +101,7 @@ export const verify2FASetup = async (req: Request, res: Response) => {
       token,
       window: 1, // allow ±1 step
     });
-    console.log(verified);
+    // console.log(verified);
     if (!verified) {
       return sendResponse({
         res,
@@ -161,7 +161,7 @@ export const remove2FA = async (req: Request, res: Response) => {
         token,
         window: 1, // allow ±1 step
       });
-      console.log(verified);
+      // console.log(verified);
       if (!verified) {
         return sendResponse({
           res,

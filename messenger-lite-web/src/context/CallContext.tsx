@@ -181,20 +181,20 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
     // ─── Call Initiated (caller confirmation) ───
     socket.on('call_initiated', ({ callId }) => {
-      console.log("Call initiated confirmed:", callId);
+      // console.log("Call initiated confirmed:", callId);
       dispatch({ type: 'SET_CALL_STATUS', payload: 'ringing' });
     });
 
     // ─── Call Answered ───
     // Update call status (peer creation handled by participant_joined)
     socket.on('call_answered', async ({ fromUserId }) => {
-      console.log('Call answered by', fromUserId);
+      // console.log('Call answered by', fromUserId);
       dispatch({ type: 'SET_CALL_STATUS', payload: 'connecting' });
     });
 
     // ─── Existing Participants (sent to joiner on join) ───
     socket.on('existing_participants', async ({ participants, isGroupCall }: { participants: string[], isGroupCall: boolean }) => {
-      console.log('Existing participants in room:', participants, '| Group:', isGroupCall);
+      // console.log('Existing participants in room:', participants, '| Group:', isGroupCall);
       dispatch({ type: 'SET_IS_GROUP_CALL', payload: isGroupCall });
 
       // Create peer connections to all existing participants
@@ -207,7 +207,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
     // ─── Participant Joined (broadcast to all in room) ───
     socket.on('participant_joined', async ({ userId: newUserId, participants, isGroupCall }: { userId: string, participants: string[], isGroupCall: boolean }) => {
-      console.log('Participant joined:', newUserId, '| Total:', participants.length, '| Group:', isGroupCall);
+      // console.log('Participant joined:', newUserId, '| Total:', participants.length, '| Group:', isGroupCall);
 
       dispatch({ type: 'SET_PARTICIPANT_IDS', payload: participants });
       dispatch({ type: 'SET_IS_GROUP_CALL', payload: isGroupCall });
@@ -223,7 +223,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
     // ─── Participant Left (someone left but call continues) ───
     socket.on('participant_left', ({ userId: leftUserId, participants, isGroupCall }: { userId: string, participants: string[], isGroupCall: boolean }) => {
-      console.log('Participant left:', leftUserId, '| Remaining:', participants.length);
+      // console.log('Participant left:', leftUserId, '| Remaining:', participants.length);
 
       dispatch({ type: 'SET_PARTICIPANT_IDS', payload: participants });
       dispatch({ type: 'SET_IS_GROUP_CALL', payload: isGroupCall });
@@ -234,13 +234,13 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
     // ─── Legacy User Joined Call ───
     socket.on('user_joined_call', async ({ userId: newUserId }) => {
-      console.log('User joined call (legacy):', newUserId);
+      // console.log('User joined call (legacy):', newUserId);
       // Handled by participant_joined, kept for backward compat
     });
 
     // ─── Call Ended (entire call terminated) ───
     socket.on('call_ended', ({ fromUserId, callId, reason }) => {
-      console.log('Call ended by', fromUserId, 'callId:', callId, 'reason:', reason);
+      // console.log('Call ended by', fromUserId, 'callId:', callId, 'reason:', reason);
       closePeerConnectionRef.current();
       dispatch({ type: 'RESET_CALL' });
       dispatch({ type: 'SET_END_REASON', payload: reason || 'user_left' });
@@ -255,7 +255,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
     // ─── Call Rejected ───
     socket.on('call_rejected', ({ fromUserId }) => {
-      console.log('Call rejected by', fromUserId);
+      // console.log('Call rejected by', fromUserId);
       dispatch({ type: 'SET_END_REASON', payload: 'rejected' });
       dispatch({ type: 'SET_CALL_STATUS', payload: 'ended' });
       setTimeout(() => window.close(), 2000);
@@ -342,7 +342,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     channel.close();
 
     // Join room first to ensure we receive call_answered broadcast
-    console.log('[CallContext] answerCall: joining room before call_answered', { callId, userId: user?.id });
+    // console.log('[CallContext] answerCall: joining room before call_answered', { callId, userId: user?.id });
     joinedCallIdRef.current = callId;
     socket.emit('join_call', { callId, userId: user?.id });
 
@@ -410,7 +410,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
         channel.postMessage({ type: 'CALL_STATUS_RESPONSE', callId: state.callId, userId: user.id });
       }
       if (event.data.type === 'FORCE_CLOSE_CALL') {
-        console.log("Force closing call from other tab");
+        // console.log("Force closing call from other tab");
         leaveCall();
       }
     };

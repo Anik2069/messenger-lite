@@ -42,7 +42,7 @@ const MessageItem = ({
   onAddReaction,
 }: MessageItemProps) => {
 
-  console.log(msg)
+  // console.log(msg)
 
   /** Header for group messages */
   const renderMessageHeader = () =>

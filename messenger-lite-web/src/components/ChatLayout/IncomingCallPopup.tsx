@@ -39,7 +39,7 @@ export default function IncomingCallPopup() {
         // Listen for generic notifications that are calls
         socket.on('notification', (data: any) => {
             if (data.type === 'incoming_call') {
-                console.log("Incoming call received via chat notification:", data);
+                // console.log("Incoming call received via chat notification:", data);
 
                 // If we are the caller (e.g. testing with self), ignore? No, we might be calling ourselves?
 

@@ -23,7 +23,7 @@ export default function userLogout(io: IOServerWithHelpers) {
     let userId: string | undefined;
 
     try {
-      console.log("Processing logout request");
+      // console.log("Processing logout request");
       const cookieToken = (req as any).cookies?.accessToken as
         | string
         | undefined;
@@ -35,7 +35,7 @@ export default function userLogout(io: IOServerWithHelpers) {
         try {
           const payload = verifyJWT<{ id: string }>(token);
           userId = payload?.id;
-        } catch {}
+        } catch { }
       }
       if (!userId)
         throw Error(`No user ID found in JWT token ${JSON.stringify(token)}!`);

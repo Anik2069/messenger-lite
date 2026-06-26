@@ -250,7 +250,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         token: codeFrom2FA,
       });
       if (response.status === 200) {
-        console.log(response.data?.results);
+        // console.log(response.data?.results);
         setVerified(true);
         await getMyself();
       }
@@ -409,7 +409,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUserTrustedDevices(response.data?.results);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     } finally {
       setIsLoadingUserTrustedDevices(false);
     }

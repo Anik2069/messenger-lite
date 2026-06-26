@@ -39,7 +39,7 @@ const ChangePassword = () => {
 
   const onSubmit = async (data: PasswordFormData) => {
     try {
-      console.log('Password Update:', data);
+      // console.log('Password Update:', data);
       const { confirmPassword, currentPassword } = data;
       const response = await changePassword(currentPassword, confirmPassword);
       if (response?.statusCode === 200) {

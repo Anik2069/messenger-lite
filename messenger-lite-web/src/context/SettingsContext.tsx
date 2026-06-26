@@ -55,7 +55,7 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
 
     // Handle presence updates of other users
     const handlePresenceUpdate = (status: Status) => {
-      console.log('update other presence');
+      // console.log('update other presence');
       if (status.userId !== userId) {
         setOtherStatuses((prev) => ({
           ...prev,
