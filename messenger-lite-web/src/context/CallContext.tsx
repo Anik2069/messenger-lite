@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react';
+
 import { CallState, CallContextType, CallType, CallStatus } from '@/types/call';
 import { getCallSocket, disconnectCallSocket } from '@/lib/callSocket';
 import { useWebRTC } from '@/hooks/useWebRTC';
@@ -121,6 +122,28 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     handleIceCandidate
   } = useWebRTC(state, dispatch, socket);
 
+  const createPeerConnectionRef = useRef(createPeerConnection);
+  const closePeerConnectionRef = useRef(closePeerConnection);
+  const createOfferRef = useRef(createOffer);
+  const handleOfferRef = useRef(handleOffer);
+  const handleAnswerRef = useRef(handleAnswer);
+  const handleIceCandidateRef = useRef(handleIceCandidate);
+  const stateRef = useRef(state);
+  const userRef = useRef(user);
+  // Track whether we've already joined the call room to avoid duplicate join_call emissions
+  const joinedCallIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    createPeerConnectionRef.current = createPeerConnection;
+    closePeerConnectionRef.current = closePeerConnection;
+    createOfferRef.current = createOffer;
+    handleOfferRef.current = handleOffer;
+    handleAnswerRef.current = handleAnswer;
+    handleIceCandidateRef.current = handleIceCandidate;
+    stateRef.current = state;
+    userRef.current = user;
+  });
+
   // Helper to initialize media
   const initMedia = useCallback(async (type: CallType = 'audio') => {
     try {
@@ -151,13 +174,13 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Main socket event wiring
+  // NOTE: join_call is now emitted synchronously inside startCall/answerCall
+  // to avoid the race condition where call_user/call_answered fires before
+  // the user has joined the socket room.
+
+  // Main socket event wiring — register listeners ONCE
   useEffect(() => {
     if (!socket.connected) socket.connect();
-
-    if (state.callId && user?.id) {
-      socket.emit("join_call", { callId: state.callId, userId: user.id });
-    }
 
     // ─── Call Initiated (caller confirmation) ───
     socket.on('call_initiated', ({ callId }) => {
@@ -166,15 +189,12 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     });
 
     // ─── Call Answered (someone answered) ───
+    // NOTE: Peer creation is handled by participant_joined (which fires first
+    // because join_call is emitted before call_answered). This handler only
+    // updates the call status.
     socket.on('call_answered', async ({ fromUserId }) => {
       console.log('Call answered by', fromUserId);
       dispatch({ type: 'SET_CALL_STATUS', payload: 'connecting' });
-
-      const peer = createPeerConnection(fromUserId);
-      if (peer && state.caller?.id === user?.id) {
-        console.log("I am caller, creating offer for", fromUserId);
-        await createOffer(fromUserId);
-      }
     });
 
     // ─── Existing Participants (sent to joiner on join) ───
@@ -184,8 +204,8 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
       // Create peer connections to all existing participants
       for (const peerId of participants) {
-        if (peerId !== user?.id) {
-          createPeerConnection(peerId);
+        if (peerId !== userRef.current?.id) {
+          createPeerConnectionRef.current(peerId);
         }
       }
     });
@@ -198,10 +218,10 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'SET_IS_GROUP_CALL', payload: isGroupCall });
 
       // If a NEW user joined (not me), create a peer connection and send offer
-      if (newUserId !== user?.id) {
-        const peer = createPeerConnection(newUserId);
+      if (newUserId !== userRef.current?.id) {
+        const peer = createPeerConnectionRef.current(newUserId);
         if (peer) {
-          await createOffer(newUserId);
+          await createOfferRef.current(newUserId);
         }
       }
     });
@@ -214,7 +234,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'SET_IS_GROUP_CALL', payload: isGroupCall });
 
       // Close the peer connection for the user who left
-      closePeerConnection(leftUserId);
+      closePeerConnectionRef.current(leftUserId);
     });
 
     // ─── User Joined Call (legacy, still used for initial handshake) ───
@@ -226,13 +246,13 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     // ─── Call Ended (entire call terminated) ───
     socket.on('call_ended', ({ fromUserId, callId, reason }) => {
       console.log('Call ended by', fromUserId, 'callId:', callId, 'reason:', reason);
-      closePeerConnection();
+      closePeerConnectionRef.current();
       dispatch({ type: 'RESET_CALL' });
       dispatch({ type: 'SET_END_REASON', payload: reason || 'user_left' });
       dispatch({ type: 'SET_CALL_STATUS', payload: 'ended' });
 
       const channel = new BroadcastChannel('messenger_call_state');
-      channel.postMessage({ type: 'CALL_ENDED', userId: user?.id });
+      channel.postMessage({ type: 'CALL_ENDED', userId: userRef.current?.id });
       channel.close();
 
       setTimeout(() => window.close(), 2000);
@@ -257,18 +277,18 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
 
     // ─── WebRTC Signals ───
     socket.on('webrtc_offer', async ({ sdp, fromUserId }) => {
-      const peer = createPeerConnection(fromUserId);
+      const peer = createPeerConnectionRef.current(fromUserId);
       if (peer) {
-        await handleOffer(sdp, fromUserId);
+        await handleOfferRef.current(sdp, fromUserId);
       }
     });
 
     socket.on('webrtc_answer', async ({ sdp, fromUserId }) => {
-      await handleAnswer(sdp, fromUserId);
+      await handleAnswerRef.current(sdp, fromUserId);
     });
 
     socket.on('webrtc_ice_candidate', async ({ candidate, fromUserId }) => {
-      await handleIceCandidate(candidate, fromUserId);
+      await handleIceCandidateRef.current(candidate, fromUserId);
     });
 
     return () => {
@@ -286,7 +306,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       socket.off('webrtc_answer');
       socket.off('webrtc_ice_candidate');
     };
-  }, [state.callId, user?.id, createPeerConnection, createOffer, handleOffer, handleAnswer, handleIceCandidate, closePeerConnection, state.caller?.id, socket]);
+  }, [socket]);
 
   // ─── Start Call ───
   const startCall = useCallback(async (toUserId: string | string[], type: CallType, callId: string) => {
@@ -296,6 +316,10 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_CALL_ID', payload: callId });
     dispatch({ type: 'SET_CALL_TYPE', payload: type });
     dispatch({ type: 'SET_CALLER', payload: { id: user?.id } });
+
+    // Join the call room FIRST so we receive all broadcasts (e.g. call_answered)
+    joinedCallIdRef.current = callId;
+    socket.emit('join_call', { callId, userId: user?.id });
 
     socket.emit('call_user', {
       toUserIds: Array.isArray(toUserId) ? toUserId : [toUserId],
@@ -321,6 +345,12 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     channel.postMessage({ type: 'CALL_STARTED', callId, userId: user?.id });
     channel.close();
 
+    // CRITICAL: Join room FIRST so we receive call_answered broadcast back
+    console.log('[CallContext] answerCall: joining room before call_answered', { callId, userId: user?.id });
+    joinedCallIdRef.current = callId;
+    socket.emit('join_call', { callId, userId: user?.id });
+
+    // Now emit call_answered — we are guaranteed to be in the room
     socket.emit('call_answered', { callId });
   }, [initMedia, socket, user?.id]);
 
@@ -333,6 +363,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       state.localStream.getTracks().forEach(track => track.stop());
     }
     closePeerConnection();
+    joinedCallIdRef.current = null;
     dispatch({ type: 'RESET_CALL' });
 
     const channel = new BroadcastChannel('messenger_call_state');
@@ -351,6 +382,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       state.localStream.getTracks().forEach(track => track.stop());
     }
     closePeerConnection();
+    joinedCallIdRef.current = null;
     dispatch({ type: 'RESET_CALL' });
 
     const channel = new BroadcastChannel('messenger_call_state');
