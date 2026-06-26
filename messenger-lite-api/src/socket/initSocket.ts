@@ -57,10 +57,7 @@ export const initSocket = (server: any) => {
 
     console.log("[ChatSocket] connected:", userId, "Socket ID:", socket.id);
 
-    // Provide io instance with helpers to legacy functions if needed
-    // But notice `initDeviceSocket` might expect the main io or a namespace. 
-    // If device socket tracks global presence, it might need to match this namespace.
-    // For now, we pass `chatNamespace` as `io`.
+    // Initialize device socket with chat namespace
     initDeviceSocket(chatNamespace as any, socket);
 
     socket.join(userId);
@@ -151,8 +148,7 @@ export const initSocket = (server: any) => {
       console.log(`[ChatSocket] call_rejected by ${userId} for ${callId}`);
       // Forward to Call Namespace
       io.of("/call").to(callId).emit("call_rejected", { fromUserId: userId, callId, reason });
-      // Also notify caller specifically if they are reachable? 
-      // The call namespace handler should handle it.
+      // Call namespace handler manages caller notification
     });
 
     socket.on("disconnect", async () => {

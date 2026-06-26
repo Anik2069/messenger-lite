@@ -1,20 +1,18 @@
 import { PrismaClient } from "@prisma/client";
 import { Router } from "express";
-import type { IOServerWithHelpers } from "../../../socket/initSocket";
+import { getConversations } from "../../../controllers/message/conversation/GetConversation";
+import getConversationMediaController from "../../../controllers/message/getConversationMedia.controller";
+import getMessagesController from "../../../controllers/message/getMessage/getMessages.controller";
+import clearMessagesForFriend from "../../../controllers/message/messageClear.controller";
 import SendMessageHandler from "../../../controllers/message/SendMessageHandler.controller";
 import requireAuth from "../../../middlewares/requireAuth";
-import { getConversations } from "../../../controllers/message/conversation/GetConversation";
-import CreateGroupConversation from "../../../controllers/group/CreateGroupConversation.controller";
-import getMessagesController from "../../../controllers/message/getMessage/getMessages.controller";
 import { upload } from "../../../middlewares/upload.middleware";
-import clearMessagesForFriend from "../../../controllers/message/messageClear.controller";
-import getConversationMediaController from "../../../controllers/message/getConversationMedia.controller";
+import type { IOServerWithHelpers } from "../../../socket/initSocket";
 
 const messagesRouter = (io: IOServerWithHelpers) => {
   const prisma = new PrismaClient();
   const router = Router();
 
-  // Send message (TEXT, FILE, "forwarded") with duplicate-free handling
   router.post(
     "/",
     requireAuth,
@@ -22,14 +20,8 @@ const messagesRouter = (io: IOServerWithHelpers) => {
     SendMessageHandler(io, prisma)
   );
 
-  // Get all conversations
   router.get("/conversations", requireAuth, getConversations(io, prisma));
 
-  // Create a new group conversation
-
-
-
-  // Get messages of a conversation
   router.get("/:conversationId", requireAuth, getMessagesController(prisma));
 
   router.delete(
@@ -38,7 +30,6 @@ const messagesRouter = (io: IOServerWithHelpers) => {
     clearMessagesForFriend(prisma)
   );
 
-  // Get media files (images/videos) from a conversation
   router.get(
     "/:conversationId/media",
     requireAuth,

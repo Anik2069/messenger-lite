@@ -174,10 +174,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // NOTE: join_call is now emitted synchronously inside startCall/answerCall
-  // to avoid the race condition where call_user/call_answered fires before
-  // the user has joined the socket room.
-
+  // Join call room synchronously to avoid race conditions
   // Main socket event wiring — register listeners ONCE
   useEffect(() => {
     if (!socket.connected) socket.connect();
@@ -188,10 +185,8 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'SET_CALL_STATUS', payload: 'ringing' });
     });
 
-    // ─── Call Answered (someone answered) ───
-    // NOTE: Peer creation is handled by participant_joined (which fires first
-    // because join_call is emitted before call_answered). This handler only
-    // updates the call status.
+    // ─── Call Answered ───
+    // Update call status (peer creation handled by participant_joined)
     socket.on('call_answered', async ({ fromUserId }) => {
       console.log('Call answered by', fromUserId);
       dispatch({ type: 'SET_CALL_STATUS', payload: 'connecting' });
@@ -217,7 +212,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       dispatch({ type: 'SET_PARTICIPANT_IDS', payload: participants });
       dispatch({ type: 'SET_IS_GROUP_CALL', payload: isGroupCall });
 
-      // If a NEW user joined (not me), create a peer connection and send offer
+      // Create peer connection and send offer to new user
       if (newUserId !== userRef.current?.id) {
         const peer = createPeerConnectionRef.current(newUserId);
         if (peer) {
@@ -237,10 +232,10 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       closePeerConnectionRef.current(leftUserId);
     });
 
-    // ─── User Joined Call (legacy, still used for initial handshake) ───
+    // ─── Legacy User Joined Call ───
     socket.on('user_joined_call', async ({ userId: newUserId }) => {
       console.log('User joined call (legacy):', newUserId);
-      // This is handled by participant_joined now, but keep for backward compat
+      // Handled by participant_joined, kept for backward compat
     });
 
     // ─── Call Ended (entire call terminated) ───
@@ -323,7 +318,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
       callId,
     });
 
-    // Join the call room after call_user so the server has the call in activeCalls
+    // Join call room after call_user so server has call in activeCalls
     joinedCallIdRef.current = callId;
     socket.emit('join_call', { callId, userId: user?.id });
 
@@ -345,12 +340,11 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
     channel.postMessage({ type: 'CALL_STARTED', callId, userId: user?.id });
     channel.close();
 
-    // CRITICAL: Join room FIRST so we receive call_answered broadcast back
+    // Join room first to ensure we receive call_answered broadcast
     console.log('[CallContext] answerCall: joining room before call_answered', { callId, userId: user?.id });
     joinedCallIdRef.current = callId;
     socket.emit('join_call', { callId, userId: user?.id });
 
-    // Now emit call_answered — we are guaranteed to be in the room
     socket.emit('call_answered', { callId });
   }, [initMedia, socket, user?.id]);
 
@@ -395,7 +389,7 @@ export function CallProvider({ children }: { children: React.ReactNode }) {
   // Handle unload to clean up
   useEffect(() => {
     const handleBeforeUnload = () => {
-      // Use leaveCall behavior (graceful) rather than endCall (force everyone out)
+      // Gracefully leave call on unload
       if (state.callId) {
         socket.emit('leave_call', { callId: state.callId });
       }

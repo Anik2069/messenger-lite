@@ -19,8 +19,7 @@ export function initCallSocket(io: Server) {
     const callNamespace = io.of("/call");
 
     // ─── Auth Middleware ───
-    // Mirrors the /chat namespace: reject connections without a valid JWT.
-    // This ensures socket.data.userId is always set from the verified token.
+    // Reject connections without a valid JWT
     callNamespace.use(async (socket, next) => {
         const token =
             socket.handshake.auth?.token ||
@@ -42,8 +41,7 @@ export function initCallSocket(io: Server) {
     });
 
     callNamespace.on("connection", (socket: Socket) => {
-        // userId is set by auth middleware via socket.data.userId (verified JWT).
-        // The local mutable `userId` allows handlers like 'register' to override it.
+        // Local userId variable allows override by register event
         let userId: string = socket.data.userId;
 
         // Register user identity
@@ -116,14 +114,14 @@ export function initCallSocket(io: Server) {
 
                 console.log(`[CallSocket] User ${id} joined call ${callId} | Participants: ${participantList.length} | Group: ${isGroupCall}`);
 
-                // Notify ALL users in the room (including the joiner) about current participants
+                // Notify all users in room about current participants
                 callNamespace.to(callId).emit("participant_joined", {
                     userId: id,
                     participants: participantList,
                     isGroupCall,
                 });
 
-                // Also tell the joining user who's already there (so they can create peer connections)
+                // Tell joining user who is already there for peer connections
                 socket.emit("existing_participants", {
                     participants: participantList.filter(p => p !== id),
                     isGroupCall,
@@ -229,10 +227,7 @@ export function initCallSocket(io: Server) {
     });
 }
 
-/**
- * Handle a user leaving a call (either voluntarily or via disconnect).
- * If other participants remain, the call continues. If no one is left, the call is cleaned up.
- */
+// Handles user leaving, ending call if empty, or notifying others
 function handleUserLeaveCall(
     socket: Socket,
     callNamespace: any,
